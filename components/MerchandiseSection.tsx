@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import Order from './Order';
 import ChatAdmin from './ChatAdmin';
 import MerchandiseCard, { PixelBorder } from './MerchandiseCard';
@@ -54,6 +55,15 @@ export default function MerchandiseSection() {
           <p className="text-white font-semibold text-lg leading-relaxed">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
           </p>
+
+          <div className="mt-8">
+            <Link
+              href="/merchandise"
+              className="inline-flex items-center justify-center bg-arcade-yellow px-6 py-3 font-display text-lg font-bold text-arcade-ink shadow-[6px_6px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[3px_3px_0_var(--arcade-yellow-shadow)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
+            >
+              Lihat Semua Merchandise
+            </Link>
+          </div>
         </div>
       </div>
 
