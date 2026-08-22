@@ -31,7 +31,9 @@ describe("Hero", () => {
 
     it("renders the primary call-to-action button", () => {
       render(<Hero />);
-      const cta = screen.getByRole("button", { name: /let's explore/i });
+      const cta = screen.getByRole("button", {
+        name: new RegExp(HERO_CONTENT.ctaLabel, "i"),
+      });
       expect(cta).toBeInTheDocument();
     });
   });
@@ -42,7 +44,11 @@ describe("Hero", () => {
       const onExplore = jest.fn();
 
       render(<Hero onExplore={onExplore} />);
-      await user.click(screen.getByRole("button", { name: /let's explore/i }));
+      await user.click(
+        screen.getByRole("button", {
+          name: new RegExp(HERO_CONTENT.ctaLabel, "i"),
+        }),
+      );
 
       expect(onExplore).toHaveBeenCalledTimes(1);
     });
@@ -51,7 +57,11 @@ describe("Hero", () => {
       const user = userEvent.setup();
 
       render(<Hero />);
-      await user.click(screen.getByRole("button", { name: /let's explore/i }));
+      await user.click(
+        screen.getByRole("button", {
+          name: new RegExp(HERO_CONTENT.ctaLabel, "i"),
+        }),
+      );
 
       expect(logSpy).toHaveBeenCalledWith(
         "Hero CTA clicked:",
@@ -63,7 +73,9 @@ describe("Hero", () => {
       const user = userEvent.setup();
 
       render(<Hero />);
-      const cta = screen.getByRole("button", { name: /let's explore/i });
+      const cta = screen.getByRole("button", {
+        name: new RegExp(HERO_CONTENT.ctaLabel, "i"),
+      });
 
       await expect(user.click(cta)).resolves.not.toThrow();
     });

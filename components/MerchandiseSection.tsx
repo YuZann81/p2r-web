@@ -53,7 +53,7 @@ export default function MerchandiseSection() {
             Detail<br />Merchandise
           </h2>
           <p className="text-white font-semibold text-lg leading-relaxed">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            Koleksi merchandise resmi edisi Cyber Arcade: kaos eksklusif, gantungan kunci, lanyard, stiker pack, dan aksesori resmi Pixel To Reality.
           </p>
 
           <div className="mt-8">

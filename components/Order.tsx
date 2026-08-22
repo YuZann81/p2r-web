@@ -34,14 +34,14 @@ export default function OrderModal({ onClose }) {
           
           <div className="flex flex-col justify-center text-white">
             <h2 className="text-[#F4EA2A] text-3xl md:text-4xl font-bold mb-4 drop-shadow-md font-pixel">
-              Name Product
+              Official P2R Merchandise
             </h2>
             <p className="text-white/90 text-sm md:text-base leading-relaxed mb-6 font-medium">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+              Merchandise eksklusif edisi resmi Pixel To Reality. Pesan sekarang dan dukung karya pameran Cyber Arcade.
             </p>
             <div>
               <span className="inline-block border border-white/50 text-white px-5 py-2 rounded-full text-sm font-semibold tracking-wide">
-                Price : Rp. 12.000.00
+                Price : Info via Admin
               </span>
             </div>
           </div>

@@ -8,17 +8,17 @@ export const BRAND_NAME = "Pixels to Reality";
 
 export const HERO_CONTENT = {
   heading:
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+    "Pixels to Reality: The Cyber Arcade — Pameran Karya Teknologi & Game Interaktif Siswa RPL.",
   subheading:
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-  ctaLabel: "Let's explore",
+    "Eksplorasi ragam inovasi perangkat lunak, game retro arcade, web, dan sistem IoT buatan siswa Rekayasa Perangkat Lunak. Mainkan gamenya, dukung karya terbaik, dan rasakan pengalaman pameran interaktif masa depan.",
+  ctaLabel: "Jelajahi Karya",
 } as const;
 
 export const ABOUT_MARQUEE_TEXT = "Chapter 2 About Software Engineering";
 
 export const ABOUT_CONTENT = {
   headingLines: ["Welcome to major", "Software Engineering"],
-  body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+  body: "Rekayasa Perangkat Lunak (RPL) adalah kompetensi keahlian yang berfokus pada rekayasa software, pembuatan game interaktif, aplikasi web & mobile, serta inovasi teknologi digital. Kami mewujudkan baris kode menjadi karya nyata yang berdampak.",
   emblem: {
     src: "/images/rpl-emblem.png",
     alt: "RPL (Rekayasa Perangkat Lunak) pixel-art emblem featuring a globe, Java logo, and binary code",
@@ -48,8 +48,8 @@ export type Investor = {
 
 export const FOOTER_CONTENT = {
   heading: "Our Investors",
-  body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-  copyright: "© 2026 Lorem ipsum dolor sit amet",
+  body: "Apresiasi setinggi-tingginya kepada para mitra industri, sponsor, dan pendukung yang berkolaborasi menyukseskan pameran Pixel To Reality: The Cyber Arcade.",
+  copyright: "© 2026 Pixel To Reality. All rights reserved.",
   investors: [
     {
       id: "agate",
@@ -81,23 +81,23 @@ export const FOOTER_CONTENT = {
 export const GAMES: readonly Game[] = [
   {
     id: "game-1",
-    name: "Name of Game",
+    name: "Cyber Runner 2099",
     description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "Game arcade endless runner berkecepatan tinggi dengan nuansa visual cyberpunk neon. Hindari rintangan siber dan raih skor tertinggi!",
     image: "/images/game-1.png",
-    imageAlt: "image game",
+    imageAlt: "Cyber Runner 2099 game artwork",
     logo: "/images/game-1-logo.png",
-    logoAlt: "logo game",
+    logoAlt: "Cyber Runner 2099 logo",
   },
   {
     id: "game-2",
-    name: "Name of Game",
+    name: "Byte Defender",
     description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "Game arcade shooter strategi untuk melindungi server inti dari gelombang malware dan bug digital dalam pertarungan piksel yang intens.",
     image: "/images/game-2.png",
-    imageAlt: "image game",
+    imageAlt: "Byte Defender game artwork",
     logo: "/images/game-2-logo.png",
-    logoAlt: "logo game",
+    logoAlt: "Byte Defender logo",
   },
 ] as const;
 
