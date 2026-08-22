@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import type { Product } from '@/lib/api/types/product';
 import { fetchProducts } from '@/lib/api/products';
 import Order from './Order';
-import ChatAdmin from './ChatAdmin';
 import MerchandiseCard, { PixelBorder } from './MerchandiseCard';
 import { useAuth } from '@/lib/auth/auth-context';
 
@@ -19,7 +18,6 @@ function MerchandiseSectionContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isOrderOpen, setIsOrderOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -145,25 +143,12 @@ function MerchandiseSectionContent() {
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => setIsChatOpen(true)}
-        aria-label="Buka Chat Admin"
-        className="fixed bottom-8 right-8 w-16 h-16 bg-white rounded-full flex items-center justify-center drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)] hover:scale-105 active:scale-95 transition-all z-40 outline-none cursor-pointer"
-      >
-        <svg className="w-8 h-8 text-arcade-ink" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 3c-4.97 0-9 3.358-9 7.5 0 2.38 1.34 4.5 3.38 5.82-.18 1.76-1.19 3.51-1.28 3.66a.75.75 0 00.98 1.05c2.31-1.33 4.14-2.58 5.09-3.23.6.07 1.21.1 1.83.1 4.97 0 9-3.358 9-7.5S16.97 3 12 3z" />
-        </svg>
-      </button>
-
       {isOrderOpen && (
         <Order
           product={selectedProduct}
           onClose={handleCloseOrder}
         />
       )}
-      {isChatOpen && <ChatAdmin onClose={() => setIsChatOpen(false)} />}
-
     </section>
   );
 }

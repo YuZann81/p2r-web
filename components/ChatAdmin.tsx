@@ -28,6 +28,17 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Close modal when pressing Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   // Load chat history on mount
   useEffect(() => {
     let isMounted = true;
@@ -131,9 +142,9 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
       aria-label="Live Chat Admin CS"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 font-body"
     >
-      <div className="relative w-full max-w-xl bg-[#5b2be6]/95 backdrop-blur-2xl border border-white/20 rounded-3xl overflow-hidden shadow-2xl flex flex-col h-[560px]">
+      <div className="relative w-full max-w-xl max-h-[85vh] h-[550px] bg-[#5b2be6]/95 backdrop-blur-2xl border border-white/20 rounded-3xl overflow-hidden shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="bg-white/95 px-6 py-4 flex justify-between items-center border-b border-black/10">
+        <div className="bg-white/95 px-6 py-4 flex justify-between items-center border-b border-black/10 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-arcade-violet text-arcade-yellow font-display font-bold text-lg">
               CS
@@ -151,7 +162,7 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
           <button
             type="button"
             onClick={onClose}
-            aria-label="Tutup live chat"
+            aria-label="Tutup modal chat"
             className="text-arcade-ink/80 hover:text-red-600 transition-colors p-1.5 rounded-lg hover:bg-black/5 cursor-pointer font-mono font-bold text-lg"
           >
             ✕
@@ -202,7 +213,7 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
         </div>
 
         {/* Footer / Input Area */}
-        <div className="p-4 border-t border-white/15 bg-black/30">
+        <div className="p-4 border-t border-white/15 bg-black/30 flex-shrink-0">
           {isAuthenticated ? (
             <form onSubmit={handleSend} className="flex items-center gap-2">
               <input
