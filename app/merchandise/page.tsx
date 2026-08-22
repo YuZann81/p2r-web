@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import MerchandiseCatalog from "@/components/MerchandiseCatalog";
+import { fetchProducts } from "@/lib/api/products";
 
 export const metadata: Metadata = {
   title: "Katalog Merchandise — Pixels to Reality",
@@ -7,17 +9,19 @@ export const metadata: Metadata = {
     "Katalog merchandise resmi dan produk dana usaha Pixel To Reality. Dapatkan merchandise eksklusif pameran!",
 };
 
-export default function MerchandisePage() {
+export default async function MerchandisePage() {
+  const products = await fetchProducts();
+
   return (
     <main
-      className="flex min-h-screen flex-col items-center justify-between px-6 py-12 md:px-12 md:py-16"
+      className="flex min-h-screen flex-col justify-between px-6 py-12 md:px-12 md:py-16"
       style={{
         background:
           "linear-gradient(160deg, var(--arcade-violet) 0%, var(--arcade-purple) 100%)",
       }}
     >
-      <div className="w-full max-w-5xl">
-        <header className="mb-10 text-center">
+      <div className="mx-auto w-full max-w-6xl">
+        <header className="mb-14 text-center md:mb-20">
           <Link
             href="/"
             className="inline-block font-display text-sm uppercase tracking-wider text-arcade-yellow transition-opacity hover:opacity-80 md:text-base"
@@ -27,30 +31,24 @@ export default function MerchandisePage() {
           <h1 className="mt-4 font-display text-4xl text-arcade-yellow [text-shadow:3px_3px_0_var(--arcade-ink)] sm:text-5xl md:text-6xl">
             KATALOG MERCHANDISE
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base text-white/90 sm:text-lg">
-            Koleksi merchandise resmi dan produk dana usaha pameran Pixel To Reality.
+          <p className="mx-auto mt-4 max-w-2xl text-base font-semibold leading-relaxed text-pretty text-white/90 sm:text-lg">
+            Koleksi merchandise resmi dan produk dana usaha pameran Pixel To Reality. Pesan merchandise favoritmu dan dukung karya siswa RPL!
           </p>
         </header>
 
-        <section
-          aria-label="Merchandise Catalog Skeleton"
-          className="rounded-xl border-2 border-dashed border-arcade-yellow/40 bg-black/20 p-8 text-center backdrop-blur-xs md:p-16"
-        >
-          <div className="mx-auto max-w-md space-y-4">
-            <span className="inline-block rounded-full bg-arcade-yellow/20 px-4 py-1 font-display text-sm tracking-wide text-arcade-yellow">
-              Phase 1 — Route Skeleton
-            </span>
-            <h2 className="font-display text-2xl text-white sm:text-3xl">
-              Official Merchandise Catalog
-            </h2>
-            <p className="text-sm leading-relaxed text-white/70">
-              Struktur route siap untuk integrasi katalog produk, filter kategori, detail produk, dan alur pemesanan pada phase berikutnya.
-            </p>
-          </div>
-        </section>
+        <MerchandiseCatalog products={products} />
+
+        <div className="mt-20 flex justify-center md:mt-28">
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center bg-arcade-yellow px-8 py-3 font-display text-lg font-bold text-arcade-ink shadow-[6px_6px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[3px_3px_0_var(--arcade-yellow-shadow)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
+          >
+            Kembali ke Beranda
+          </Link>
+        </div>
       </div>
 
-      <footer className="mt-12 text-center font-display text-xs text-white/50">
+      <footer className="mt-16 text-center font-display text-xs text-white/50">
         Pixel To Reality: The Cyber Arcade
       </footer>
     </main>
