@@ -78,7 +78,7 @@ describe("MerchandiseSection & Components", () => {
       expect(screen.getByText("Price : Rp 35.000")).toBeInTheDocument()
     })
 
-    it("renders neutral 'Price : Info via Admin' when price is null or zero", () => {
+    it("renders neutral 'Price : Info via Admin' when price is null", () => {
       const mockProduct: Product = {
         id: "prod-3",
         name: "Special Sticker Pack",
@@ -93,6 +93,21 @@ describe("MerchandiseSection & Components", () => {
       expect(screen.getByText("Price : Info via Admin")).toBeInTheDocument()
     })
 
+    it("renders neutral 'Price : Info via Admin' when price is 0 or undefined", () => {
+      const mockZeroPriceProduct: Product = {
+        id: "prod-zero",
+        name: "Promo Card",
+        slug: "promo-card",
+        description: "Free promo item",
+        price: 0,
+      }
+
+      render(<OrderModal product={mockZeroPriceProduct} onClose={jest.fn()} />)
+
+      expect(screen.getByText("Promo Card")).toBeInTheDocument()
+      expect(screen.getByText("Price : Info via Admin")).toBeInTheDocument()
+    })
+
     it("handles null product prop safely with defaults", () => {
       render(<OrderModal product={null} onClose={jest.fn()} />)
 
@@ -104,6 +119,16 @@ describe("MerchandiseSection & Components", () => {
   })
 
   describe("MerchandiseSection Integration", () => {
+    it("renders loading indicator initially while fetching", () => {
+      mockedFetchProducts.mockReturnValueOnce(new Promise(() => {}))
+
+      render(<MerchandiseSection />)
+
+      expect(
+        screen.getByText("Memuat Katalog Merchandise..."),
+      ).toBeInTheDocument()
+    })
+
     it("displays empty state when API returns no products (data: [])", async () => {
       mockedFetchProducts.mockResolvedValueOnce([])
 
