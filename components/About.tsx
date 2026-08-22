@@ -5,7 +5,7 @@ import { ABOUT_CONTENT, ABOUT_MARQUEE_TEXT } from "@/lib/content";
 
 export default function About() {
   return (
-    <section aria-label="About Software Enginering" className="w-full">
+    <section id="about" aria-label="About Software Engineering" className="w-full">
       <Marquee text={ABOUT_MARQUEE_TEXT} />
       <PixelDivider />
 

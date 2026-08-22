@@ -1,7 +1,7 @@
 export const NAV_LINKS = [
-  { label: "Information", href: "#information" },
-  { label: "Marchandise", href: "#marchandise" },
-  { label: "Shoping", href: "#shoping" },
+  { label: "Information", href: "#about" },
+  { label: "Merchandise", href: "#merchandise" },
+  { label: "Games", href: "#games" },
 ] as const;
 
 export const BRAND_NAME = "Pixels to Reality";
@@ -14,10 +14,10 @@ export const HERO_CONTENT = {
   ctaLabel: "Let's explore",
 } as const;
 
-export const ABOUT_MARQUEE_TEXT = "Chapter 2 Aboust Software Enginering";
+export const ABOUT_MARQUEE_TEXT = "Chapter 2 About Software Engineering";
 
 export const ABOUT_CONTENT = {
-  headingLines: ["Welcome to major", "Software Enginering"],
+  headingLines: ["Welcome to major", "Software Engineering"],
   body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
   emblem: {
     src: "/images/rpl-emblem.png",
@@ -37,7 +37,7 @@ export type Game = {
 
 export const GAMES_HEADING = "Games";
 
-export const FOOTER_MARQUEE_TEXT = "Final Chapter About Software Enginering";
+export const FOOTER_MARQUEE_TEXT = "Final Chapter About Software Engineering";
 
 export type Investor = {
   id: string;
