@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import type { Product } from "@/lib/api/types/product";
 import { PixelImage, PixelButton } from "./MerchandiseCard";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -31,7 +32,19 @@ export default function OrderModal({
   const [quantity, setQuantity] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [addedToCart, setAddedToCart] = useState(false);
   const [orderCompleted, setOrderCompleted] = useState<OrderResult | null>(null);
+
+  // Close modal when pressing Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -41,8 +54,8 @@ export default function OrderModal({
   const handleAddToCart = () => {
     if (product) {
       addItem(product, quantity);
-      alert(`Berhasil menambahkan ${quantity}x ${product.name} ke keranjang!`);
-      onClose();
+      setAddedToCart(true);
+      setErrorMessage(null);
     }
   };
 
@@ -56,7 +69,7 @@ export default function OrderModal({
     }
 
     if (!formData.fullName.trim() || !formData.phone.trim()) {
-      setErrorMessage("Silakan lengkapi nama dan nomor telepon Anda.");
+      setErrorMessage("Silakan lengkapi nama lengkap dan nomor telepon WhatsApp Anda.");
       return;
     }
 
@@ -89,8 +102,8 @@ export default function OrderModal({
 
       setOrderCompleted(orderData);
       onSuccess?.(orderData);
-    } catch (err) {
-      // In case backend checkout is offline or simulated
+    } catch {
+      // Fallback in case backend checkout is in offline demo mode
       const fallbackOrder: OrderResult = {
         id: "P2R-" + Date.now(),
         customer_name: formData.fullName,
@@ -111,27 +124,35 @@ export default function OrderModal({
 
   const priceDisplay =
     typeof product?.price === "number" && product.price > 0
-      ? `Price : Rp ${product.price.toLocaleString("id-ID")}`
-      : "Price : Info via Admin";
+      ? `Harga: Rp ${product.price.toLocaleString("id-ID")}`
+      : "Harga: Info via Admin";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 font-sans">
-      <div className="relative w-full max-w-4xl bg-[#6712D1]/90 backdrop-blur-xl border border-white/20 rounded-[2rem] p-8 md:p-10 shadow-2xl">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="order-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 font-sans"
+    >
+      <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-[#6712D1]/95 backdrop-blur-2xl border border-white/20 rounded-[2rem] p-6 sm:p-8 md:p-10 shadow-2xl">
         <button
           type="button"
           onClick={onClose}
           aria-label="Tutup modal pemesanan"
-          className="absolute top-6 right-8 text-white hover:text-[#F4EA2A] font-bold text-xl font-mono cursor-pointer"
+          className="absolute top-6 right-6 text-white hover:text-arcade-yellow font-bold text-xl font-mono cursor-pointer transition-colors"
         >
-          X
+          ✕
         </button>
 
         {orderCompleted ? (
           <div className="flex flex-col items-center justify-center text-center py-6">
-            <div className="w-16 h-16 mb-4 flex items-center justify-center rounded-full bg-arcade-yellow text-arcade-ink font-bold text-2xl">
+            <div className="w-16 h-16 mb-4 flex items-center justify-center rounded-full bg-arcade-yellow text-arcade-ink font-bold text-2xl shadow-lg">
               ✓
             </div>
-            <h2 className="text-[#F4EA2A] text-3xl font-display font-bold mb-2 drop-shadow-md">
+            <h2
+              id="order-modal-title"
+              className="text-arcade-yellow text-3xl font-display font-bold mb-2 drop-shadow-md"
+            >
               Pesanan Berhasil Dibuat!
             </h2>
             <p className="text-white text-base max-w-md mb-6 leading-relaxed">
@@ -141,7 +162,7 @@ export default function OrderModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="bg-arcade-yellow px-8 py-3 font-display text-base font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] hover:-translate-y-0.5 active:translate-y-0.5"
+                className="bg-arcade-yellow px-8 py-3 font-display text-base font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 cursor-pointer"
               >
                 Selesai
               </button>
@@ -149,7 +170,7 @@ export default function OrderModal({
           </div>
         ) : (
           <>
-            <div className="flex flex-col md:flex-row gap-8 mb-10">
+            <div className="flex flex-col md:flex-row gap-8 mb-8">
               <div className="w-full md:w-64 flex-shrink-0">
                 <PixelImage
                   imageUrl={product?.image_url}
@@ -158,33 +179,38 @@ export default function OrderModal({
               </div>
 
               <div className="flex flex-col justify-center text-white">
-                <h2 className="text-[#F4EA2A] text-3xl md:text-4xl font-bold mb-4 drop-shadow-md font-pixel">
+                <h2
+                  id="order-modal-title"
+                  className="text-arcade-yellow text-3xl md:text-4xl font-bold mb-3 drop-shadow-md font-pixel"
+                >
                   {productName}
                 </h2>
                 <p className="text-white/90 text-sm md:text-base leading-relaxed mb-6 font-medium">
                   {productDesc}
                 </p>
                 <div className="flex flex-wrap items-center gap-4">
-                  <span className="inline-block border border-white/50 text-white px-5 py-2 rounded-full text-sm font-semibold tracking-wide">
+                  <span className="inline-block border border-white/50 bg-black/30 text-white px-5 py-2 rounded-full text-sm font-semibold tracking-wide">
                     {priceDisplay}
                   </span>
 
                   {/* Quantity Controls */}
-                  <div className="flex items-center rounded-full border border-white/40 bg-black/30 px-3 py-1 text-sm font-bold">
+                  <div className="flex items-center rounded-full border border-white/40 bg-black/40 px-3 py-1 text-sm font-bold">
                     <button
                       type="button"
                       aria-label="Kurangi jumlah"
                       onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                      className="px-2 py-0.5 hover:text-arcade-yellow text-white"
+                      className="px-2 py-0.5 hover:text-arcade-yellow text-white cursor-pointer"
                     >
                       -
                     </button>
-                    <span className="px-3 text-arcade-yellow">{quantity}</span>
+                    <span className="px-3 text-arcade-yellow font-display text-base font-bold">
+                      {quantity}
+                    </span>
                     <button
                       type="button"
                       aria-label="Tambah jumlah"
                       onClick={() => setQuantity((q) => q + 1)}
-                      className="px-2 py-0.5 hover:text-arcade-yellow text-white"
+                      className="px-2 py-0.5 hover:text-arcade-yellow text-white cursor-pointer"
                     >
                       +
                     </button>
@@ -192,6 +218,39 @@ export default function OrderModal({
                 </div>
               </div>
             </div>
+
+            {/* Non-blocking in-modal cart feedback toast */}
+            {addedToCart && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="mb-6 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl border-2 border-arcade-yellow/60 bg-black/60 p-4 text-center sm:text-left shadow-lg backdrop-blur-md"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-arcade-yellow font-bold text-arcade-ink">
+                    ✓
+                  </span>
+                  <p className="text-sm font-semibold text-white">
+                    <strong className="text-arcade-yellow">{quantity}x {productName}</strong> berhasil ditambahkan ke keranjang belanja!
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href="/checkout"
+                    className="inline-flex items-center justify-center rounded-xl bg-arcade-yellow px-4 py-2 font-display text-xs font-bold text-arcade-ink shadow-[2px_2px_0_var(--arcade-yellow-shadow)] transition-transform hover:-translate-y-0.5 active:translate-y-0.5"
+                  >
+                    Lihat Keranjang →
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setAddedToCart(false)}
+                    className="rounded-xl border border-white/30 px-3 py-2 font-display text-xs text-white/80 transition-colors hover:bg-white/10 cursor-pointer"
+                  >
+                    Lanjut Belanja
+                  </button>
+                </div>
+              </div>
+            )}
 
             {errorMessage && (
               <div
@@ -204,39 +263,96 @@ export default function OrderModal({
 
             <form
               onSubmit={handleSubmit}
-              className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6"
+              className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5"
             >
-              {[
-                { label: "Full Name", name: "fullName", type: "text", placeholder: "Enter your full name", required: true },
-                { label: "Jurusan", name: "jurusan", type: "text", placeholder: "Pilih jurusan anda", required: false },
-                { label: "Class", name: "className", type: "text", placeholder: "Enter your class", required: false },
-                { label: "Number Telp", name: "phone", type: "tel", placeholder: "Enter your number", required: true },
-              ].map((field) => (
-                <div key={field.name} className="flex flex-col gap-2">
-                  <label className="text-white text-sm font-bold tracking-wide">{field.label}</label>
-                  <input
-                    type={field.type}
-                    name={field.name}
-                    value={formData[field.name as keyof typeof formData]}
-                    onChange={handleChange}
-                    placeholder={field.placeholder}
-                    required={field.required}
-                    disabled={isSubmitting}
-                    className="w-full bg-transparent border border-white/40 rounded-full px-5 py-3 text-sm text-white outline-none focus:border-white focus:bg-white/5 transition-all placeholder:text-white/50 disabled:opacity-50"
-                  />
-                </div>
-              ))}
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="order-fullName"
+                  className="text-white text-xs font-display tracking-wider uppercase font-bold text-arcade-yellow"
+                >
+                  Nama Lengkap *
+                </label>
+                <input
+                  id="order-fullName"
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  placeholder="Masukkan nama lengkap Anda"
+                  required
+                  disabled={isSubmitting}
+                  className="w-full bg-black/40 border border-white/30 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-arcade-yellow focus:ring-2 focus:ring-arcade-yellow/40 transition-all placeholder:text-white/40 disabled:opacity-50"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="order-phone"
+                  className="text-white text-xs font-display tracking-wider uppercase font-bold text-arcade-yellow"
+                >
+                  Nomor WhatsApp *
+                </label>
+                <input
+                  id="order-phone"
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="08xxxxxxxxxx"
+                  required
+                  disabled={isSubmitting}
+                  className="w-full bg-black/40 border border-white/30 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-arcade-yellow focus:ring-2 focus:ring-arcade-yellow/40 transition-all placeholder:text-white/40 disabled:opacity-50"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="order-className"
+                  className="text-white text-xs font-display tracking-wider uppercase font-bold text-arcade-yellow"
+                >
+                  Kelas
+                </label>
+                <input
+                  id="order-className"
+                  type="text"
+                  name="className"
+                  value={formData.className}
+                  onChange={handleChange}
+                  placeholder="Contoh: XII RPL 1"
+                  disabled={isSubmitting}
+                  className="w-full bg-black/40 border border-white/30 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-arcade-yellow focus:ring-2 focus:ring-arcade-yellow/40 transition-all placeholder:text-white/40 disabled:opacity-50"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="order-jurusan"
+                  className="text-white text-xs font-display tracking-wider uppercase font-bold text-arcade-yellow"
+                >
+                  Jurusan
+                </label>
+                <input
+                  id="order-jurusan"
+                  type="text"
+                  name="jurusan"
+                  value={formData.jurusan}
+                  onChange={handleChange}
+                  placeholder="Contoh: RPL"
+                  disabled={isSubmitting}
+                  className="w-full bg-black/40 border border-white/30 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-arcade-yellow focus:ring-2 focus:ring-arcade-yellow/40 transition-all placeholder:text-white/40 disabled:opacity-50"
+                />
+              </div>
 
               <div className="mt-4 md:col-span-2 flex flex-col sm:flex-row gap-4 items-center">
                 <div className="w-full sm:w-auto min-w-[200px]">
                   <PixelButton type="submit">
-                    {isSubmitting ? "Memproses..." : "Order Sekarang"}
+                    {isSubmitting ? "Memproses..." : "Pesan Sekarang"}
                   </PixelButton>
                 </div>
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  className="w-full sm:w-auto rounded-full border-2 border-white/40 bg-black/40 px-6 py-3 font-display text-base font-bold text-white transition-colors hover:border-arcade-yellow hover:text-arcade-yellow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow"
+                  className="w-full sm:w-auto rounded-xl border-2 border-white/40 bg-black/40 px-6 py-3 font-display text-base font-bold text-white transition-all hover:border-arcade-yellow hover:text-arcade-yellow active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow cursor-pointer"
                 >
                   + Tambah ke Keranjang
                 </button>

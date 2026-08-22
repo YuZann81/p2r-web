@@ -6,6 +6,7 @@ import { fetchProducts } from "@/lib/api/products"
 import type { Product } from "@/lib/api/types/product"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/auth/auth-context"
+import { CartProvider } from "@/lib/cart/cart-context"
 
 jest.mock("@/lib/api/products", () => ({
   fetchProducts: jest.fn(),
@@ -103,16 +104,20 @@ describe("MerchandiseSection & Components", () => {
         image_url: null,
       }
 
-      render(<OrderModal product={mockProduct} onClose={jest.fn()} />)
+      render(
+        <CartProvider>
+          <OrderModal product={mockProduct} onClose={jest.fn()} />
+        </CartProvider>,
+      )
 
       expect(screen.getByText("Cyber Keychain")).toBeInTheDocument()
       expect(
         screen.getByText("Pixel keychain collectible."),
       ).toBeInTheDocument()
-      expect(screen.getByText("Price : Rp 35.000")).toBeInTheDocument()
+      expect(screen.getByText("Harga: Rp 35.000")).toBeInTheDocument()
     })
 
-    it("renders neutral 'Price : Info via Admin' when price is null", () => {
+    it("renders neutral 'Harga: Info via Admin' when price is null", () => {
       const mockProduct: Product = {
         id: "prod-3",
         name: "Special Sticker Pack",
@@ -121,13 +126,17 @@ describe("MerchandiseSection & Components", () => {
         price: null,
       }
 
-      render(<OrderModal product={mockProduct} onClose={jest.fn()} />)
+      render(
+        <CartProvider>
+          <OrderModal product={mockProduct} onClose={jest.fn()} />
+        </CartProvider>,
+      )
 
       expect(screen.getByText("Special Sticker Pack")).toBeInTheDocument()
-      expect(screen.getByText("Price : Info via Admin")).toBeInTheDocument()
+      expect(screen.getByText("Harga: Info via Admin")).toBeInTheDocument()
     })
 
-    it("renders neutral 'Price : Info via Admin' when price is 0 or undefined", () => {
+    it("renders neutral 'Harga: Info via Admin' when price is 0 or undefined", () => {
       const mockZeroPriceProduct: Product = {
         id: "prod-zero",
         name: "Promo Card",
@@ -136,19 +145,59 @@ describe("MerchandiseSection & Components", () => {
         price: 0,
       }
 
-      render(<OrderModal product={mockZeroPriceProduct} onClose={jest.fn()} />)
+      render(
+        <CartProvider>
+          <OrderModal product={mockZeroPriceProduct} onClose={jest.fn()} />
+        </CartProvider>,
+      )
 
       expect(screen.getByText("Promo Card")).toBeInTheDocument()
-      expect(screen.getByText("Price : Info via Admin")).toBeInTheDocument()
+      expect(screen.getByText("Harga: Info via Admin")).toBeInTheDocument()
     })
 
     it("handles null product prop safely with defaults", () => {
-      render(<OrderModal product={null} onClose={jest.fn()} />)
+      render(
+        <CartProvider>
+          <OrderModal product={null} onClose={jest.fn()} />
+        </CartProvider>,
+      )
 
       expect(
         screen.getByText("Official P2R Merchandise"),
       ).toBeInTheDocument()
-      expect(screen.getByText("Price : Info via Admin")).toBeInTheDocument()
+      expect(screen.getByText("Harga: Info via Admin")).toBeInTheDocument()
+    })
+
+    it("adds product to cart and shows non-blocking inline feedback without window.alert", () => {
+      const mockProduct: Product = {
+        id: "prod-4",
+        name: "Neon Hoodie",
+        slug: "neon-hoodie",
+        description: "Cozy cyber hoodie.",
+        price: 150000,
+      }
+
+      render(
+        <CartProvider>
+          <OrderModal product={mockProduct} onClose={jest.fn()} />
+        </CartProvider>,
+      )
+
+      const addToCartBtn = screen.getByRole("button", {
+        name: /\+ tambah ke keranjang/i,
+      })
+      fireEvent.click(addToCartBtn)
+
+      // Verify no window.alert was called
+      expect(window.alert).not.toHaveBeenCalled()
+
+      // Verify non-blocking inline feedback status is displayed
+      expect(
+        screen.getByText(/berhasil ditambahkan ke keranjang belanja!/i),
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole("link", { name: /lihat keranjang →/i }),
+      ).toHaveAttribute("href", "/checkout")
     })
   })
 
@@ -156,7 +205,11 @@ describe("MerchandiseSection & Components", () => {
     it("renders loading indicator initially while fetching", () => {
       mockedFetchProducts.mockReturnValue(new Promise(() => {}))
 
-      render(<MerchandiseSection />)
+      render(
+        <CartProvider>
+          <MerchandiseSection />
+        </CartProvider>,
+      )
 
       expect(
         screen.getByText("Memuat Katalog Merchandise..."),
@@ -166,7 +219,11 @@ describe("MerchandiseSection & Components", () => {
     it("displays empty state when API returns no products (data: [])", async () => {
       mockedFetchProducts.mockResolvedValue([])
 
-      render(<MerchandiseSection />)
+      render(
+        <CartProvider>
+          <MerchandiseSection />
+        </CartProvider>,
+      )
 
       expect(
         await screen.findByText("Merchandise Segera Hadir"),
@@ -196,7 +253,11 @@ describe("MerchandiseSection & Components", () => {
 
       mockedFetchProducts.mockResolvedValue(mockProducts)
 
-      render(<MerchandiseSection />)
+      render(
+        <CartProvider>
+          <MerchandiseSection />
+        </CartProvider>,
+      )
 
       expect(
         await screen.findByRole("button", { name: "Pesan Cyber T-Shirt" }),
@@ -207,7 +268,7 @@ describe("MerchandiseSection & Components", () => {
       )
 
       expect(screen.getByText("Cyber T-Shirt")).toBeInTheDocument()
-      expect(screen.getByText("Price : Rp 85.000")).toBeInTheDocument()
+      expect(screen.getByText("Harga: Rp 85.000")).toBeInTheDocument()
     })
 
     it("redirects guest to login when ordering without authentication", async () => {
@@ -234,7 +295,11 @@ describe("MerchandiseSection & Components", () => {
 
       mockedFetchProducts.mockResolvedValue(mockProducts)
 
-      render(<MerchandiseSection />)
+      render(
+        <CartProvider>
+          <MerchandiseSection />
+        </CartProvider>,
+      )
 
       expect(
         await screen.findByRole("button", { name: "Pesan Cyber T-Shirt" }),

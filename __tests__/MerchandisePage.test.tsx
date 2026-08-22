@@ -155,7 +155,7 @@ describe("MerchandisePage (/merchandise)", () => {
     expect(
       screen.getByRole("heading", { level: 2, name: "Cyber T-Shirt" }),
     ).toBeInTheDocument()
-    expect(screen.getByText("Price : Rp 85.000")).toBeInTheDocument()
+    expect(screen.getByText("Harga: Rp 85.000")).toBeInTheDocument()
     expect(
       screen.getByText("Official cyberpunk t-shirt."),
     ).toBeInTheDocument()
