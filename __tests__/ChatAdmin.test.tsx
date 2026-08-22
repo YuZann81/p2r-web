@@ -34,6 +34,7 @@ describe("ChatAdminModal", () => {
       forward: jest.fn(),
       refresh: jest.fn(),
       prefetch: jest.fn(),
+      bfcacheId: "",
     });
     // Mock scrollIntoView
     window.HTMLElement.prototype.scrollIntoView = jest.fn();

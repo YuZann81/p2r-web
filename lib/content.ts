@@ -4,6 +4,7 @@ export const NAV_LINKS = [
   { label: "Games", href: "/games" },
   { label: "Leaderboard", href: "/leaderboard" },
   { label: "Feeds", href: "/feeds" },
+  { label: "Merchandise", href: "/merchandise" },
 ] as const;
 
 export const BRAND_NAME = "Pixels to Reality";
@@ -16,7 +17,7 @@ export const HERO_CONTENT = {
   ctaLabel: "Jelajahi Karya",
 } as const;
 
-export const ABOUT_MARQUEE_TEXT = "Chapter 2 About Software Engineering";
+export const ABOUT_MARQUEE_TEXT = "Pixels To Reality • The Cyber Arcade Exhibition • Rekayasa Perangkat Lunak";
 
 export const ABOUT_CONTENT = {
   headingLines: ["Welcome to major", "Software Engineering"],
@@ -39,7 +40,7 @@ export type Game = {
 
 export const GAMES_HEADING = "Games";
 
-export const FOOTER_MARQUEE_TEXT = "Final Chapter About Software Engineering";
+export const FOOTER_MARQUEE_TEXT = "Pixels To Reality • Showcase Karya & Inovasi Teknologi Siswa RPL";
 
 export type Investor = {
   id: string;
@@ -80,83 +81,9 @@ export const FOOTER_CONTENT = {
   ] as readonly Investor[],
 } as const;
 
-export const GAMES: readonly Game[] = [
-  {
-    id: "game-1",
-    name: "Cyber Runner 2099",
-    description:
-      "Game arcade endless runner berkecepatan tinggi dengan nuansa visual cyberpunk neon. Hindari rintangan siber dan raih skor tertinggi!",
-    image: "/images/game-1.png",
-    imageAlt: "Cyber Runner 2099 game artwork",
-    logo: "/images/game-1-logo.png",
-    logoAlt: "Cyber Runner 2099 logo",
-  },
-  {
-    id: "game-2",
-    name: "Byte Defender",
-    description:
-      "Game arcade shooter strategi untuk melindungi server inti dari gelombang malware dan bug digital dalam pertarungan piksel yang intens.",
-    image: "/images/game-2.png",
-    imageAlt: "Byte Defender game artwork",
-    logo: "/images/game-2-logo.png",
-    logoAlt: "Byte Defender logo",
-  },
-] as const;
-
 export type LeaderboardEntry = {
   rank: number;
   playerName: string;
   gameName: string;
   score: number;
 };
-
-export const LEADERBOARD_ENTRIES: readonly LeaderboardEntry[] = [
-  {
-    rank: 1,
-    playerName: "CyberKnight",
-    gameName: "Cyber Runner 2099",
-    score: 98500,
-  },
-  {
-    rank: 2,
-    playerName: "PixelQueen",
-    gameName: "Byte Defender",
-    score: 87200,
-  },
-  {
-    rank: 3,
-    playerName: "NeonRider",
-    gameName: "Neon Highway",
-    score: 76450,
-  },
-  {
-    rank: 4,
-    playerName: "RetroWizard",
-    gameName: "Cyber Runner 2099",
-    score: 65100,
-  },
-  {
-    rank: 5,
-    playerName: "BitMaster",
-    gameName: "Byte Defender",
-    score: 54300,
-  },
-  {
-    rank: 6,
-    playerName: "ArcadeHero",
-    gameName: "Neon Highway",
-    score: 48900,
-  },
-  {
-    rank: 7,
-    playerName: "GlitchHunter",
-    gameName: "Cyber Runner 2099",
-    score: 42150,
-  },
-  {
-    rank: 8,
-    playerName: "ShadowCoder",
-    gameName: "Byte Defender",
-    score: 39800,
-  },
-] as const;

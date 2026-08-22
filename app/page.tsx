@@ -1,11 +1,11 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
-import Games from "@/components/Games";
 import KaryaShowcasePreview from "@/components/KaryaShowcasePreview";
+import Games from "@/components/Games";
 import LeaderboardPreview from "@/components/LeaderboardPreview";
 import LatestFeedsPreview from "@/components/LatestFeedsPreview";
-import MerchandiseSection from "@/components/MerchandiseSection";
+import MerchandisePreview from "@/components/MerchandisePreview";
 import Footer from "@/components/Footer";
 
 export default function Page() {
@@ -20,11 +20,11 @@ export default function Page() {
       <Navbar />
       <Hero />
       <About />
-      <Games />
       <KaryaShowcasePreview />
+      <Games />
       <LeaderboardPreview />
       <LatestFeedsPreview />
-      <MerchandiseSection />
+      <MerchandisePreview />
       <Footer />
     </main>
   );

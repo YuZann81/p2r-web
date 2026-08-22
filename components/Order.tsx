@@ -93,25 +93,18 @@ export default function OrderModal({
         token,
       );
 
-      const orderData: OrderResult = response.data || {
-        id: "P2R-" + Date.now(),
-        customer_name: formData.fullName,
-        customer_phone: formData.phone,
-        status: "pending",
-      };
-
-      setOrderCompleted(orderData);
-      onSuccess?.(orderData);
-    } catch {
-      // Fallback in case backend checkout is in offline demo mode
-      const fallbackOrder: OrderResult = {
-        id: "P2R-" + Date.now(),
-        customer_name: formData.fullName,
-        customer_phone: formData.phone,
-        status: "pending",
-      };
-      setOrderCompleted(fallbackOrder);
-      onSuccess?.(fallbackOrder);
+      if (response.data) {
+        setOrderCompleted(response.data);
+        onSuccess?.(response.data);
+      } else {
+        setErrorMessage("Respons server tidak valid. Silakan coba lagi.");
+      }
+    } catch (error) {
+      const msg =
+        error instanceof Error
+          ? error.message
+          : "Gagal membuat pesanan. Silakan periksa koneksi Anda dan coba lagi.";
+      setErrorMessage(msg);
     } finally {
       setIsSubmitting(false);
     }

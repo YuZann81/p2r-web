@@ -14,11 +14,14 @@ export default function GameArtwork({
   tilt = "left",
 }: GameArtworkProps) {
   const rotation = tilt === "left" ? "-rotate-6" : "rotate-6";
-  const badgePosition = tilt === "left" ? "-top-8 right-6" : "-bottom-8 left-6";
+  const badgePosition =
+    tilt === "left"
+      ? "-top-4 sm:-top-6 md:-top-8 right-2 sm:right-6"
+      : "-bottom-4 sm:-bottom-6 md:-bottom-8 left-2 sm:left-6";
 
   return (
     <div
-      className={`relative w-full max-w-md ${rotation} transition-transform duration-300 group-hover:rotate-0`}
+      className={`relative w-full max-w-[280px] min-[380px]:max-w-xs sm:max-w-sm md:max-w-md ${rotation} transition-transform duration-300 group-hover:rotate-0`}
     >
       {/* stacked paper layers behind the card */}
       <div
@@ -41,7 +44,7 @@ export default function GameArtwork({
 
       {/* circular logo badge overlapping a corner */}
       <div
-        className={`absolute ${badgePosition} h-24 w-24 overflow-hidden rounded-full border-4 border-white bg-[#d9d9d9] shadow-md`}
+        className={`absolute ${badgePosition} h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 overflow-hidden rounded-full border-2 sm:border-4 border-white bg-[#d9d9d9] shadow-md`}
       >
         <img
           src={logo || "/placeholder.svg"}

@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import LeaderboardPage from "@/app/leaderboard/page";
-import { LEADERBOARD_ENTRIES } from "@/lib/content";
+import type { LeaderboardEntry } from "@/lib/content";
 import { getLeaderboardData } from "@/lib/leaderboard/getLeaderboard";
 
 jest.mock("@/lib/leaderboard/getLeaderboard", () => ({
@@ -11,16 +11,37 @@ const mockedGetLeaderboardData = getLeaderboardData as jest.MockedFunction<
   typeof getLeaderboardData
 >;
 
+const sampleEntries: LeaderboardEntry[] = [
+  {
+    rank: 1,
+    playerName: "CyberKnight",
+    gameName: "Cyber Runner 2099",
+    score: 98500,
+  },
+  {
+    rank: 2,
+    playerName: "PixelQueen",
+    gameName: "Byte Defender",
+    score: 87200,
+  },
+  {
+    rank: 3,
+    playerName: "NeonRider",
+    gameName: "Neon Highway",
+    score: 76450,
+  },
+];
+
 describe("LeaderboardPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe("Preview Mode (Fallback)", () => {
+  describe("With Leaderboard Entries", () => {
     beforeEach(() => {
       mockedGetLeaderboardData.mockResolvedValue({
-        mode: "preview",
-        entries: [...LEADERBOARD_ENTRIES],
+        mode: "live",
+        entries: [...sampleEntries],
       });
     });
 
@@ -64,7 +85,7 @@ describe("LeaderboardPage", () => {
     it("renders player ranking data and formatted scores correctly", async () => {
       const Component = await LeaderboardPage();
       render(Component);
-      for (const entry of LEADERBOARD_ENTRIES) {
+      for (const entry of sampleEntries) {
         expect(screen.getAllByText(entry.playerName).length).toBeGreaterThan(0);
         expect(
           screen.getAllByText(entry.score.toLocaleString("id-ID"), {
@@ -72,17 +93,6 @@ describe("LeaderboardPage", () => {
           }).length,
         ).toBeGreaterThan(0);
       }
-    });
-
-    it("renders the SIMULASI / PREVIEW MODE notice banner", async () => {
-      const Component = await LeaderboardPage();
-      render(Component);
-      expect(
-        screen.getByText(/simulasi \/ preview mode/i),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/data klasemen di bawah ini merupakan data simulasi/i),
-      ).toBeInTheDocument();
     });
 
     it("exposes semantic table and section structures for accessibility", async () => {
@@ -96,7 +106,7 @@ describe("LeaderboardPage", () => {
 
       const rows = within(table).getAllByRole("row");
       // 1 header row + N data rows
-      expect(rows).toHaveLength(LEADERBOARD_ENTRIES.length + 1);
+      expect(rows).toHaveLength(sampleEntries.length + 1);
 
       const podiumSection = screen.getByRole("region", {
         name: /top 3 juara klasemen/i,
@@ -105,25 +115,19 @@ describe("LeaderboardPage", () => {
     });
   });
 
-  describe("Live Mode (API data)", () => {
-    it("renders live event banner when live mode is active", async () => {
+  describe("Empty Leaderboard State", () => {
+    it("renders clean empty state when no leaderboard scores are recorded", async () => {
       mockedGetLeaderboardData.mockResolvedValueOnce({
         mode: "live",
-        entries: [
-          { rank: 1, playerName: "LiveChampion", gameName: "Cyber Runner", score: 120000 },
-          { rank: 2, playerName: "RunnerTwo", gameName: "Cyber Runner", score: 95000 },
-          { rank: 3, playerName: "RunnerThree", gameName: "Cyber Runner", score: 80000 },
-        ],
+        entries: [],
       });
 
       const Component = await LeaderboardPage();
       render(Component);
 
       expect(
-        screen.getByText(/live event leaderboard/i),
+        screen.getByText("Belum ada skor tercatat untuk game ini."),
       ).toBeInTheDocument();
-      expect(screen.getAllByText("LiveChampion").length).toBeGreaterThan(0);
-      expect(screen.getAllByText(/120\.000/i).length).toBeGreaterThan(0);
     });
   });
 });

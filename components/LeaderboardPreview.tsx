@@ -11,18 +11,18 @@ export default async function LeaderboardPreview() {
   return (
     <section
       aria-label="Papan Klasemen Leaderboard"
-      className="w-full bg-[#24135e] py-20 md:py-24"
+      className="w-full bg-[#24135e] py-14 sm:py-20 md:py-24"
     >
-      <div className="mx-auto max-w-6xl px-6">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
         {/* Header */}
-        <div className="mb-12 text-center">
-          <span className="inline-block rounded-full bg-arcade-green/20 px-4 py-1 font-display text-xs tracking-wider uppercase text-arcade-green sm:text-sm">
-            {mode === "live" ? "🏆 Turnamen Live" : "⚡ Klasemen Arcade"}
+        <div className="mb-10 text-center sm:mb-12">
+          <span className="inline-block rounded-full border border-arcade-green/40 bg-arcade-green/10 px-4 py-1 font-display text-xs font-bold tracking-wider uppercase text-arcade-green sm:text-sm">
+            {mode === "live" ? "Turnamen Live" : "Klasemen Arcade"}
           </span>
-          <h2 className="mt-3 font-display text-3xl text-arcade-yellow [text-shadow:2px_3px_0_var(--arcade-ink)] sm:text-4xl md:text-5xl">
+          <h2 className="mt-3 font-display text-2xl text-arcade-yellow [text-shadow:2px_3px_0_var(--arcade-ink)] sm:text-4xl md:text-5xl">
             TOP PLAYERS LEADERBOARD
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-base font-semibold leading-relaxed text-pretty text-white/90 sm:text-lg">
+          <p className="mx-auto mt-3 max-w-2xl text-sm font-semibold leading-relaxed text-pretty text-white/90 sm:text-base md:text-lg">
             Papan klasemen skor tertinggi game arcade pameran Pixel To Reality: The Cyber Arcade.
           </p>
         </div>
@@ -70,18 +70,18 @@ export default async function LeaderboardPreview() {
             })}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-arcade-yellow/30 bg-black/20 p-10 text-center backdrop-blur-xs">
+          <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-arcade-yellow/30 bg-[#1e1040] p-10 text-center">
             <p className="font-display text-base text-white/80">
-              Belum ada data skor turnamen tercatat.
+              Belum ada skor yang tercatat.
             </p>
           </div>
         )}
 
         {/* CTA Button */}
-        <div className="mt-12 flex justify-center">
+        <div className="mt-10 flex justify-center sm:mt-12">
           <Link
             href="/leaderboard"
-            className="inline-flex items-center justify-center bg-arcade-yellow px-8 py-3 font-display text-base font-bold text-arcade-ink shadow-[6px_6px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
+            className="inline-flex min-h-[44px] items-center justify-center bg-arcade-yellow px-8 py-3 font-display text-base font-bold text-arcade-ink shadow-[6px_6px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
           >
             Lihat Leaderboard Lengkap →
           </Link>

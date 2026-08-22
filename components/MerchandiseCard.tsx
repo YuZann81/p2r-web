@@ -1,77 +1,7 @@
-import React from 'react';
-import type { Product } from '@/lib/api/types/product';
+"use client";
 
-const tilePattern = [
-  "0000000000000000",
-  "0000000000000000",
-  "1111111111111110",
-  "0000000000000010",
-  "1111111111111010",
-  "1000000000001010",
-  "1011111111101010",
-  "1010000000101010",
-  "1010111110101010",
-  "1010100010101010",
-  "1010101110101010",
-  "1010100000101010",
-  "1010111111101010",
-  "1010000000001010",
-  "1011111111111010",
-  "1000000000000010",
-  "1111111111111110",
-  "0000000000000000",
-  "0100010001000100",
-  "0001000100010001",
-  "0000000000000000",
-  "1111111111111111",
-  "0000000000000000"
-];
-
-const pixelSize = 4;
-const tileWidth = 16 * pixelSize;
-const tileHeight = tilePattern.length * pixelSize;
-
-export function PixelBorder() {
-  return (
-    <div
-      className="w-full bg-[#2A238A] overflow-hidden shadow-lg border-b-4 border-[#2A238A]"
-      style={{ height: `${tileHeight}px` }}
-    >
-      <svg
-        width="100%"
-        height="100%"
-        style={{ shapeRendering: 'crispEdges' }}
-      >
-        <defs>
-          <pattern
-            id="pixel-spiral-border"
-            x="0"
-            y="0"
-            width={tileWidth}
-            height={tileHeight}
-            patternUnits="userSpaceOnUse"
-          >
-            {tilePattern.map((row, y) =>
-              row.split('').map((cell, x) =>
-                cell === '1' ? (
-                  <rect
-                    key={`${x}-${y}`}
-                    x={x * pixelSize}
-                    y={y * pixelSize}
-                    width={pixelSize}
-                    height={pixelSize}
-                    fill="#6737FF"
-                  />
-                ) : null
-              )
-            )}
-          </pattern>
-        </defs>
-        <rect x="0" y="0" width="100%" height="100%" fill="url(#pixel-spiral-border)" />
-      </svg>
-    </div>
-  );
-}
+import React from "react";
+import type { Product } from "@/lib/api/types/product";
 
 export const pixelClipPath = `polygon(
   8px 0px, calc(100% - 8px) 0px, calc(100% - 8px) 4px, calc(100% - 4px) 4px, 
@@ -81,19 +11,35 @@ export const pixelClipPath = `polygon(
   0px calc(100% - 8px), 0px 8px, 4px 8px, 4px 4px, 8px 4px
 )`;
 
-type PixelImageProps = {
-  imageUrl?: string | null;
-  altText?: string;
+export type MerchandiseCardProps = {
+  product: Product;
+  onClick: () => void;
+  containerClassName?: string;
+  imageBoxClassName?: string;
 };
 
-export function PixelImage({ imageUrl, altText = "Merchandise P2R" }: PixelImageProps) {
+export function formatProductPrice(price: number | null | undefined): string {
+  if (typeof price === "number" && price > 0) {
+    return `Rp ${price.toLocaleString("id-ID")}`;
+  }
+  return "Info via Admin";
+}
+
+export function PixelImage({
+  imageUrl,
+  altText = "Merchandise P2R",
+}: {
+  imageUrl?: string | null;
+  altText?: string;
+}) {
   return (
-    <div
-      className="w-full aspect-square bg-[#e5e5e5] flex items-center justify-center overflow-hidden"
-      style={{ clipPath: pixelClipPath }}
-    >
+    <div className="w-full aspect-square bg-[#e5e5e5] rounded-xl overflow-hidden flex items-center justify-center">
       {imageUrl ? (
-        <img src={imageUrl} alt={altText} className="w-full h-full object-cover" />
+        <img
+          src={imageUrl}
+          alt={altText}
+          className="w-full h-full object-cover [image-rendering:pixelated]"
+        />
       ) : (
         <div className="flex flex-col items-center justify-center p-4 text-arcade-ink/40">
           <svg className="w-16 h-16 opacity-40" fill="currentColor" viewBox="0 0 24 24">
@@ -105,78 +51,133 @@ export function PixelImage({ imageUrl, altText = "Merchandise P2R" }: PixelImage
   );
 }
 
-type PixelButtonProps = {
+export function PixelButton({
+  children,
+  onClick,
+  type = "button",
+}: {
   children: React.ReactNode;
   onClick?: () => void;
   type?: "button" | "submit" | "reset";
-};
-
-export function PixelButton({ children, onClick, type = "button" }: PixelButtonProps) {
+}) {
   return (
-    <div style={{ filter: "drop-shadow(0px 5px 0px #b8b01c)" }} className="w-full">
-      <button
-        type={type}
-        onClick={onClick}
-        className="w-full bg-[#F4EA2A] text-[#5B10B4] font-bold text-lg py-3 active:translate-y-1 transition-transform outline-none hover:bg-[#ffe100] cursor-pointer focus-visible:ring-4 focus-visible:ring-white"
-        style={{ clipPath: pixelClipPath }}
-      >
-        {children}
-      </button>
-    </div>
+    <button
+      type={type}
+      onClick={onClick}
+      className="w-full min-h-[44px] rounded-xl bg-arcade-yellow px-6 py-2.5 font-display text-base font-bold text-arcade-ink shadow-[3px_3px_0_var(--arcade-yellow-shadow)] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white cursor-pointer"
+    >
+      {children}
+    </button>
   );
 }
 
-export type MerchandiseCardProps = {
-  product: Product;
-  onClick: () => void;
-  containerClassName?: string;
-  imageBoxClassName?: string;
-};
+export function PixelBorder() {
+  return null;
+}
 
 export default function MerchandiseCard({
   product,
   onClick,
   containerClassName = "",
-  imageBoxClassName = "aspect-square"
+  imageBoxClassName = "aspect-square",
 }: MerchandiseCardProps) {
-  return (
-    <div className={`flex flex-col items-center gap-4 ${containerClassName}`}>
-      <button
-        type="button"
-        onClick={onClick}
-        aria-label={`Pesan ${product.name}`}
-        className={`w-full bg-[#e5e5e5] flex flex-col items-center justify-center cursor-pointer hover:opacity-90 transition-opacity relative group outline-none focus-visible:ring-4 focus-visible:ring-arcade-yellow ${imageBoxClassName}`}
-        style={{ clipPath: pixelClipPath }}
-      >
-        {product.image_url ? (
-          <img
-            src={product.image_url}
-            alt={`${product.name} merchandise`}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="flex flex-col items-center justify-center p-4 text-arcade-ink/60">
-            <svg className="w-16 h-16 mb-2 opacity-40" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M21.5 8.5l-3.5-5H6L2.5 8.5 2 9v11a1 1 0 001 1h18a1 1 0 001-1V9l-.5-.5zM6.8 5.5h10.4l2.1 3H4.7l2.1-3zM20 19H4V10.5h16V19z" />
-            </svg>
-            <span className="font-display text-sm font-bold text-center uppercase tracking-wide text-arcade-ink/80">
-              {product.name}
-            </span>
-          </div>
-        )}
-      </button>
+  const priceDisplay = formatProductPrice(product.price);
+  const statusDisplay =
+    product.status ||
+    (product.stock !== undefined && product.stock !== null && product.stock > 0
+      ? "Ready Stock"
+      : null);
 
-      <div style={{ filter: "drop-shadow(0px 5px 0px var(--arcade-yellow-shadow))" }}>
+  return (
+    <article
+      aria-label={`Merchandise: ${product.name}`}
+      className={`group flex flex-col justify-between rounded-2xl border-2 border-white/20 bg-[#1e1040] p-5 transition-all duration-150 hover:-translate-y-1 hover:border-arcade-yellow hover:shadow-[6px_6px_0_var(--arcade-yellow-shadow)] ${containerClassName}`}
+    >
+      <div>
+        {/* 1. ARTWORK */}
+        <button
+          type="button"
+          onClick={onClick}
+          aria-label={`Pesan ${product.name}`}
+          className={`relative mb-4 w-full overflow-hidden rounded-xl bg-black/60 cursor-pointer outline-none focus-visible:ring-4 focus-visible:ring-arcade-yellow ${imageBoxClassName}`}
+        >
+          {product.image_url ? (
+            <img
+              src={product.image_url}
+              alt={`${product.name} merchandise`}
+              className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105 [image-rendering:pixelated]"
+            />
+          ) : (
+            <div className="flex h-full w-full flex-col items-center justify-center p-6 text-white/50">
+              <svg
+                className="mb-2 h-14 w-14 opacity-50"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                />
+              </svg>
+              <span className="font-display text-xs font-bold uppercase tracking-wider text-arcade-yellow/80">
+                P2R Merchandise
+              </span>
+            </div>
+          )}
+
+          {/* Optional Category Overlay Badge */}
+          {product.category && (
+            <span className="absolute top-2.5 left-2.5 rounded-md border border-white/20 bg-black/70 px-2.5 py-0.5 font-display text-xs font-bold uppercase tracking-wider text-white">
+              {product.category}
+            </span>
+          )}
+        </button>
+
+        {/* 2. STATUS & AVAILABILITY */}
+        <div className="mb-2 flex items-center justify-between gap-2">
+          {statusDisplay ? (
+            <span className="inline-block rounded border border-arcade-green/40 bg-arcade-green/10 px-2 py-0.5 font-display text-xs font-bold uppercase tracking-wider text-arcade-green">
+              {statusDisplay}
+            </span>
+          ) : (
+            <span className="inline-block rounded border border-white/15 bg-white/5 px-2 py-0.5 font-display text-xs uppercase tracking-wider text-white/60">
+              Official Danus
+            </span>
+          )}
+
+          {/* 4. PRICE */}
+          <span className="font-mono text-base font-bold text-white">
+            {priceDisplay}
+          </span>
+        </div>
+
+        {/* 3. PRODUCT NAME */}
+        <h3 className="font-display text-xl font-bold leading-snug text-arcade-yellow [text-shadow:1px_1px_0_var(--arcade-ink)] sm:text-2xl">
+          {product.name}
+        </h3>
+
+        {/* 5. SHORT DESCRIPTION */}
+        <p className="mt-2 line-clamp-2 text-sm font-medium leading-relaxed text-white/80">
+          {product.description ||
+            "Merchandise resmi edisi Cyber Arcade Pixel To Reality karya siswa RPL."}
+        </p>
+      </div>
+
+      {/* 6. PRIMARY ORDER CTA */}
+      <div className="mt-5 border-t border-white/10 pt-4">
         <button
           type="button"
           onClick={onClick}
           aria-label={`Pesan ${product.name} Sekarang`}
-          className="bg-arcade-yellow text-arcade-ink font-display font-bold text-xl px-12 py-2 active:translate-y-1 transition-transform outline-none hover:bg-[#ffe100] cursor-pointer focus-visible:ring-4 focus-visible:ring-white"
-          style={{ clipPath: pixelClipPath }}
+          className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-arcade-yellow px-6 py-2.5 font-display text-base font-bold text-arcade-ink shadow-[3px_3px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--arcade-yellow-shadow)] active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white cursor-pointer"
         >
-          Order Now!
+          Pesan Sekarang
         </button>
       </div>
-    </div>
+    </article>
   );
 }

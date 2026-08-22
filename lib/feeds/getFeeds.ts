@@ -1,12 +1,17 @@
 import { fetchFeeds } from "@/lib/api/feeds";
 import type { FeedItem, FeedListParams } from "@/lib/api/types/feed";
 
-export async function getFeeds(params: FeedListParams = {}): Promise<FeedItem[]> {
+export async function getFeeds(
+  params: FeedListParams = {},
+): Promise<FeedItem[]> {
   try {
     const feeds = await fetchFeeds(params);
-    return feeds;
+    if (Array.isArray(feeds)) {
+      return feeds;
+    }
+    return [];
   } catch (error) {
-    console.error("[feeds] Error retrieving feeds in getFeeds:", error);
+    console.error("[p2r-api] Error retrieving feeds in getFeeds:", error);
     return [];
   }
 }

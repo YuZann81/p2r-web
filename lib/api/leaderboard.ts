@@ -14,7 +14,7 @@ export async function fetchGlobalLeaderboard(): Promise<LeaderboardEntry[]> {
     const payload = await apiGet<LeaderboardEntry[]>("/leaderboards/global");
     return payload.data ?? [];
   } catch (error) {
-    console.error("[p2r-api] Failed to fetch global leaderboard:", error);
+    console.warn("[p2r-api] Global leaderboard unavailable/empty:", error instanceof Error ? error.message : error);
     return [];
   }
 }
@@ -24,7 +24,7 @@ export async function fetchKaryaLeaderboard(): Promise<KaryaLeaderboardEntry[]> 
     const payload = await apiGet<KaryaLeaderboardEntry[]>("/leaderboards/karyas");
     return payload.data ?? [];
   } catch (error) {
-    console.error("[p2r-api] Failed to fetch karya leaderboard:", error);
+    console.warn("[p2r-api] Karya leaderboard unavailable/empty:", error instanceof Error ? error.message : error);
     return [];
   }
 }

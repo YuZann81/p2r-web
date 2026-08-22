@@ -42,6 +42,7 @@ describe("Navbar Component", () => {
     expect(screen.getByRole("link", { name: "Games" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Leaderboard" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Feeds" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Merchandise" })).toBeInTheDocument();
 
     expect(
       screen.getByRole("link", { name: /keranjang belanja \(3 item\)/i }),

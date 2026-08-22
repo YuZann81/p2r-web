@@ -43,6 +43,7 @@ describe("MerchandiseSection & Components", () => {
       forward: jest.fn(),
       refresh: jest.fn(),
       prefetch: jest.fn(),
+      bfcacheId: "",
     })
     mockedUseSearchParams.mockReturnValue(new URLSearchParams() as any)
     mockedUseAuth.mockReturnValue({
@@ -226,12 +227,12 @@ describe("MerchandiseSection & Components", () => {
       )
 
       expect(
-        await screen.findByText("Merchandise Segera Hadir"),
+        await screen.findByText("Belum ada merchandise yang tersedia."),
       ).toBeInTheDocument()
 
       expect(
         screen.getByText(
-          /Koleksi resmi Pixel To Reality sedang dipersiapkan/,
+          /Koleksi cinderamata resmi pameran sedang dipersiapkan/,
         ),
       ).toBeInTheDocument()
       expect(
@@ -267,7 +268,7 @@ describe("MerchandiseSection & Components", () => {
         screen.getByRole("button", { name: "Pesan Cyber T-Shirt" }),
       )
 
-      expect(screen.getByText("Cyber T-Shirt")).toBeInTheDocument()
+      expect(screen.getAllByText("Cyber T-Shirt").length).toBeGreaterThan(0)
       expect(screen.getByText("Harga: Rp 85.000")).toBeInTheDocument()
     })
 

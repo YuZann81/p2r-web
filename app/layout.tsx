@@ -46,7 +46,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${jersey.variable} bg-arcade-violet scroll-smooth`}>
+    <html lang="id" className={`${jersey.variable} bg-arcade-violet scroll-smooth`}>
       <body className="font-body antialiased">
         <AuthProvider>
           <CartProvider>

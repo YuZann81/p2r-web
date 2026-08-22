@@ -87,7 +87,10 @@ describe("GamesPage", () => {
       screen.getByRole("heading", { level: 1, name: /direktori game/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { level: 2, name: /game segera hadir/i }),
+      screen.getByRole("heading", {
+        level: 2,
+        name: /belum ada game yang tersedia/i,
+      }),
     ).toBeInTheDocument();
   });
 });

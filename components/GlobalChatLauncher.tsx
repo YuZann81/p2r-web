@@ -1,7 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import ChatAdminModal from "@/components/ChatAdmin";
+import dynamic from "next/dynamic";
+
+const ChatAdminModal = dynamic(() => import("@/components/ChatAdmin"), {
+  ssr: false,
+});
 
 export default function GlobalChatLauncher() {
   const [isChatOpen, setIsChatOpen] = useState(false);

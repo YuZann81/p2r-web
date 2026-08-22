@@ -38,6 +38,7 @@ describe("RegisterPage (/register)", () => {
       forward: jest.fn(),
       refresh: jest.fn(),
       prefetch: jest.fn(),
+      bfcacheId: "",
     });
     mockedUseSearchParams.mockReturnValue(new URLSearchParams() as any);
   });
@@ -52,9 +53,9 @@ describe("RegisterPage (/register)", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: /daftar akun/i }),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(/^nama lengkap$/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/^email$/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/^kata sandi$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^nama lengkap/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^email/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^kata sandi/i)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /buat akun sekarang/i }),
     ).toBeInTheDocument();
@@ -76,13 +77,13 @@ describe("RegisterPage (/register)", () => {
       </AuthProvider>,
     );
 
-    fireEvent.change(screen.getByLabelText(/^nama lengkap$/i), {
+    fireEvent.change(screen.getByLabelText(/^nama lengkap/i), {
       target: { value: "New Hero" },
     });
-    fireEvent.change(screen.getByLabelText(/^email$/i), {
+    fireEvent.change(screen.getByLabelText(/^email/i), {
       target: { value: "hero@test.com" },
     });
-    fireEvent.change(screen.getByLabelText(/^kata sandi$/i), {
+    fireEvent.change(screen.getByLabelText(/^kata sandi/i), {
       target: { value: "secret123" },
     });
     fireEvent.click(

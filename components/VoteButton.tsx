@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { voteKarya, unvoteKarya } from "@/lib/api/karya";
@@ -35,6 +35,31 @@ export default function VoteButton({
     message: string;
   } | null>(null);
 
+  const autoDismissTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Set feedback with auto-dismiss after 4 seconds
+  const showFeedback = (
+    type: "success" | "error" | "info",
+    message: string,
+  ) => {
+    if (autoDismissTimerRef.current) {
+      clearTimeout(autoDismissTimerRef.current);
+    }
+    setFeedback({ type, message });
+    autoDismissTimerRef.current = setTimeout(() => {
+      setFeedback(null);
+    }, 4000);
+  };
+
+  // Clear timer on component unmount
+  useEffect(() => {
+    return () => {
+      if (autoDismissTimerRef.current) {
+        clearTimeout(autoDismissTimerRef.current);
+      }
+    };
+  }, []);
+
   // Auto-resume vote intent after authentication redirect
   useEffect(() => {
     const action = searchParams?.get ? searchParams.get("action") : null;
@@ -63,6 +88,9 @@ export default function VoteButton({
     if (isLoading) return;
 
     setIsLoading(true);
+    if (autoDismissTimerRef.current) {
+      clearTimeout(autoDismissTimerRef.current);
+    }
     setFeedback(null);
 
     try {
@@ -76,17 +104,14 @@ export default function VoteButton({
               : votesCount + 1;
           setVotesCount(newCount);
           setIsVoted(true);
-          setFeedback({
-            type: "success",
-            message: "⭐ Vote kamu berhasil dicatat! Terima kasih telah mendukung karya ini.",
-          });
-        } catch (err) {
-          // If already voted on backend or duplicate
+          showFeedback(
+            "success",
+            "⭐ Vote kamu berhasil dicatat! Terima kasih telah mendukung karya ini.",
+          );
+        } catch {
+          // If already voted or duplicate recorded on backend
           setIsVoted(true);
-          setFeedback({
-            type: "info",
-            message: "Kamu telah memberikan vote untuk karya ini.",
-          });
+          showFeedback("info", "Kamu telah memberikan vote untuk karya ini.");
         }
       } else {
         // Cancel Vote (Unvote)
@@ -98,15 +123,18 @@ export default function VoteButton({
               : Math.max(0, votesCount - 1);
           setVotesCount(newCount);
           setIsVoted(false);
-          setFeedback({
-            type: "info",
-            message: "Vote kamu telah dibatalkan.",
-          });
+          showFeedback("info", "Vote kamu telah dibatalkan.");
         } catch {
           setIsVoted(false);
           setVotesCount((c) => Math.max(0, c - 1));
+          showFeedback("info", "Vote kamu telah dibatalkan.");
         }
       }
+    } catch {
+      showFeedback(
+        "error",
+        "Gagal memproses vote. Silakan coba beberapa saat lagi.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -152,6 +180,7 @@ export default function VoteButton({
       {feedback && (
         <p
           role="status"
+          aria-live="polite"
           className={`text-xs font-semibold text-center transition-opacity ${
             feedback.type === "success"
               ? "text-arcade-yellow"

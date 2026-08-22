@@ -36,6 +36,7 @@ describe("LoginPage (/login)", () => {
       forward: jest.fn(),
       refresh: jest.fn(),
       prefetch: jest.fn(),
+      bfcacheId: "",
     });
     mockedUseSearchParams.mockReturnValue(new URLSearchParams() as any);
   });
@@ -50,8 +51,8 @@ describe("LoginPage (/login)", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: /masuk akun/i }),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(/^email$/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/^kata sandi$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^email/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^kata sandi/i)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /masuk ke akun/i }),
     ).toBeInTheDocument();
@@ -80,10 +81,10 @@ describe("LoginPage (/login)", () => {
       </AuthProvider>,
     );
 
-    fireEvent.change(screen.getByLabelText(/^email$/i), {
+    fireEvent.change(screen.getByLabelText(/^email/i), {
       target: { value: "player@test.com" },
     });
-    fireEvent.change(screen.getByLabelText(/^kata sandi$/i), {
+    fireEvent.change(screen.getByLabelText(/^kata sandi/i), {
       target: { value: "password123" },
     });
     fireEvent.click(screen.getByRole("button", { name: /masuk ke akun/i }));
@@ -110,10 +111,10 @@ describe("LoginPage (/login)", () => {
       </AuthProvider>,
     );
 
-    fireEvent.change(screen.getByLabelText(/^email$/i), {
+    fireEvent.change(screen.getByLabelText(/^email/i), {
       target: { value: "wrong@test.com" },
     });
-    fireEvent.change(screen.getByLabelText(/^kata sandi$/i), {
+    fireEvent.change(screen.getByLabelText(/^kata sandi/i), {
       target: { value: "wrongpass" },
     });
     fireEvent.click(screen.getByRole("button", { name: /masuk ke akun/i }));

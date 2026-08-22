@@ -48,19 +48,16 @@ describe("getKaryaBySlug", () => {
     expect(result).toEqual(mockKarya)
   })
 
-  it("falls back to static fallback game when API fails or returns null", async () => {
+  it("returns null when API fails or returns null", async () => {
     mockedFetchKaryaBySlug.mockRejectedValueOnce(new Error("API Not Found"))
 
     const result = await getKaryaBySlug("game-1")
 
-    expect(result).not.toBeNull()
-    expect(result?.title).toBe("Cyber Runner 2099")
-    expect(result?.slug).toBe("game-1")
-    expect(result?.category).toBe("game")
+    expect(result).toBeNull()
   })
 
-  it("returns null when slug is not in API and not in fallback", async () => {
-    mockedFetchKaryaBySlug.mockRejectedValueOnce(new Error("API Not Found"))
+  it("returns null when slug is not found in API", async () => {
+    mockedFetchKaryaBySlug.mockResolvedValueOnce(null)
 
     const result = await getKaryaBySlug("non-existent-slug")
 

@@ -1,13 +1,21 @@
 import { render, screen } from "@testing-library/react";
 import KaryaShowcasePreview from "@/components/KaryaShowcasePreview";
+import Games from "@/components/Games";
 import LeaderboardPreview from "@/components/LeaderboardPreview";
 import LatestFeedsPreview from "@/components/LatestFeedsPreview";
+import MerchandisePreview from "@/components/MerchandisePreview";
 import { getAllKaryas } from "@/lib/karya/getKaryas";
+import { getGames } from "@/lib/games/getGames";
 import { getLeaderboardData } from "@/lib/leaderboard/getLeaderboard";
 import { getFeeds } from "@/lib/feeds/getFeeds";
+import { fetchProducts } from "@/lib/api/products";
 
 jest.mock("@/lib/karya/getKaryas", () => ({
   getAllKaryas: jest.fn(),
+}));
+
+jest.mock("@/lib/games/getGames", () => ({
+  getGames: jest.fn(),
 }));
 
 jest.mock("@/lib/leaderboard/getLeaderboard", () => ({
@@ -18,13 +26,21 @@ jest.mock("@/lib/feeds/getFeeds", () => ({
   getFeeds: jest.fn(),
 }));
 
+jest.mock("@/lib/api/products", () => ({
+  fetchProducts: jest.fn(),
+}));
+
 const mockedGetAllKaryas = getAllKaryas as jest.MockedFunction<
   typeof getAllKaryas
 >;
+const mockedGetGames = getGames as jest.MockedFunction<typeof getGames>;
 const mockedGetLeaderboardData = getLeaderboardData as jest.MockedFunction<
   typeof getLeaderboardData
 >;
 const mockedGetFeeds = getFeeds as jest.MockedFunction<typeof getFeeds>;
+const mockedFetchProducts = fetchProducts as jest.MockedFunction<
+  typeof fetchProducts
+>;
 
 describe("Landing Feature Discovery Previews", () => {
   beforeEach(() => {
@@ -64,6 +80,36 @@ describe("Landing Feature Discovery Previews", () => {
       expect(
         screen.getByRole("link", { name: /lihat semua karya/i }),
       ).toHaveAttribute("href", "/karya");
+    });
+  });
+
+  describe("Games (Arcade Showcase)", () => {
+    it("renders section heading, compact game cards, play button, and link to /games", async () => {
+      mockedGetGames.mockResolvedValueOnce([
+        {
+          id: "game-1",
+          name: "Cyber Runner 2099",
+          description: "Game arcade endless runner bertema cyberpunk neon.",
+          image: "/images/game-1.png",
+          imageAlt: "Cyber Runner 2099 artwork",
+          logo: "/images/game-1-logo.png",
+          logoAlt: "Cyber Runner 2099 logo",
+        },
+      ]);
+
+      const Component = await Games();
+      render(Component);
+
+      expect(
+        screen.getByRole("heading", { name: "GAME ARCADE SISWA RPL" }),
+      ).toBeInTheDocument();
+      expect(screen.getByText("Cyber Runner 2099")).toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: /mainkan game/i }),
+      ).toHaveAttribute("href", "/games/game-1");
+      expect(
+        screen.getByRole("link", { name: /eksplorasi semua game/i }),
+      ).toHaveAttribute("href", "/games");
     });
   });
 
@@ -113,6 +159,39 @@ describe("Landing Feature Discovery Previews", () => {
       expect(
         screen.getByRole("link", { name: /lihat semua feed/i }),
       ).toHaveAttribute("href", "/feeds");
+    });
+  });
+
+  describe("MerchandisePreview", () => {
+    it("renders preview products with formatted price and link to /merchandise", async () => {
+      mockedFetchProducts.mockResolvedValueOnce([
+        {
+          id: "prod-1",
+          name: "Cyber T-Shirt",
+          slug: "cyber-t-shirt",
+          description: "Official cyberpunk t-shirt.",
+          price: 85000,
+          stock: 20,
+          image_url: "https://example.com/tshirt.png",
+          category: "Fashion",
+          status: "Ready Stock",
+        },
+      ]);
+
+      const Component = await MerchandisePreview();
+      render(Component);
+
+      expect(
+        screen.getByRole("heading", { name: "MERCHANDISE RESMI P2R" }),
+      ).toBeInTheDocument();
+      expect(screen.getByText("Cyber T-Shirt")).toBeInTheDocument();
+      expect(screen.getByText("Rp 85.000")).toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: /pesan merchandise/i }),
+      ).toHaveAttribute("href", "/merchandise");
+      expect(
+        screen.getByRole("link", { name: /lihat semua merchandise/i }),
+      ).toHaveAttribute("href", "/merchandise");
     });
   });
 });

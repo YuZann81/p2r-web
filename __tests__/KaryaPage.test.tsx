@@ -109,7 +109,7 @@ describe("KaryaPage (/karya)", () => {
     expect(
       screen.getByRole("heading", {
         level: 2,
-        name: "Karya Segera Hadir",
+        name: "Belum ada karya yang tersedia.",
       }),
     ).toBeInTheDocument()
     expect(
@@ -129,7 +129,7 @@ describe("KaryaPage (/karya)", () => {
     expect(
       screen.getByRole("heading", {
         level: 2,
-        name: "Karya Segera Hadir",
+        name: "Belum ada karya yang tersedia.",
       }),
     ).toBeInTheDocument()
   })

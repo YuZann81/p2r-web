@@ -1,4 +1,3 @@
-import { GAMES } from "@/lib/content"
 import { getGames } from "@/lib/games/getGames"
 
 jest.mock("@/lib/api/karya", () => ({
@@ -50,11 +49,19 @@ describe("getGames", () => {
     expect(games[0]?.name).toBe("Pixel Runner")
   })
 
-  it("falls back to static GAMES when the API returns no items", async () => {
+  it("returns an empty array when the API returns no items", async () => {
     mockedFetchGameKaryas.mockResolvedValue([])
 
     const games = await getGames()
 
-    expect(games).toEqual([...GAMES])
+    expect(games).toEqual([])
+  })
+
+  it("returns an empty array when the API call fails", async () => {
+    mockedFetchGameKaryas.mockRejectedValue(new Error("Network failure"))
+
+    const games = await getGames()
+
+    expect(games).toEqual([])
   })
 })

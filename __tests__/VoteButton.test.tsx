@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import VoteButton from "@/components/VoteButton";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { voteKarya, unvoteKarya } from "@/lib/api/karya";
@@ -21,7 +21,7 @@ const mockedUseSearchParams = useSearchParams as jest.MockedFunction<
   typeof useSearchParams
 >;
 
-describe("VoteButton", () => {
+describe("VoteButton Component", () => {
   const mockPush = jest.fn();
 
   beforeEach(() => {
@@ -34,11 +34,12 @@ describe("VoteButton", () => {
       forward: jest.fn(),
       refresh: jest.fn(),
       prefetch: jest.fn(),
+      bfcacheId: "",
     });
     mockedUseSearchParams.mockReturnValue(new URLSearchParams() as any);
   });
 
-  it("renders with initial vote count and redirects guest to login on click", () => {
+  it("renders with initial vote count, aria-pressed=false, and redirects guest to login on click", () => {
     render(
       <AuthProvider>
         <VoteButton slug="cyber-runner" initialVotesCount={10} />
@@ -48,6 +49,7 @@ describe("VoteButton", () => {
     const button = screen.getByRole("button", { name: /beri vote/i });
     expect(button).toBeInTheDocument();
     expect(button).toHaveTextContent("10");
+    expect(button).toHaveAttribute("aria-pressed", "false");
 
     fireEvent.click(button);
 
@@ -59,7 +61,9 @@ describe("VoteButton", () => {
     );
   });
 
-  it("submits vote for authenticated user and updates UI to voted state", async () => {
+  it("submits vote for authenticated user, updates count, and auto-dismisses feedback after 4s", async () => {
+    jest.useFakeTimers();
+
     localStorage.setItem("p2r_auth_token", "valid-user-token");
     localStorage.setItem(
       "p2r_auth_user",
@@ -87,10 +91,27 @@ describe("VoteButton", () => {
         "valid-user-token",
       );
       expect(screen.getByText(/voted \(11\)/i)).toBeInTheDocument();
+      expect(button).toHaveAttribute("aria-pressed", "true");
     });
+
+    // Feedback should be visible initially
+    expect(
+      screen.getByText(/vote kamu berhasil dicatat!/i),
+    ).toBeInTheDocument();
+
+    // Fast-forward timer by 4000ms
+    act(() => {
+      jest.advanceTimersByTime(4000);
+    });
+
+    expect(
+      screen.queryByText(/vote kamu berhasil dicatat!/i),
+    ).not.toBeInTheDocument();
+
+    jest.useRealTimers();
   });
 
-  it("cancels vote (unvotes) when an already voted button is clicked", async () => {
+  it("cancels vote (unvotes) when an already voted button is clicked and cleans timer on unmount", async () => {
     localStorage.setItem("p2r_auth_token", "valid-user-token");
     localStorage.setItem(
       "p2r_auth_user",
@@ -103,7 +124,7 @@ describe("VoteButton", () => {
       data: { votes_count: 10, is_voted_by_me: false },
     });
 
-    render(
+    const { unmount } = render(
       <AuthProvider>
         <VoteButton
           slug="cyber-runner"
@@ -115,6 +136,7 @@ describe("VoteButton", () => {
 
     const button = screen.getByRole("button", { name: /batalkan vote/i });
     expect(button).toHaveTextContent("Voted (11)");
+    expect(button).toHaveAttribute("aria-pressed", "true");
 
     fireEvent.click(button);
 
@@ -124,6 +146,10 @@ describe("VoteButton", () => {
         "valid-user-token",
       );
       expect(screen.getByText(/beri vote \(10\)/i)).toBeInTheDocument();
+      expect(button).toHaveAttribute("aria-pressed", "false");
     });
+
+    // Unmount safely without timer memory leak errors
+    expect(() => unmount()).not.toThrow();
   });
 });

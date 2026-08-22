@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import Hero from "@/components/Hero";
 import { HERO_CONTENT } from "@/lib/content";
 
-describe("Hero", () => {
+describe("Hero Component — Digital Exhibition Entrance", () => {
   let logSpy: jest.SpyInstance;
 
   beforeEach(() => {
@@ -15,7 +15,7 @@ describe("Hero", () => {
   });
 
   describe("rendering", () => {
-    it("renders the main heading text", () => {
+    it("renders the main heading text dominant and clear", () => {
       render(<Hero />);
       const heading = screen.getByRole("heading", { level: 1 });
       expect(heading).toBeInTheDocument();

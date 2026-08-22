@@ -28,7 +28,7 @@ describe("FeedsPage (/feeds)", () => {
     expect(
       screen.getByRole("heading", {
         level: 2,
-        name: /belum ada postingan feeds/i,
+        name: /belum ada aktivitas terbaru/i,
       }),
     ).toBeInTheDocument();
     expect(

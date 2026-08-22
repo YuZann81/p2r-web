@@ -6,12 +6,13 @@ export default function ArcadeLogo() {
 
   return (
     <span
+      role="img"
       aria-label={WORDMARK}
-      className="flex select-none items-end font-display text-2xl leading-none text-arcade-yellow sm:text-3xl lg:text-4xl"
-      style={{ textShadow: "3px 4px 0 var(--arcade-ink)" }}
+      className="flex select-none items-end font-display text-xl leading-none text-arcade-yellow min-[360px]:text-2xl sm:text-3xl lg:text-4xl"
+      style={{ textShadow: "2px 3px 0 var(--arcade-ink)" }}
     >
       {chars.map((char, index) => {
-        const arc = -Math.sin((index / lastIndex) * Math.PI) * 16;
+        const arc = -Math.sin((index / lastIndex) * Math.PI) * 12;
         return (
           <span
             key={`${char}-${index}`}

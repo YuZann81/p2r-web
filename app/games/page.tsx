@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import GameCard from "@/components/GameCard";
+import GameDirectoryClient from "@/components/GameDirectoryClient";
 import { getGames } from "@/lib/games/getGames";
 
 export const metadata: Metadata = {
@@ -14,56 +14,45 @@ export default async function GamesPage() {
 
   return (
     <main
-      className="flex min-h-screen flex-col justify-between px-6 py-12 md:px-12 md:py-16"
+      className="flex min-h-screen flex-col justify-between px-4 py-10 sm:px-6 sm:py-12 md:px-12 md:py-16"
       style={{
         background:
           "linear-gradient(160deg, var(--arcade-violet) 0%, var(--arcade-purple) 100%)",
       }}
     >
       <div className="mx-auto w-full max-w-6xl">
-        <header className="mb-14 text-center md:mb-20">
+        {/* Navigation & Header */}
+        <header className="mb-10 text-center sm:mb-14 md:mb-16">
           <Link
             href="/"
-            className="inline-block font-display text-sm uppercase tracking-wider text-arcade-yellow transition-opacity hover:opacity-80 md:text-base"
+            className="inline-block rounded-lg px-2 py-1 font-display text-sm tracking-wider uppercase text-arcade-yellow transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow md:text-base"
           >
             ← Kembali ke Beranda
           </Link>
-          <h1 className="mt-4 font-display text-4xl text-arcade-yellow [text-shadow:3px_3px_0_var(--arcade-ink)] sm:text-5xl md:text-6xl">
+          <h1 className="mt-4 font-display text-3xl text-arcade-yellow [text-shadow:3px_3px_0_var(--arcade-ink)] sm:text-5xl md:text-6xl">
             DIREKTORI GAME
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base font-semibold leading-relaxed text-pretty text-white/90 sm:text-lg">
-            Koleksi lengkap seluruh game arcade interaktif buatan siswa RPL. Pilih game favoritmu, mainkan, dan catatkan skormu di papan klasemen!
+          <p className="mx-auto mt-4 max-w-2xl text-sm font-semibold leading-relaxed text-pretty text-white/90 sm:text-base md:text-lg">
+            Koleksi lengkap seluruh game arcade interaktif buatan siswa RPL. Temukan game favoritmu, mainkan di booth pameran, dan raih skor tertinggi!
           </p>
         </header>
 
-        <section aria-label="Daftar Game Arcade" className="w-full">
-          {games.length > 0 ? (
-            <div className="flex flex-col gap-20 md:gap-28">
-              {games.map((game, index) => (
-                <GameCard key={game.id} game={game} reversed={index % 2 === 1} />
-              ))}
-            </div>
-          ) : (
-            <div className="w-full flex flex-col items-center justify-center p-10 md:p-16 border-2 border-dashed border-arcade-yellow/40 bg-black/20 text-center rounded-2xl backdrop-blur-xs">
-              <span className="inline-block rounded-full bg-arcade-yellow/20 px-4 py-1 font-display text-sm tracking-wide text-arcade-yellow mb-3">
-                Koleksi Game
-              </span>
-              <h2 className="font-display text-2xl md:text-3xl text-arcade-yellow font-bold drop-shadow-sm mb-3">
-                Game Segera Hadir
-              </h2>
-              <p className="text-white/80 font-medium text-base max-w-md leading-relaxed">
-                Daftar game arcade sedang dipersiapkan oleh tim siswa RPL. Pantau terus update pameran!
-              </p>
-            </div>
-          )}
-        </section>
+        {/* Interactive Directory Client Component */}
+        <GameDirectoryClient initialGames={games} />
 
-        <div className="mt-20 flex justify-center md:mt-28">
+        {/* Footer Navigation */}
+        <div className="mt-16 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6 md:mt-24">
           <Link
             href="/"
-            className="inline-flex items-center justify-center bg-arcade-yellow px-8 py-3 font-display text-lg font-bold text-arcade-ink shadow-[6px_6px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[3px_3px_0_var(--arcade-yellow-shadow)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
+            className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-arcade-yellow px-8 py-3 font-display text-base font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
           >
             Kembali ke Beranda
+          </Link>
+          <Link
+            href="/karya"
+            className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-white/30 bg-black/30 px-8 py-3 font-display text-base font-bold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-arcade-yellow"
+          >
+            Lihat Direktori Karya →
           </Link>
         </div>
       </div>

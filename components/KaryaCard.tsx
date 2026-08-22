@@ -56,52 +56,68 @@ export default function KaryaCard({ karya }: KaryaCardProps) {
     : [];
 
   return (
-    <div className="flex h-full flex-col justify-between rounded-2xl border border-white/15 bg-black/30 p-6 shadow-lg backdrop-blur-xs transition-transform duration-200 hover:-translate-y-1 hover:border-arcade-yellow/40 hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
+    <article
+      aria-label={karya.title}
+      className="group flex h-full flex-col justify-between rounded-2xl border-2 border-white/20 bg-[#1e1040] p-5 transition-all duration-150 hover:-translate-y-1 hover:border-arcade-yellow hover:shadow-[6px_6px_0_var(--arcade-yellow-shadow)]"
+    >
       <div>
         {/* Thumbnail Visual */}
-        <div className="relative mb-5 aspect-video w-full overflow-hidden rounded-xl bg-black/40">
+        <Link
+          href={`/karya/${karya.slug}`}
+          aria-label={`Lihat detail ${karya.title}`}
+          className="relative mb-4 block aspect-[16/9] w-full overflow-hidden rounded-xl bg-black/60 outline-none focus-visible:ring-4 focus-visible:ring-arcade-yellow"
+        >
           <img
             src={mainImage}
             alt={`${karya.title} thumbnail`}
-            className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105 [image-rendering:pixelated]"
           />
-          <div className="absolute top-3 left-3">
-            <span className="inline-block rounded-full bg-arcade-violet/90 px-3 py-1 font-display text-xs tracking-wider uppercase text-arcade-yellow backdrop-blur-sm">
+          {/* Category Chip */}
+          <div className="absolute top-2.5 left-2.5">
+            <span className="inline-block rounded-md border border-arcade-yellow/50 bg-[#1e1040]/90 px-2.5 py-0.5 font-display text-xs font-bold uppercase tracking-wider text-arcade-yellow">
               {categoryLabel}
             </span>
           </div>
+
+          {/* Vote count badge (No emoji) */}
           {karya.votes_count > 0 && (
-            <div className="absolute top-3 right-3">
-              <span className="inline-block rounded-full bg-black/70 px-2.5 py-1 font-display text-xs tracking-wider text-white backdrop-blur-sm">
-                ⭐ {karya.votes_count}
+            <div className="absolute top-2.5 right-2.5">
+              <span className="inline-flex items-center gap-1 rounded-md border border-white/30 bg-black/80 px-2 py-0.5 font-mono text-xs font-bold text-white">
+                <span>VOTES:</span>
+                <span className="text-arcade-yellow">{karya.votes_count}</span>
               </span>
             </div>
           )}
-        </div>
+        </Link>
 
         {/* Title & Creator */}
-        <h3 className="font-display text-2xl text-arcade-yellow [text-shadow:2px_2px_0_var(--arcade-ink)]">
-          {karya.title}
-        </h3>
+        <Link
+          href={`/karya/${karya.slug}`}
+          className="outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow"
+        >
+          <h3 className="font-display text-xl text-arcade-yellow transition-colors group-hover:underline [text-shadow:2px_2px_0_var(--arcade-ink)] sm:text-2xl">
+            {karya.title}
+          </h3>
+        </Link>
 
         {karya.creators && (
           <p className="mt-1 text-xs font-semibold text-white/70">
-            Oleh: <span className="text-arcade-yellow/90">{karya.creators}</span>
+            Kreator: <span className="text-white">{karya.creators}</span>
           </p>
         )}
 
         {/* Description */}
-        <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-white/85">
+        <p className="mt-2.5 line-clamp-2 text-sm font-medium leading-relaxed text-white/80">
           {karya.description || "Deskripsi karya pameran Pixel To Reality."}
         </p>
 
-        {/* Tech stack pills */}
+        {/* Tech Stack Chips */}
         {techStackList.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-1.5">
+          <div className="mt-3.5 flex flex-wrap gap-1.5">
             {techStackList.map((tech) => (
               <span
                 key={tech}
-                className="rounded-md border border-white/20 bg-white/5 px-2 py-0.5 font-display text-xs text-arcade-yellow/90"
+                className="rounded border border-white/20 bg-white/5 px-2 py-0.5 font-display text-xs font-semibold text-arcade-yellow/90"
               >
                 {tech}
               </span>
@@ -111,14 +127,15 @@ export default function KaryaCard({ karya }: KaryaCardProps) {
       </div>
 
       {/* Action CTA */}
-      <div className="mt-6 pt-4 border-t border-white/10">
+      <div className="mt-5 border-t border-white/10 pt-4">
         <Link
           href={`/karya/${karya.slug}`}
-          className="inline-flex w-full items-center justify-center bg-arcade-yellow py-2.5 font-display text-base font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
+          className="inline-flex min-h-[40px] w-full items-center justify-center rounded-lg bg-arcade-yellow px-4 py-2 font-display text-sm font-bold text-arcade-ink shadow-[3px_3px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
         >
-          Lihat Detail Karya →
+          <span>Lihat Detail Karya</span>
+          <span aria-hidden="true" className="ml-1.5 transition-transform duration-150 group-hover:translate-x-1">→</span>
         </Link>
       </div>
-    </div>
+    </article>
   );
 }

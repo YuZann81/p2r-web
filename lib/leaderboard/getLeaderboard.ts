@@ -2,8 +2,10 @@ import {
   fetchGlobalLeaderboard,
   fetchKaryaLeaderboard,
 } from "@/lib/api/leaderboard";
-import { LEADERBOARD_ENTRIES, type LeaderboardEntry } from "@/lib/content";
-import type { KaryaLeaderboardEntry } from "@/lib/api/types/leaderboard";
+import type {
+  LeaderboardEntry,
+  KaryaLeaderboardEntry,
+} from "@/lib/api/types/leaderboard";
 
 export type LeaderboardData = {
   mode: "live" | "preview";
@@ -14,23 +16,19 @@ export type LeaderboardData = {
 export async function getLeaderboardData(): Promise<LeaderboardData> {
   try {
     const liveEntries = await fetchGlobalLeaderboard();
-    if (liveEntries.length > 0) {
-      const karyaRankings = await fetchKaryaLeaderboard();
-      return {
-        mode: "live",
-        entries: liveEntries,
-        karyaRankings,
-      };
-    }
-  } catch (error) {
-    console.error(
-      "[leaderboard] API fetch failed, using fallback preview:",
-      error,
-    );
-  }
+    const karyaRankings = await fetchKaryaLeaderboard();
 
-  return {
-    mode: "preview",
-    entries: [...LEADERBOARD_ENTRIES],
-  };
+    return {
+      mode: "live",
+      entries: Array.isArray(liveEntries) ? liveEntries : [],
+      karyaRankings: Array.isArray(karyaRankings) ? karyaRankings : [],
+    };
+  } catch (error) {
+    console.error("[p2r-api] Failed to load leaderboard data from API:", error);
+    return {
+      mode: "live",
+      entries: [],
+      karyaRankings: [],
+    };
+  }
 }

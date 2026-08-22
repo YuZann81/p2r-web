@@ -60,6 +60,7 @@ describe("MerchandisePage (/merchandise)", () => {
       forward: jest.fn(),
       refresh: jest.fn(),
       prefetch: jest.fn(),
+      bfcacheId: "",
     })
     mockedUseSearchParams.mockReturnValue(new URLSearchParams() as any)
     mockedUseAuth.mockReturnValue({
@@ -97,7 +98,7 @@ describe("MerchandisePage (/merchandise)", () => {
     expect(backLinks[0]).toHaveAttribute("href", "/")
   })
 
-  it("renders empty state 'Merchandise Segera Hadir' when API returns empty array", async () => {
+  it("renders empty state 'Belum ada merchandise yang tersedia.' when API returns empty array", async () => {
     mockedFetchProducts.mockResolvedValueOnce([])
 
     const Component = await MerchandisePage()
@@ -106,11 +107,11 @@ describe("MerchandisePage (/merchandise)", () => {
     expect(
       screen.getByRole("heading", {
         level: 2,
-        name: "Merchandise Segera Hadir",
+        name: "Belum ada merchandise yang tersedia.",
       }),
     ).toBeInTheDocument()
     expect(
-      screen.getByText(/Koleksi resmi Pixel To Reality sedang dipersiapkan/i),
+      screen.getByText(/Koleksi cinderamata resmi pameran sedang dipersiapkan/i),
     ).toBeInTheDocument()
   })
 
@@ -157,8 +158,8 @@ describe("MerchandisePage (/merchandise)", () => {
     ).toBeInTheDocument()
     expect(screen.getByText("Harga: Rp 85.000")).toBeInTheDocument()
     expect(
-      screen.getByText("Official cyberpunk t-shirt."),
-    ).toBeInTheDocument()
+      screen.getAllByText("Official cyberpunk t-shirt.").length,
+    ).toBeGreaterThan(0)
   })
 
   it("redirects guest to login with redirect param when order button is clicked", async () => {
@@ -189,5 +190,42 @@ describe("MerchandisePage (/merchandise)", () => {
     expect(mockPush).toHaveBeenCalledWith(
       expect.stringContaining("productId=prod-1"),
     )
+  })
+
+  it("filters products via live search input", async () => {
+    mockedFetchProducts.mockResolvedValueOnce(mockProducts)
+    const user = userEvent.setup()
+
+    const Component = await MerchandisePage()
+    render(Component)
+
+    const searchInput = screen.getByLabelText(/cari katalog merchandise/i)
+    await user.type(searchInput, "Lanyard")
+
+    expect(screen.getByText("Menampilkan 1 dari 2 Merchandise")).toBeInTheDocument()
+    expect(screen.getByText("Pixel Lanyard")).toBeInTheDocument()
+    expect(screen.queryByText("Cyber T-Shirt")).not.toBeInTheDocument()
+  })
+
+  it("renders fundraising context and exploration navigation links", async () => {
+    mockedFetchProducts.mockResolvedValueOnce(mockProducts)
+
+    const Component = await MerchandisePage()
+    render(Component)
+
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: /tentang dana usaha & merchandise/i,
+      }),
+    ).toBeInTheDocument()
+
+    expect(
+      screen.getByRole("link", { name: /jelajahi galeri karya →/i }),
+    ).toHaveAttribute("href", "/karya")
+
+    expect(
+      screen.getByRole("link", { name: /mainkan game arcade →/i }),
+    ).toHaveAttribute("href", "/games")
   })
 })
