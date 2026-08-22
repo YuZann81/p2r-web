@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LEADERBOARD_ENTRIES, type LeaderboardEntry } from "@/lib/content";
+import { getLeaderboardData } from "@/lib/leaderboard/getLeaderboard";
+import type { LeaderboardEntry } from "@/lib/api/types/leaderboard";
 
 export const metadata: Metadata = {
   title: "Leaderboard — Pixels to Reality",
@@ -8,11 +9,14 @@ export const metadata: Metadata = {
     "Papan klasemen skor tertinggi game arcade dan perolehan suara voting karya pameran Pixel To Reality.",
 };
 
-export default function LeaderboardPage() {
-  const topThree = LEADERBOARD_ENTRIES.slice(0, 3);
-  const podiumOrder = [topThree[1], topThree[0], topThree[2]].filter(
-    Boolean,
-  ) as LeaderboardEntry[];
+export default async function LeaderboardPage() {
+  const { mode, entries } = await getLeaderboardData();
+
+  const topThree = entries.slice(0, 3);
+  const podiumOrder =
+    topThree.length >= 3
+      ? [topThree[1], topThree[0], topThree[2]]
+      : topThree;
 
   return (
     <main
@@ -45,119 +49,140 @@ export default function LeaderboardPage() {
           aria-label="Status Mode Leaderboard"
           className="mb-10 rounded-xl border-2 border-arcade-yellow/40 bg-black/30 p-4 text-center backdrop-blur-xs sm:p-5"
         >
-          <span className="inline-block rounded-full bg-arcade-yellow/20 px-3.5 py-1 font-display text-xs tracking-wider uppercase text-arcade-yellow sm:text-sm">
-            ⚡ SIMULASI / PREVIEW MODE ⚡
-          </span>
-          <p className="mt-2 text-xs font-medium text-white/80 sm:text-sm">
-            Data klasemen di bawah ini merupakan data simulasi untuk keperluan preview. Leaderboard live real-time akan menggunakan data event resmi pameran.
-          </p>
+          {mode === "preview" ? (
+            <>
+              <span className="inline-block rounded-full bg-arcade-yellow/20 px-3.5 py-1 font-display text-xs tracking-wider uppercase text-arcade-yellow sm:text-sm">
+                ⚡ SIMULASI / PREVIEW MODE ⚡
+              </span>
+              <p className="mt-2 text-xs font-medium text-white/80 sm:text-sm">
+                Data klasemen di bawah ini merupakan data simulasi untuk keperluan preview. Leaderboard live real-time akan menggunakan data event resmi pameran.
+              </p>
+            </>
+          ) : (
+            <>
+              <span className="inline-block rounded-full bg-arcade-green/20 px-3.5 py-1 font-display text-xs tracking-wider uppercase text-arcade-green sm:text-sm">
+                🏆 LIVE EVENT LEADERBOARD ⚡
+              </span>
+              <p className="mt-2 text-xs font-medium text-white/80 sm:text-sm">
+                Papan klasemen skor resmi turnamen arcade pameran Pixel To Reality: The Cyber Arcade.
+              </p>
+            </>
+          )}
         </div>
 
         {/* Top 3 Podium Highlights */}
-        <section aria-label="Top 3 Juara Klasemen" className="mb-12">
-          <h2 className="mb-6 text-center font-display text-2xl text-arcade-yellow [text-shadow:2px_2px_0_var(--arcade-ink)] sm:text-3xl">
-            TOP 3 PLAYERS
-          </h2>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 sm:items-end">
-            {podiumOrder.map((entry) => {
-              const isFirst = entry.rank === 1;
-              const isSecond = entry.rank === 2;
+        {podiumOrder.length > 0 && (
+          <section aria-label="Top 3 Juara Klasemen" className="mb-12">
+            <h2 className="mb-6 text-center font-display text-2xl text-arcade-yellow [text-shadow:2px_2px_0_var(--arcade-ink)] sm:text-3xl">
+              TOP 3 PLAYERS
+            </h2>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 sm:items-end">
+              {podiumOrder.map((entry) => {
+                const isFirst = entry.rank === 1;
+                const isSecond = entry.rank === 2;
 
-              return (
-                <div
-                  key={entry.rank}
-                  className={`flex flex-col items-center rounded-xl p-6 text-center shadow-lg transition-transform ${
-                    isFirst
-                      ? "order-1 border-2 border-arcade-yellow bg-arcade-yellow/15 sm:order-2 sm:-translate-y-4 sm:p-8"
-                      : isSecond
-                        ? "order-2 border border-white/40 bg-white/10 sm:order-1 sm:p-6"
-                        : "order-3 border border-arcade-green/40 bg-arcade-green/10 sm:order-3 sm:p-6"
-                  }`}
-                >
+                return (
                   <div
-                    className={`flex h-12 w-12 items-center justify-center rounded-full font-display text-2xl font-bold shadow-md ${
+                    key={entry.rank}
+                    className={`flex flex-col items-center rounded-xl p-6 text-center shadow-lg transition-transform ${
                       isFirst
-                        ? "bg-arcade-yellow text-arcade-ink shadow-[0_0_12px_rgba(255,229,0,0.6)]"
+                        ? "order-1 border-2 border-arcade-yellow bg-arcade-yellow/15 sm:order-2 sm:-translate-y-4 sm:p-8"
                         : isSecond
-                          ? "bg-white text-arcade-ink"
-                          : "bg-arcade-green text-white"
+                          ? "order-2 border border-white/40 bg-white/10 sm:order-1 sm:p-6"
+                          : "order-3 border border-arcade-green/40 bg-arcade-green/10 sm:order-3 sm:p-6"
                     }`}
                   >
-                    #{entry.rank}
+                    <div
+                      className={`flex h-12 w-12 items-center justify-center rounded-full font-display text-2xl font-bold shadow-md ${
+                        isFirst
+                          ? "bg-arcade-yellow text-arcade-ink shadow-[0_0_12px_rgba(255,229,0,0.6)]"
+                          : isSecond
+                            ? "bg-white text-arcade-ink"
+                            : "bg-arcade-green text-white"
+                      }`}
+                    >
+                      #{entry.rank}
+                    </div>
+                    <h3 className="mt-4 font-display text-xl text-white sm:text-2xl">
+                      {entry.playerName}
+                    </h3>
+                    <span className="mt-1 font-display text-xs uppercase tracking-wider text-arcade-yellow/90 sm:text-sm">
+                      {entry.gameName}
+                    </span>
+                    <div className="mt-4 rounded-lg bg-black/40 px-4 py-1.5 font-display text-lg font-bold text-arcade-yellow sm:text-xl">
+                      {entry.score.toLocaleString("id-ID")} PTS
+                    </div>
                   </div>
-                  <h3 className="mt-4 font-display text-xl text-white sm:text-2xl">
-                    {entry.playerName}
-                  </h3>
-                  <span className="mt-1 font-display text-xs uppercase tracking-wider text-arcade-yellow/90 sm:text-sm">
-                    {entry.gameName}
-                  </span>
-                  <div className="mt-4 rounded-lg bg-black/40 px-4 py-1.5 font-display text-lg font-bold text-arcade-yellow sm:text-xl">
-                    {entry.score.toLocaleString("id-ID")} PTS
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* Full Leaderboard Table */}
         <section
           aria-label="Tabel Klasemen Lengkap"
           className="overflow-hidden rounded-xl border border-white/15 bg-black/30 backdrop-blur-xs"
         >
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-white sm:text-base">
-              <thead className="border-b border-white/20 bg-black/40 font-display text-base uppercase tracking-wider text-arcade-yellow sm:text-lg">
-                <tr>
-                  <th scope="col" className="px-4 py-4 text-center sm:px-6">
-                    Rank
-                  </th>
-                  <th scope="col" className="px-4 py-4 sm:px-6">
-                    Player
-                  </th>
-                  <th scope="col" className="px-4 py-4 sm:px-6">
-                    Game
-                  </th>
-                  <th scope="col" className="px-4 py-4 text-right sm:px-6">
-                    Score
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/10">
-                {LEADERBOARD_ENTRIES.map((entry) => (
-                  <tr
-                    key={entry.rank}
-                    className="transition-colors hover:bg-white/5"
-                  >
-                    <td className="px-4 py-4 text-center font-display font-bold sm:px-6">
-                      <span
-                        className={`inline-flex h-8 w-8 items-center justify-center rounded-full ${
-                          entry.rank === 1
-                            ? "bg-arcade-yellow text-arcade-ink font-bold"
-                            : entry.rank === 2
-                              ? "bg-white/90 text-arcade-ink font-bold"
-                              : entry.rank === 3
-                                ? "bg-arcade-green text-white font-bold"
-                                : "text-white/80"
-                        }`}
-                      >
-                        {entry.rank}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 font-semibold text-white sm:px-6">
-                      {entry.playerName}
-                    </td>
-                    <td className="px-4 py-4 text-white/80 sm:px-6">
-                      {entry.gameName}
-                    </td>
-                    <td className="px-4 py-4 text-right font-display text-base font-bold text-arcade-yellow sm:px-6 sm:text-lg">
-                      {entry.score.toLocaleString("id-ID")}
-                    </td>
+          {entries.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-white sm:text-base">
+                <thead className="border-b border-white/20 bg-black/40 font-display text-base uppercase tracking-wider text-arcade-yellow sm:text-lg">
+                  <tr>
+                    <th scope="col" className="px-4 py-4 text-center sm:px-6">
+                      Rank
+                    </th>
+                    <th scope="col" className="px-4 py-4 sm:px-6">
+                      Player
+                    </th>
+                    <th scope="col" className="px-4 py-4 sm:px-6">
+                      Game
+                    </th>
+                    <th scope="col" className="px-4 py-4 text-right sm:px-6">
+                      Score
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-white/10">
+                  {entries.map((entry) => (
+                    <tr
+                      key={entry.rank}
+                      className="transition-colors hover:bg-white/5"
+                    >
+                      <td className="px-4 py-4 text-center font-display font-bold sm:px-6">
+                        <span
+                          className={`inline-flex h-8 w-8 items-center justify-center rounded-full ${
+                            entry.rank === 1
+                              ? "bg-arcade-yellow text-arcade-ink font-bold"
+                              : entry.rank === 2
+                                ? "bg-white/90 text-arcade-ink font-bold"
+                                : entry.rank === 3
+                                  ? "bg-arcade-green text-white font-bold"
+                                  : "text-white/80"
+                          }`}
+                        >
+                          {entry.rank}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 font-semibold text-white sm:px-6">
+                        {entry.playerName}
+                      </td>
+                      <td className="px-4 py-4 text-white/80 sm:px-6">
+                        {entry.gameName}
+                      </td>
+                      <td className="px-4 py-4 text-right font-display text-base font-bold text-arcade-yellow sm:px-6 sm:text-lg">
+                        {entry.score.toLocaleString("id-ID")}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="p-10 text-center text-white/70">
+              Belum ada data skor klasemen yang tercatat.
+            </div>
+          )}
         </section>
 
         {/* Bottom CTA */}
