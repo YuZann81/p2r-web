@@ -37,11 +37,25 @@ export default async function GamesPage() {
         </header>
 
         <section aria-label="Daftar Game Arcade" className="w-full">
-          <div className="flex flex-col gap-20 md:gap-28">
-            {games.map((game, index) => (
-              <GameCard key={game.id} game={game} reversed={index % 2 === 1} />
-            ))}
-          </div>
+          {games.length > 0 ? (
+            <div className="flex flex-col gap-20 md:gap-28">
+              {games.map((game, index) => (
+                <GameCard key={game.id} game={game} reversed={index % 2 === 1} />
+              ))}
+            </div>
+          ) : (
+            <div className="w-full flex flex-col items-center justify-center p-10 md:p-16 border-2 border-dashed border-arcade-yellow/40 bg-black/20 text-center rounded-2xl backdrop-blur-xs">
+              <span className="inline-block rounded-full bg-arcade-yellow/20 px-4 py-1 font-display text-sm tracking-wide text-arcade-yellow mb-3">
+                Koleksi Game
+              </span>
+              <h2 className="font-display text-2xl md:text-3xl text-arcade-yellow font-bold drop-shadow-sm mb-3">
+                Game Segera Hadir
+              </h2>
+              <p className="text-white/80 font-medium text-base max-w-md leading-relaxed">
+                Daftar game arcade sedang dipersiapkan oleh tim siswa RPL. Pantau terus update pameran!
+              </p>
+            </div>
+          )}
         </section>
 
         <div className="mt-20 flex justify-center md:mt-28">

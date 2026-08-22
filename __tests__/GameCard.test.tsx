@@ -38,6 +38,13 @@ describe("GameCard", () => {
         screen.getByRole("button", { name: new RegExp(game.name, "i") }),
       ).toBeInTheDocument();
     });
+
+    it("renders a detail link pointing to /games/[id]", () => {
+      render(<GameCard game={game} />);
+      const link = screen.getByRole("link", { name: /lihat detail game/i });
+      expect(link).toBeInTheDocument();
+      expect(link).toHaveAttribute("href", `/games/${game.id}`);
+    });
   });
 
   describe("interaction", () => {

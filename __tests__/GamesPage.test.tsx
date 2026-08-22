@@ -32,7 +32,7 @@ describe("GamesPage", () => {
     jest.clearAllMocks();
   });
 
-  it("renders the directory heading, description, and list of games", async () => {
+  it("renders the directory heading, description, and list of games with detail links", async () => {
     (getGames as jest.Mock).mockResolvedValue(mockGames);
 
     const Component = await GamesPage();
@@ -48,12 +48,26 @@ describe("GamesPage", () => {
 
     // Game items
     expect(screen.getByText("Pixel Runner")).toBeInTheDocument();
-    expect(screen.getByText("An arcade runner in a cyberpunk universe.")).toBeInTheDocument();
+    expect(
+      screen.getByText("An arcade runner in a cyberpunk universe."),
+    ).toBeInTheDocument();
     expect(screen.getByText("Cyber Defender")).toBeInTheDocument();
-    expect(screen.getByText("Defend your terminal from byte invaders.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Defend your terminal from byte invaders."),
+    ).toBeInTheDocument();
+
+    // Detail links
+    const detailLinks = screen.getAllByRole("link", {
+      name: /lihat detail game/i,
+    });
+    expect(detailLinks).toHaveLength(2);
+    expect(detailLinks[0]).toHaveAttribute("href", "/games/game-1");
+    expect(detailLinks[1]).toHaveAttribute("href", "/games/game-2");
 
     // Back to home links
-    const backLinks = screen.getAllByRole("link", { name: /kembali ke beranda/i });
+    const backLinks = screen.getAllByRole("link", {
+      name: /kembali ke beranda/i,
+    });
     expect(backLinks.length).toBeGreaterThan(0);
     expect(backLinks[0]).toHaveAttribute("href", "/");
 
@@ -63,7 +77,7 @@ describe("GamesPage", () => {
     expect(within(section).getByText("Pixel Runner")).toBeInTheDocument();
   });
 
-  it("handles empty games list gracefully without crashing", async () => {
+  it("handles empty games list gracefully and renders empty state", async () => {
     (getGames as jest.Mock).mockResolvedValue([]);
 
     const Component = await GamesPage();
@@ -71,6 +85,9 @@ describe("GamesPage", () => {
 
     expect(
       screen.getByRole("heading", { level: 1, name: /direktori game/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: /game segera hadir/i }),
     ).toBeInTheDocument();
   });
 });
