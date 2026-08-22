@@ -3,14 +3,30 @@ import userEvent from "@testing-library/user-event"
 import MerchandisePage from "@/app/merchandise/page"
 import { fetchProducts } from "@/lib/api/products"
 import type { Product } from "@/lib/api/types/product"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useAuth } from "@/lib/auth/auth-context"
 
 jest.mock("@/lib/api/products", () => ({
   fetchProducts: jest.fn(),
 }))
 
+jest.mock("next/navigation", () => ({
+  useRouter: jest.fn(),
+  useSearchParams: jest.fn(),
+}))
+
+jest.mock("@/lib/auth/auth-context", () => ({
+  useAuth: jest.fn(),
+}))
+
 const mockedFetchProducts = fetchProducts as jest.MockedFunction<
   typeof fetchProducts
 >
+const mockedUseRouter = useRouter as jest.MockedFunction<typeof useRouter>
+const mockedUseSearchParams = useSearchParams as jest.MockedFunction<
+  typeof useSearchParams
+>
+const mockedUseAuth = useAuth as jest.MockedFunction<typeof useAuth>
 
 const mockProducts: Product[] = [
   {
@@ -32,9 +48,29 @@ const mockProducts: Product[] = [
 ]
 
 describe("MerchandisePage (/merchandise)", () => {
+  const mockPush = jest.fn()
+
   beforeEach(() => {
     jest.clearAllMocks()
     window.alert = jest.fn()
+    mockedUseRouter.mockReturnValue({
+      push: mockPush,
+      replace: jest.fn(),
+      back: jest.fn(),
+      forward: jest.fn(),
+      refresh: jest.fn(),
+      prefetch: jest.fn(),
+    })
+    mockedUseSearchParams.mockReturnValue(new URLSearchParams() as any)
+    mockedUseAuth.mockReturnValue({
+      user: { id: 1, name: "Player One", email: "player@test.com" },
+      token: "valid-token",
+      isAuthenticated: true,
+      isLoading: false,
+      login: jest.fn(),
+      register: jest.fn(),
+      logout: jest.fn(),
+    })
   })
 
   afterEach(() => {
@@ -104,7 +140,7 @@ describe("MerchandisePage (/merchandise)", () => {
     ).toBeInTheDocument()
   })
 
-  it("opens Order modal with the selected product when a product card is clicked", async () => {
+  it("opens Order modal with the selected product when authenticated user clicks order button", async () => {
     mockedFetchProducts.mockResolvedValueOnce(mockProducts)
     const user = userEvent.setup()
 
@@ -123,5 +159,35 @@ describe("MerchandisePage (/merchandise)", () => {
     expect(
       screen.getByText("Official cyberpunk t-shirt."),
     ).toBeInTheDocument()
+  })
+
+  it("redirects guest to login with redirect param when order button is clicked", async () => {
+    mockedUseAuth.mockReturnValueOnce({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      isLoading: false,
+      login: jest.fn(),
+      register: jest.fn(),
+      logout: jest.fn(),
+    })
+
+    mockedFetchProducts.mockResolvedValueOnce(mockProducts)
+    const user = userEvent.setup()
+
+    const Component = await MerchandisePage()
+    render(Component)
+
+    const orderButton = screen.getByRole("button", {
+      name: "Pesan Cyber T-Shirt",
+    })
+    await user.click(orderButton)
+
+    expect(mockPush).toHaveBeenCalledWith(
+      expect.stringContaining("/login?redirect="),
+    )
+    expect(mockPush).toHaveBeenCalledWith(
+      expect.stringContaining("productId=prod-1"),
+    )
   })
 })

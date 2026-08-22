@@ -1,19 +1,46 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Product } from "@/lib/api/types/product";
 import MerchandiseCard from "@/components/MerchandiseCard";
 import OrderModal from "@/components/Order";
+import { useAuth } from "@/lib/auth/auth-context";
 
 type MerchandiseCatalogProps = {
   products: Product[];
 };
 
-export default function MerchandiseCatalog({ products }: MerchandiseCatalogProps) {
+function MerchandiseCatalogInner({ products }: MerchandiseCatalogProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { isAuthenticated } = useAuth();
+
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isOrderOpen, setIsOrderOpen] = useState(false);
 
+  // Auto-resume order when returning from auth redirect
+  useEffect(() => {
+    const action = searchParams.get("action");
+    const productId = searchParams.get("productId");
+
+    if (action === "order" && productId && isAuthenticated && products.length > 0) {
+      const match = products.find((p) => String(p.id) === String(productId));
+      if (match) {
+        setSelectedProduct(match);
+        setIsOrderOpen(true);
+      }
+    }
+  }, [searchParams, isAuthenticated, products]);
+
   const handleOpenOrder = (product: Product) => {
+    if (!isAuthenticated) {
+      const currentPath = typeof window !== "undefined" ? window.location.pathname : "/merchandise";
+      const redirectUrl = `/login?redirect=${encodeURIComponent(currentPath)}&action=order&productId=${encodeURIComponent(product.id)}`;
+      router.push(redirectUrl);
+      return;
+    }
+
     setSelectedProduct(product);
     setIsOrderOpen(true);
   };
@@ -68,5 +95,13 @@ export default function MerchandiseCatalog({ products }: MerchandiseCatalogProps
         />
       )}
     </section>
+  );
+}
+
+export default function MerchandiseCatalog(props: MerchandiseCatalogProps) {
+  return (
+    <Suspense fallback={<div className="text-center font-display text-arcade-yellow">Memuat katalog...</div>}>
+      <MerchandiseCatalogInner {...props} />
+    </Suspense>
   );
 }

@@ -1,7 +1,9 @@
 export const NAV_LINKS = [
   { label: "Information", href: "#about" },
-  { label: "Merchandise", href: "#merchandise" },
-  { label: "Games", href: "#games" },
+  { label: "Karya", href: "/karya" },
+  { label: "Games", href: "/games" },
+  { label: "Leaderboard", href: "/leaderboard" },
+  { label: "Feeds", href: "/feeds" },
 ] as const;
 
 export const BRAND_NAME = "Pixels to Reality";
@@ -158,4 +160,3 @@ export const LEADERBOARD_ENTRIES: readonly LeaderboardEntry[] = [
     score: 39800,
   },
 ] as const;
-

@@ -1,14 +1,20 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import type { Product } from '@/lib/api/types/product';
 import { fetchProducts } from '@/lib/api/products';
 import Order from './Order';
 import ChatAdmin from './ChatAdmin';
 import MerchandiseCard, { PixelBorder } from './MerchandiseCard';
+import { useAuth } from '@/lib/auth/auth-context';
 
-export default function MerchandiseSection() {
+function MerchandiseSectionContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { isAuthenticated } = useAuth();
+
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -36,7 +42,28 @@ export default function MerchandiseSection() {
     };
   }, []);
 
+  // Auto-resume order when returning from auth redirect
+  useEffect(() => {
+    const action = searchParams?.get ? searchParams.get("action") : null;
+    const productId = searchParams?.get ? searchParams.get("productId") : null;
+
+    if (action === "order" && productId && isAuthenticated && products.length > 0) {
+      const match = products.find((p) => String(p.id) === String(productId));
+      if (match) {
+        setSelectedProduct(match);
+        setIsOrderOpen(true);
+      }
+    }
+  }, [searchParams, isAuthenticated, products]);
+
   const handleOpenOrder = (product: Product) => {
+    if (!isAuthenticated) {
+      const currentPath = typeof window !== "undefined" ? window.location.pathname : "/";
+      const redirectUrl = `/login?redirect=${encodeURIComponent(currentPath)}&action=order&productId=${encodeURIComponent(product.id)}`;
+      router.push(redirectUrl);
+      return;
+    }
+
     setSelectedProduct(product);
     setIsOrderOpen(true);
   };
@@ -138,5 +165,13 @@ export default function MerchandiseSection() {
       {isChatOpen && <ChatAdmin onClose={() => setIsChatOpen(false)} />}
 
     </section>
+  );
+}
+
+export default function MerchandiseSection() {
+  return (
+    <Suspense fallback={<div className="text-center font-display text-arcade-yellow">Memuat section merchandise...</div>}>
+      <MerchandiseSectionContent />
+    </Suspense>
   );
 }

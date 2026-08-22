@@ -1,25 +1,41 @@
-import { apiGet } from "@/lib/api/client"
+import { apiDelete, apiGet, apiPost } from "@/lib/api/client"
+import type { ApiResponse } from "@/lib/api/types/api-response"
 import type { KaryaDetail, KaryaListParams } from "@/lib/api/types/karya"
 
 export type { KaryaDetail, KaryaListParams, KaryaCategory } from "@/lib/api/types/karya"
 
+export type VoteResult = {
+  votes_count: number
+  is_voted_by_me: boolean | string
+}
+
 export async function fetchKaryaSlugs(
   params: KaryaListParams = {},
 ): Promise<string[]> {
-  const payload = await apiGet<string[]>("/karyas", {
-    searchParams: {
-      category: params.category,
-      sort: params.sort,
-      limit: params.limit,
-    },
-  })
+  try {
+    const payload = await apiGet<string[]>("/karyas", {
+      searchParams: {
+        category: params.category,
+        sort: params.sort,
+        limit: params.limit,
+      },
+    })
 
-  return payload.data
+    return Array.isArray(payload.data) ? payload.data : []
+  } catch (error) {
+    console.error("[p2r-api] Failed to fetch karya slugs:", error)
+    return []
+  }
 }
 
-export async function fetchKaryaBySlug(slug: string): Promise<KaryaDetail> {
-  const payload = await apiGet<KaryaDetail>(`/karyas/${encodeURIComponent(slug)}`)
-  return payload.data
+export async function fetchKaryaBySlug(slug: string): Promise<KaryaDetail | null> {
+  try {
+    const payload = await apiGet<KaryaDetail>(`/karyas/${encodeURIComponent(slug)}`)
+    return payload.data || null
+  } catch (error) {
+    console.error("[p2r-api] Failed to fetch karya by slug:", slug, error)
+    return null
+  }
 }
 
 export async function fetchKaryas(
@@ -51,4 +67,25 @@ export async function fetchKaryas(
 
 export async function fetchGameKaryas(limit = 20): Promise<KaryaDetail[]> {
   return fetchKaryas({ category: "game", limit })
+}
+
+export async function voteKarya(
+  slug: string,
+  token?: string | null,
+): Promise<ApiResponse<VoteResult>> {
+  return apiPost<VoteResult, Record<string, never>>(
+    `/karyas/${encodeURIComponent(slug)}/vote`,
+    {},
+    { token },
+  )
+}
+
+export async function unvoteKarya(
+  slug: string,
+  token?: string | null,
+): Promise<ApiResponse<VoteResult>> {
+  return apiDelete<VoteResult>(
+    `/karyas/${encodeURIComponent(slug)}/vote`,
+    { token },
+  )
 }

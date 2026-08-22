@@ -1,6 +1,8 @@
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Jersey_15 } from "next/font/google";
+import { AuthProvider } from "@/lib/auth/auth-context";
+import { CartProvider } from "@/lib/cart/cart-context";
 import "./globals.css";
 
 const jersey = Jersey_15({
@@ -43,9 +45,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${jersey.variable} bg-arcade-violet`}>
+    <html lang="en" className={`${jersey.variable} bg-arcade-violet scroll-smooth`}>
       <body className="font-body antialiased">
-        {children}
+        <AuthProvider>
+          <CartProvider>{children}</CartProvider>
+        </AuthProvider>
         {process.env.NODE_ENV === "production" && <Analytics />}
       </body>
     </html>

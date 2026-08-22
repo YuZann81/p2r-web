@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import GameArtwork from "@/components/GameArtwork";
+import VoteButton from "@/components/VoteButton";
 import type { KaryaDetail } from "@/lib/api/types/karya";
 
 type KaryaDetailViewProps = {
@@ -140,8 +141,17 @@ export default function KaryaDetailView({
                 </div>
               )}
 
+              {/* Voting Button */}
+              <div className="border-t border-white/10 pt-4">
+                <VoteButton
+                  slug={karya.slug}
+                  initialVotesCount={karya.votes_count || 0}
+                  initialIsVoted={karya.is_voted_by_me}
+                />
+              </div>
+
               {/* Action Buttons */}
-              <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 {karya.live_url && (
                   <a
                     href={karya.live_url}

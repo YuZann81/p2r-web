@@ -9,6 +9,15 @@ jest.mock("@/lib/karya/getKaryaBySlug", () => ({
 
 jest.mock("next/navigation", () => ({
   notFound: jest.fn(),
+  useRouter: jest.fn().mockReturnValue({
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
+    forward: jest.fn(),
+    refresh: jest.fn(),
+    prefetch: jest.fn(),
+  }),
+  useSearchParams: jest.fn().mockReturnValue(new URLSearchParams()),
 }))
 
 const mockedGetKaryaBySlug = getKaryaBySlug as jest.MockedFunction<

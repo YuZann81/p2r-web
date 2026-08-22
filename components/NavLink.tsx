@@ -1,22 +1,30 @@
 "use client";
 
+import React from "react";
+import Link from "next/link";
+
 type NavLinkProps = {
   label: string;
   href: string;
+  className?: string;
+  onClick?: () => void;
 };
 
-export default function NavLink({ label, href }: NavLinkProps) {
-  const handleClick = () => {
-    console.log("Navbar link clicked:", label);
-  };
+export default function NavLink({
+  label,
+  href,
+  className = "font-display text-base tracking-wider text-white transition-colors hover:text-arcade-yellow focus-visible:text-arcade-yellow focus-visible:outline-none",
+  onClick,
+}: NavLinkProps) {
+  const targetHref = href.startsWith("#") ? `/${href}` : href;
 
   return (
-    <a
-      href={href}
-      onClick={handleClick}
-      className="text-lg font-semibold tracking-wide text-white transition-colors hover:text-arcade-yellow focus-visible:text-arcade-yellow focus-visible:outline-none"
+    <Link
+      href={targetHref}
+      onClick={onClick}
+      className={className}
     >
       {label}
-    </a>
+    </Link>
   );
 }
