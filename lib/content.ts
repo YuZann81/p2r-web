@@ -100,3 +100,62 @@ export const GAMES: readonly Game[] = [
     logoAlt: "logo game",
   },
 ] as const;
+
+export type LeaderboardEntry = {
+  rank: number;
+  playerName: string;
+  gameName: string;
+  score: number;
+};
+
+export const LEADERBOARD_ENTRIES: readonly LeaderboardEntry[] = [
+  {
+    rank: 1,
+    playerName: "CyberKnight",
+    gameName: "Cyber Runner 2099",
+    score: 98500,
+  },
+  {
+    rank: 2,
+    playerName: "PixelQueen",
+    gameName: "Byte Defender",
+    score: 87200,
+  },
+  {
+    rank: 3,
+    playerName: "NeonRider",
+    gameName: "Neon Highway",
+    score: 76450,
+  },
+  {
+    rank: 4,
+    playerName: "RetroWizard",
+    gameName: "Cyber Runner 2099",
+    score: 65100,
+  },
+  {
+    rank: 5,
+    playerName: "BitMaster",
+    gameName: "Byte Defender",
+    score: 54300,
+  },
+  {
+    rank: 6,
+    playerName: "ArcadeHero",
+    gameName: "Neon Highway",
+    score: 48900,
+  },
+  {
+    rank: 7,
+    playerName: "GlitchHunter",
+    gameName: "Cyber Runner 2099",
+    score: 42150,
+  },
+  {
+    rank: 8,
+    playerName: "ShadowCoder",
+    gameName: "Byte Defender",
+    score: 39800,
+  },
+] as const;
+
