@@ -1,7 +1,7 @@
 import { apiGet } from "@/lib/api/client"
 import type { KaryaDetail, KaryaListParams } from "@/lib/api/types/karya"
 
-export type { KaryaDetail, KaryaListParams } from "@/lib/api/types/karya"
+export type { KaryaDetail, KaryaListParams, KaryaCategory } from "@/lib/api/types/karya"
 
 export async function fetchKaryaSlugs(
   params: KaryaListParams = {},
@@ -22,20 +22,33 @@ export async function fetchKaryaBySlug(slug: string): Promise<KaryaDetail> {
   return payload.data
 }
 
+export async function fetchKaryas(
+  params: KaryaListParams = {},
+): Promise<KaryaDetail[]> {
+  try {
+    const slugs = await fetchKaryaSlugs(params)
+    if (!slugs || slugs.length === 0) {
+      return []
+    }
+
+    const details = await Promise.all(
+      slugs.map(async (slug) => {
+        try {
+          return await fetchKaryaBySlug(slug)
+        } catch (error) {
+          console.error("[p2r-api] Failed to load karya detail:", slug, error)
+          return null
+        }
+      }),
+    )
+
+    return details.filter((karya): karya is KaryaDetail => karya !== null)
+  } catch (error) {
+    console.error("[p2r-api] Failed to fetch karyas:", error)
+    return []
+  }
+}
+
 export async function fetchGameKaryas(limit = 20): Promise<KaryaDetail[]> {
-  const slugs = await fetchKaryaSlugs({ category: "game", limit })
-  console.log("[p2r-api] Game karya slugs:", slugs)
-
-  const details = await Promise.all(
-    slugs.map(async (slug) => {
-      try {
-        return await fetchKaryaBySlug(slug)
-      } catch (error) {
-        console.error("[p2r-api] Failed to load karya detail:", slug, error)
-        return null
-      }
-    }),
-  )
-
-  return details.filter((karya): karya is KaryaDetail => karya !== null)
+  return fetchKaryas({ category: "game", limit })
 }
