@@ -1,9 +1,12 @@
-import About from "@/components/About";
-import Footer from "@/components/Footer";
-import Games from "@/components/Games";
-import Hero from "@/components/Hero";
 import Navbar from "@/components/Navbar";
+import Hero from "@/components/Hero";
+import About from "@/components/About";
+import Games from "@/components/Games";
+import KaryaShowcasePreview from "@/components/KaryaShowcasePreview";
+import LeaderboardPreview from "@/components/LeaderboardPreview";
+import LatestFeedsPreview from "@/components/LatestFeedsPreview";
 import MerchandiseSection from "@/components/MerchandiseSection";
+import Footer from "@/components/Footer";
 
 export default function Page() {
   return (
@@ -18,6 +21,9 @@ export default function Page() {
       <Hero />
       <About />
       <Games />
+      <KaryaShowcasePreview />
+      <LeaderboardPreview />
+      <LatestFeedsPreview />
       <MerchandiseSection />
       <Footer />
     </main>
