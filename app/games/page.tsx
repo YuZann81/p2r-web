@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import GameCard from "@/components/GameCard";
+import { getGames } from "@/lib/games/getGames";
 
 export const metadata: Metadata = {
   title: "Direktori Game — Pixels to Reality",
@@ -7,17 +9,19 @@ export const metadata: Metadata = {
     "Direktori seluruh game arcade interaktif buatan siswa RPL di Pixel To Reality. Mainkan dan raih skor tertinggi!",
 };
 
-export default function GamesPage() {
+export default async function GamesPage() {
+  const games = await getGames();
+
   return (
     <main
-      className="flex min-h-screen flex-col items-center justify-between px-6 py-12 md:px-12 md:py-16"
+      className="flex min-h-screen flex-col justify-between px-6 py-12 md:px-12 md:py-16"
       style={{
         background:
           "linear-gradient(160deg, var(--arcade-violet) 0%, var(--arcade-purple) 100%)",
       }}
     >
-      <div className="w-full max-w-5xl">
-        <header className="mb-10 text-center">
+      <div className="mx-auto w-full max-w-6xl">
+        <header className="mb-14 text-center md:mb-20">
           <Link
             href="/"
             className="inline-block font-display text-sm uppercase tracking-wider text-arcade-yellow transition-opacity hover:opacity-80 md:text-base"
@@ -27,30 +31,30 @@ export default function GamesPage() {
           <h1 className="mt-4 font-display text-4xl text-arcade-yellow [text-shadow:3px_3px_0_var(--arcade-ink)] sm:text-5xl md:text-6xl">
             DIREKTORI GAME
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base text-white/90 sm:text-lg">
-            Koleksi lengkap game arcade karya siswa RPL. Pilih game favoritmu, mainkan, dan catatkan skormu di papan klasemen!
+          <p className="mx-auto mt-4 max-w-2xl text-base font-semibold leading-relaxed text-pretty text-white/90 sm:text-lg">
+            Koleksi lengkap seluruh game arcade interaktif buatan siswa RPL. Pilih game favoritmu, mainkan, dan catatkan skormu di papan klasemen!
           </p>
         </header>
 
-        <section
-          aria-label="Games Directory Skeleton"
-          className="rounded-xl border-2 border-dashed border-arcade-yellow/40 bg-black/20 p-8 text-center backdrop-blur-xs md:p-16"
-        >
-          <div className="mx-auto max-w-md space-y-4">
-            <span className="inline-block rounded-full bg-arcade-yellow/20 px-4 py-1 font-display text-sm tracking-wide text-arcade-yellow">
-              Phase 1 — Route Skeleton
-            </span>
-            <h2 className="font-display text-2xl text-white sm:text-3xl">
-              Games Directory Section
-            </h2>
-            <p className="text-sm leading-relaxed text-white/70">
-              Struktur route siap untuk integrasi direktori game, filter genre, detail gameplay, dan peluncur game arcade pada phase berikutnya.
-            </p>
+        <section aria-label="Daftar Game Arcade" className="w-full">
+          <div className="flex flex-col gap-20 md:gap-28">
+            {games.map((game, index) => (
+              <GameCard key={game.id} game={game} reversed={index % 2 === 1} />
+            ))}
           </div>
         </section>
+
+        <div className="mt-20 flex justify-center md:mt-28">
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center bg-arcade-yellow px-8 py-3 font-display text-lg font-bold text-arcade-ink shadow-[6px_6px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[3px_3px_0_var(--arcade-yellow-shadow)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
+          >
+            Kembali ke Beranda
+          </Link>
+        </div>
       </div>
 
-      <footer className="mt-12 text-center font-display text-xs text-white/50">
+      <footer className="mt-16 text-center font-display text-xs text-white/50">
         Pixel To Reality: The Cyber Arcade
       </footer>
     </main>
