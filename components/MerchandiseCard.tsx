@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Product } from '@/lib/api/types/product';
 
 const tilePattern = [
   "0000000000000000",
@@ -32,14 +33,14 @@ const tileHeight = tilePattern.length * pixelSize;
 
 export function PixelBorder() {
   return (
-    <div 
+    <div
       className="w-full bg-[#2A238A] overflow-hidden shadow-lg border-b-4 border-[#2A238A]"
       style={{ height: `${tileHeight}px` }}
     >
-      <svg 
-        width="100%" 
-        height="100%" 
-        style={{ shapeRendering: 'crispEdges' }} 
+      <svg
+        width="100%"
+        height="100%"
+        style={{ shapeRendering: 'crispEdges' }}
       >
         <defs>
           <pattern
@@ -59,7 +60,7 @@ export function PixelBorder() {
                     y={y * pixelSize}
                     width={pixelSize}
                     height={pixelSize}
-                    fill="#6737FF" 
+                    fill="#6737FF"
                   />
                 ) : null
               )
@@ -81,16 +82,25 @@ export const pixelClipPath = `polygon(
 )`;
 
 type PixelImageProps = {
-  imageUrl?: string;
+  imageUrl?: string | null;
+  altText?: string;
 };
 
-export function PixelImage({ imageUrl = "/placeholder.svg" }: PixelImageProps) {
+export function PixelImage({ imageUrl, altText = "Merchandise P2R" }: PixelImageProps) {
   return (
-    <div 
-      className="w-full aspect-square bg-[#e5e5e5] flex items-center justify-center"
+    <div
+      className="w-full aspect-square bg-[#e5e5e5] flex items-center justify-center overflow-hidden"
       style={{ clipPath: pixelClipPath }}
     >
-      <img src={imageUrl} alt="Product" className="w-24 h-24 opacity-20" />
+      {imageUrl ? (
+        <img src={imageUrl} alt={altText} className="w-full h-full object-cover" />
+      ) : (
+        <div className="flex flex-col items-center justify-center p-4 text-arcade-ink/40">
+          <svg className="w-16 h-16 opacity-40" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M21.5 8.5l-3.5-5H6L2.5 8.5 2 9v11a1 1 0 001 1h18a1 1 0 001-1V9l-.5-.5zM6.8 5.5h10.4l2.1 3H4.7l2.1-3zM20 19H4V10.5h16V19z" />
+          </svg>
+        </div>
+      )}
     </div>
   );
 }
@@ -104,10 +114,10 @@ type PixelButtonProps = {
 export function PixelButton({ children, onClick, type = "button" }: PixelButtonProps) {
   return (
     <div style={{ filter: "drop-shadow(0px 5px 0px #b8b01c)" }} className="w-full">
-      <button 
+      <button
         type={type}
         onClick={onClick}
-        className="w-full bg-[#F4EA2A] text-[#5B10B4] font-bold text-lg py-3 active:translate-y-1 transition-transform outline-none hover:bg-[#ffe100]"
+        className="w-full bg-[#F4EA2A] text-[#5B10B4] font-bold text-lg py-3 active:translate-y-1 transition-transform outline-none hover:bg-[#ffe100] cursor-pointer focus-visible:ring-4 focus-visible:ring-white"
         style={{ clipPath: pixelClipPath }}
       >
         {children}
@@ -116,38 +126,52 @@ export function PixelButton({ children, onClick, type = "button" }: PixelButtonP
   );
 }
 
-type MerchandiseCardProps = {
+export type MerchandiseCardProps = {
+  product: Product;
   onClick: () => void;
   containerClassName?: string;
   imageBoxClassName?: string;
 };
 
-export default function MerchandiseCard({ 
-  onClick, 
-  containerClassName = "", 
-  imageBoxClassName = "aspect-square" 
+export default function MerchandiseCard({
+  product,
+  onClick,
+  containerClassName = "",
+  imageBoxClassName = "aspect-square"
 }: MerchandiseCardProps) {
   return (
     <div className={`flex flex-col items-center gap-4 ${containerClassName}`}>
-      <div 
-        role="button"
-        tabIndex={0}
-        className={`w-full bg-[#e5e5e5] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity ${imageBoxClassName}`}
-        style={{ clipPath: pixelClipPath }}
+      <button
+        type="button"
         onClick={onClick}
-        onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}
+        aria-label={`Pesan ${product.name}`}
+        className={`w-full bg-[#e5e5e5] flex flex-col items-center justify-center cursor-pointer hover:opacity-90 transition-opacity relative group outline-none focus-visible:ring-4 focus-visible:ring-arcade-yellow ${imageBoxClassName}`}
+        style={{ clipPath: pixelClipPath }}
       >
-        <img 
-          src="/placeholder.svg" 
-          alt="Placeholder" 
-          className="w-24 h-24 opacity-20" 
-        />
-      </div>
-      
+        {product.image_url ? (
+          <img
+            src={product.image_url}
+            alt={`${product.name} merchandise`}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center p-4 text-arcade-ink/60">
+            <svg className="w-16 h-16 mb-2 opacity-40" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M21.5 8.5l-3.5-5H6L2.5 8.5 2 9v11a1 1 0 001 1h18a1 1 0 001-1V9l-.5-.5zM6.8 5.5h10.4l2.1 3H4.7l2.1-3zM20 19H4V10.5h16V19z" />
+            </svg>
+            <span className="font-display text-sm font-bold text-center uppercase tracking-wide text-arcade-ink/80">
+              {product.name}
+            </span>
+          </div>
+        )}
+      </button>
+
       <div style={{ filter: "drop-shadow(0px 5px 0px var(--arcade-yellow-shadow))" }}>
-        <button 
+        <button
+          type="button"
           onClick={onClick}
-          className="bg-arcade-yellow text-arcade-ink font-display font-bold text-xl px-12 py-2 active:translate-y-1 transition-transform outline-none"
+          aria-label={`Pesan ${product.name} Sekarang`}
+          className="bg-arcade-yellow text-arcade-ink font-display font-bold text-xl px-12 py-2 active:translate-y-1 transition-transform outline-none hover:bg-[#ffe100] cursor-pointer focus-visible:ring-4 focus-visible:ring-white"
           style={{ clipPath: pixelClipPath }}
         >
           Order Now!
