@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within, waitFor } from "@testing-library/react";
 import Navbar from "@/components/Navbar";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { CartProvider, useCart } from "@/lib/cart/cart-context";
@@ -108,5 +108,41 @@ describe("Navbar Component", () => {
     fireEvent.click(mobileKaryaLink);
 
     expect(hamburger).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("opens CustomDialog when clicking Keluar and logs out on confirm", async () => {
+    localStorage.setItem("p2r_auth_token", "sample-token");
+    localStorage.setItem(
+      "p2r_auth_user",
+      JSON.stringify({ id: 1, name: "PlayerOne" }),
+    );
+
+    render(
+      <AuthProvider>
+        <CartProvider>
+          <Navbar />
+        </CartProvider>
+      </AuthProvider>,
+    );
+
+    const logoutBtn = screen.getByRole("button", { name: "Keluar" });
+    fireEvent.click(logoutBtn);
+
+    // Custom dialog appears
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+    expect(screen.getByText("Konfirmasi Keluar")).toBeInTheDocument();
+    expect(
+      screen.getByText("Apakah Anda yakin ingin keluar dari akun Anda?"),
+    ).toBeInTheDocument();
+
+    // Click confirm in dialog
+    const confirmBtn = within(dialog).getByRole("button", { name: "Keluar" });
+    fireEvent.click(confirmBtn);
+
+    // Token removed
+    await waitFor(() => {
+      expect(localStorage.getItem("p2r_auth_token")).toBeNull();
+    });
   });
 });

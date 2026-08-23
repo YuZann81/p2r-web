@@ -7,11 +7,25 @@ import NavLink from "@/components/NavLink";
 import { NAV_LINKS } from "@/lib/content";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useCart } from "@/lib/cart/cart-context";
+import { CustomDialog } from "@/components/ui/CustomDialog";
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const { totalItems } = useCart();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogoutConfirm = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      setShowLogoutDialog(false);
+      setIsMobileMenuOpen(false);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   // Close mobile drawer when pressing Escape
   useEffect(() => {
@@ -28,7 +42,8 @@ export default function Navbar() {
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/15 bg-[#180e3d]/95 shadow-md backdrop-blur-md transition-all">
+    <>
+      <header className="sticky top-0 z-50 w-full border-b border-white/15 bg-[#180e3d]/95 shadow-md backdrop-blur-md transition-all">
       <nav
         aria-label="Navigasi Utama"
         className="mx-auto flex max-w-7xl items-center justify-between px-3 py-3 sm:px-6 md:px-10"
@@ -88,7 +103,7 @@ export default function Navbar() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => logout()}
+                  onClick={() => setShowLogoutDialog(true)}
                   className="rounded-xl border border-white/30 bg-black/40 px-3.5 py-1.5 font-display text-xs font-bold text-white transition-colors hover:bg-white/10 hover:border-white/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow cursor-pointer"
                 >
                   Keluar
@@ -187,10 +202,7 @@ export default function Navbar() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => {
-                    logout();
-                    closeMobileMenu();
-                  }}
+                  onClick={() => setShowLogoutDialog(true)}
                   className="w-full min-h-[44px] rounded-xl border border-white/30 bg-black/40 py-2.5 font-display text-sm font-bold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow cursor-pointer"
                 >
                   Keluar dari Akun
@@ -218,5 +230,20 @@ export default function Navbar() {
         </div>
       )}
     </header>
-  );
+
+    {/* Logout Confirmation Custom Dialog */}
+    <CustomDialog
+      isOpen={showLogoutDialog}
+      onClose={() => setShowLogoutDialog(false)}
+      onConfirm={handleLogoutConfirm}
+      title="Konfirmasi Keluar"
+      description="Apakah Anda yakin ingin keluar dari akun Anda?"
+      variant="confirmation"
+      confirmText="Keluar"
+      cancelText="Batal"
+      confirmVariant="danger"
+      isLoading={isLoggingOut}
+    />
+  </>
+);
 }
