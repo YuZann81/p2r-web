@@ -31,6 +31,49 @@ export const DEFAULT_WELCOME_MESSAGES: ChatMessage[] = [
   },
 ];
 
+export function reconcileMessages(
+  existing: ChatMessage[],
+  incoming: ChatMessage | ChatMessage[],
+): ChatMessage[] {
+  const incomingList = Array.isArray(incoming) ? incoming : [incoming];
+  if (incomingList.length === 0) return existing;
+
+  const result = [...existing];
+
+  for (const item of incomingList) {
+    if (!item) continue;
+
+    // 1. Match by exact ID (comparing both as string to avoid number vs string mismatch)
+    const exactIndex = result.findIndex(
+      (m) => String(m.id) === String(item.id),
+    );
+
+    if (exactIndex !== -1) {
+      // Update existing message in place
+      result[exactIndex] = {
+        ...result[exactIndex],
+        ...item,
+      };
+    } else {
+      // 2. Match by temporary optimistic id (if any message starts with 'temp-' and has same sender & text)
+      const optimisticIndex = result.findIndex(
+        (m) =>
+          String(m.id).startsWith("temp-") &&
+          m.sender === item.sender &&
+          m.text.trim() === item.text.trim(),
+      );
+
+      if (optimisticIndex !== -1) {
+        result[optimisticIndex] = item;
+      } else {
+        result.push(item);
+      }
+    }
+  }
+
+  return result;
+}
+
 export async function fetchChatMessages(): Promise<ChatMessage[]> {
   return DEFAULT_WELCOME_MESSAGES;
 }
