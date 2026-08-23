@@ -22,7 +22,7 @@ function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Compute final destination after login
-  const getDestinationUrl = () => {
+  const getDestinationUrl = React.useCallback(() => {
     const params = new URLSearchParams();
     if (action) params.set("action", action);
     if (productId) params.set("productId", productId);
@@ -34,14 +34,14 @@ function LoginForm() {
       return `${redirectUrl}${separator}${queryString}`;
     }
     return redirectUrl;
-  };
+  }, [action, productId, slug, redirectUrl]);
 
   // If already authenticated, redirect immediately
   React.useEffect(() => {
     if (isAuthenticated) {
       router.replace(getDestinationUrl());
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, getDestinationUrl]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

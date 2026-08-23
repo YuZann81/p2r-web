@@ -22,7 +22,7 @@ function RegisterForm() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const getDestinationUrl = () => {
+  const getDestinationUrl = React.useCallback(() => {
     const params = new URLSearchParams();
     if (action) params.set("action", action);
     if (productId) params.set("productId", productId);
@@ -34,13 +34,13 @@ function RegisterForm() {
       return `${redirectUrl}${separator}${queryString}`;
     }
     return redirectUrl;
-  };
+  }, [action, productId, slug, redirectUrl]);
 
   React.useEffect(() => {
     if (isAuthenticated) {
       router.replace(getDestinationUrl());
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, getDestinationUrl]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

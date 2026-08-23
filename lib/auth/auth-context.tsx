@@ -62,8 +62,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               localStorage.setItem(USER_KEY, JSON.stringify(res.data));
             }
           })
-          .catch(() => {
-            // Token expired or invalid
+          .catch((err) => {
+            // Only clear token if explicitly rejected with 401 Unauthorized
+            if (err && typeof err === "object" && "status" in err && err.status === 401) {
+              setToken(null);
+              setUser(null);
+              try {
+                localStorage.removeItem(TOKEN_KEY);
+                localStorage.removeItem(USER_KEY);
+              } catch {}
+            }
           })
           .finally(() => {
             setIsLoading(false);
