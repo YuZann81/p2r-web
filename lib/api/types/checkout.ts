@@ -28,10 +28,21 @@ export type CheckoutCustomer = {
   notes?: string | null;
 };
 
+export type CheckoutItemProduct = {
+  name: string;
+  slug?: string;
+  image_url?: string | null;
+  category?: {
+    name: string;
+    slug?: string;
+  } | string | null;
+};
+
 export type CheckoutItem = {
   id: string | number;
-  product_name: string;
-  product_slug: string;
+  product?: CheckoutItemProduct;
+  product_name?: string;
+  product_slug?: string;
   product_image_url?: string | null;
   product_category_name?: string | null;
   unit_price: string | number;

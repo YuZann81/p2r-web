@@ -2,15 +2,24 @@
 
 import React, { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useCart } from "@/lib/cart/cart-context";
-import { submitCheckout, type OrderResult } from "@/lib/api/checkout";
-import { formatProductPrice } from "@/components/MerchandiseCard";
+import {
+  submitCheckout,
+  fetchCheckoutById,
+  type OrderResult,
+} from "@/lib/api/checkout";
+import { formatProductPrice } from "@/lib/utils";
 import { addBackendCartItem } from "@/lib/api/cart";
+
+const COMPLETED_ORDER_STORAGE_KEY = "p2r_last_completed_order";
 
 function CheckoutContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryCode = searchParams?.get("code");
+
   const { user, token, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const {
     items,
@@ -43,6 +52,42 @@ function CheckoutContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [completedOrder, setCompletedOrder] = useState<OrderResult | null>(null);
+
+  // Restore completed order from sessionStorage on mount (prevents receipt loss on refresh)
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem(COMPLETED_ORDER_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as OrderResult;
+        if (parsed && (parsed.checkout_code || parsed.id)) {
+          setCompletedOrder(parsed);
+        }
+      }
+    } catch {
+      // ignore parsing error
+    }
+  }, []);
+
+  // Restore completed order if ?code=... is present in URL
+  useEffect(() => {
+    if (!queryCode || !token) return;
+
+    fetchCheckoutById(queryCode, token)
+      .then((res) => {
+        if (res.data) {
+          setCompletedOrder(res.data);
+          try {
+            sessionStorage.setItem(
+              COMPLETED_ORDER_STORAGE_KEY,
+              JSON.stringify(res.data),
+            );
+          } catch {}
+        }
+      })
+      .catch(() => {
+        // Benign lookup error
+      });
+  }, [queryCode, token]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -104,6 +149,12 @@ function CheckoutContent() {
 
       if (response.data) {
         setCompletedOrder(response.data);
+        try {
+          sessionStorage.setItem(
+            COMPLETED_ORDER_STORAGE_KEY,
+            JSON.stringify(response.data),
+          );
+        } catch {}
         clearCart();
       } else {
         setErrorMessage("Respons server tidak valid. Silakan coba lagi.");
@@ -119,6 +170,13 @@ function CheckoutContent() {
     }
   };
 
+  const handleResetOrder = () => {
+    try {
+      sessionStorage.removeItem(COMPLETED_ORDER_STORAGE_KEY);
+    } catch {}
+    setCompletedOrder(null);
+  };
+
   // 1. SUCCESS RECEIPT STATE
   if (completedOrder) {
     const customerDisplayName =
@@ -127,6 +185,7 @@ function CheckoutContent() {
       completedOrder.customer?.phone || completedOrder.customer_phone || formData.phone;
     const displayTotal =
       completedOrder.grand_total || completedOrder.subtotal || completedOrder.total_amount;
+    const orderStatusText = (completedOrder.status || "pending").toUpperCase();
 
     return (
       <div className="mx-auto w-full max-w-2xl rounded-3xl border-2 border-white/20 bg-[#1e1040] p-6 text-center shadow-2xl sm:p-10">
@@ -134,9 +193,14 @@ function CheckoutContent() {
           ✓
         </div>
 
-        <span className="inline-block rounded-md border border-arcade-yellow/40 bg-arcade-yellow/10 px-3.5 py-0.5 font-display text-xs font-bold tracking-wider uppercase text-arcade-yellow">
-          Pesanan Dikonfirmasi
-        </span>
+        <div className="flex items-center justify-center gap-2">
+          <span className="inline-block rounded-md border border-arcade-yellow/40 bg-arcade-yellow/10 px-3.5 py-0.5 font-display text-xs font-bold tracking-wider uppercase text-arcade-yellow">
+            Pesanan Dikonfirmasi
+          </span>
+          <span className="inline-block rounded-md border border-emerald-400/40 bg-emerald-500/15 px-3 py-0.5 font-mono text-xs font-bold uppercase tracking-wider text-emerald-400">
+            {orderStatusText}
+          </span>
+        </div>
 
         <h2 className="mt-3 font-display text-2xl text-arcade-yellow [text-shadow:2px_2px_0_var(--arcade-ink)] sm:text-4xl">
           PESANAN BERHASIL DIBUAT!
@@ -170,17 +234,34 @@ function CheckoutContent() {
               <span className="mb-2 block font-semibold uppercase tracking-wider text-arcade-yellow">
                 Daftar Item ({completedOrder.items.length})
               </span>
-              <ul className="space-y-1.5">
-                {completedOrder.items.map((item, idx) => (
-                  <li key={item.id || idx} className="flex justify-between">
-                    <span>
-                      {item.quantity}x {item.product_name}
-                    </span>
-                    <span className="font-mono text-white">
-                      {formatProductPrice(item.subtotal || item.unit_price)}
-                    </span>
-                  </li>
-                ))}
+              <ul className="space-y-2">
+                {completedOrder.items.map((item, idx) => {
+                  const itemName =
+                    item.product?.name || item.product_name || "Official Merchandise";
+                  const itemPrice = item.unit_price;
+                  const itemSubtotal =
+                    item.subtotal ||
+                    parseFloat(String(itemPrice || 0)) * (item.quantity || 1);
+
+                  return (
+                    <li
+                      key={item.id || idx}
+                      className="flex items-center justify-between gap-2"
+                    >
+                      <div>
+                        <span className="font-medium text-white">
+                          {item.quantity}x {itemName}
+                        </span>
+                        <span className="block text-[11px] text-white/60">
+                          @{formatProductPrice(itemPrice)}
+                        </span>
+                      </div>
+                      <span className="font-mono font-semibold text-white">
+                        {formatProductPrice(itemSubtotal)}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}
@@ -204,6 +285,13 @@ function CheckoutContent() {
           >
             Lihat Merchandise Lain →
           </Link>
+          <button
+            type="button"
+            onClick={handleResetOrder}
+            className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-arcade-yellow/50 bg-arcade-yellow/10 px-6 py-2.5 font-display text-base font-bold text-arcade-yellow transition-colors hover:bg-arcade-yellow/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow cursor-pointer"
+          >
+            + Buat Pesanan Baru
+          </button>
           <Link
             href="/"
             className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-white/30 bg-black/40 px-6 py-2.5 font-display text-base font-bold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow"

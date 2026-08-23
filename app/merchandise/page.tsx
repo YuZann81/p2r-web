@@ -9,7 +9,8 @@ export const metadata: Metadata = {
     "Katalog merchandise resmi dan produk dana usaha Pixel To Reality. Dapatkan merchandise eksklusif pameran!",
 };
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function MerchandisePage() {
   const products = await fetchProducts();

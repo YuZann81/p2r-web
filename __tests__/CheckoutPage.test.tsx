@@ -10,6 +10,9 @@ import type { Product } from "@/lib/api/types/product";
 
 jest.mock("next/navigation", () => ({
   useRouter: jest.fn(),
+  useSearchParams: jest.fn(() => ({
+    get: jest.fn(),
+  })),
 }));
 
 jest.mock("@/lib/api/checkout", () => ({
