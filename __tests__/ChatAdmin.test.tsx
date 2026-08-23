@@ -1,7 +1,11 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import ChatAdminModal from "@/components/ChatAdmin";
 import { AuthProvider } from "@/lib/auth/auth-context";
-import { startChatSession, sendChatMessage } from "@/lib/api/chat";
+import {
+  getActiveChatSession,
+  startChatSession,
+  sendChatMessage,
+} from "@/lib/api/chat";
 import { useRouter } from "next/navigation";
 
 jest.mock("@/lib/api/chat", () => ({
@@ -14,6 +18,7 @@ jest.mock("@/lib/api/chat", () => ({
       created_at: new Date().toISOString(),
     },
   ],
+  getActiveChatSession: jest.fn(),
   startChatSession: jest.fn(),
   sendChatMessage: jest.fn(),
 }));
@@ -26,6 +31,9 @@ jest.mock("next/navigation", () => ({
   useRouter: jest.fn(),
 }));
 
+const mockedGetActiveChatSession = getActiveChatSession as jest.MockedFunction<
+  typeof getActiveChatSession
+>;
 const mockedStartChatSession = startChatSession as jest.MockedFunction<
   typeof startChatSession
 >;
@@ -70,6 +78,7 @@ describe("ChatAdminModal", () => {
   });
 
   it("renders input and sends message when authenticated", async () => {
+    mockedGetActiveChatSession.mockResolvedValue(null);
     localStorage.setItem("p2r_auth_token", "sample-token");
     localStorage.setItem(
       "p2r_auth_user",
@@ -127,6 +136,7 @@ describe("ChatAdminModal", () => {
         "session-token-abc",
         "Apakah merchandise kaos masih ada?",
         "Player One",
+        "sample-token",
       );
       expect(
         screen.getByText("Apakah merchandise kaos masih ada?"),

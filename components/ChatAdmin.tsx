@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
+  getActiveChatSession,
   startChatSession,
   sendChatMessage,
   DEFAULT_WELCOME_MESSAGES,
@@ -20,7 +21,7 @@ const CHAT_SESSION_TOKEN_KEY = "p2r_live_chat_session_token";
 
 export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { user, token: authToken, isAuthenticated } = useAuth();
 
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -58,9 +59,53 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  // Initialize or restore session token & history
+  // Initialize or restore session token & history from backend (Source of Truth)
   const initOrRestoreSession = useCallback(async () => {
-    let token = localStorage.getItem(CHAT_SESSION_TOKEN_KEY);
+    setIsLoading(true);
+
+    // 1. If user is authenticated, query backend for account-bound active session
+    if (isAuthenticated) {
+      try {
+        const active = await getActiveChatSession(authToken);
+        if (active && active.session) {
+          const token = active.session.session_token;
+          setSessionToken(token);
+          setMessages(
+            active.messages && active.messages.length > 0
+              ? active.messages
+              : DEFAULT_WELCOME_MESSAGES
+          );
+          localStorage.setItem(CHAT_SESSION_TOKEN_KEY, token);
+          setIsLoading(false);
+          return token;
+        }
+
+        // If no active session on backend, create a new active session
+        const res = await startChatSession(
+          {
+            guest_name: user?.name || "Player",
+            guest_email: user?.email || null,
+            topic: "Live Support P2R",
+          },
+          authToken
+        );
+        const token = res.session.session_token;
+        setSessionToken(token);
+        setMessages(
+          res.messages && res.messages.length > 0
+            ? res.messages
+            : DEFAULT_WELCOME_MESSAGES
+        );
+        localStorage.setItem(CHAT_SESSION_TOKEN_KEY, token);
+        setIsLoading(false);
+        return token;
+      } catch (err) {
+        console.error("[ChatAdmin] Failed to initialize authenticated session:", err);
+      }
+    }
+
+    // 2. Unauthenticated guest fallback
+    const guestToken = localStorage.getItem(CHAT_SESSION_TOKEN_KEY);
     const storedHistory = localStorage.getItem(CHAT_STORAGE_KEY);
 
     if (storedHistory) {
@@ -74,35 +119,20 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
       }
     }
 
-    if (!token && isAuthenticated) {
-      try {
-        const res = await startChatSession({
-          guest_name: user?.name || "Player",
-          guest_email: user?.email || null,
-          topic: "Live Support P2R",
-        });
-        token = res.session.session_token;
-        localStorage.setItem(CHAT_SESSION_TOKEN_KEY, token);
-        if (res.messages && res.messages.length > 0) {
-          setMessages(res.messages);
-        }
-      } catch (err) {
-        console.error("[ChatAdmin] Failed to initialize chat session:", err);
-      }
-    } else if (!storedHistory && !token) {
+    if (!guestToken && !storedHistory) {
       setMessages(DEFAULT_WELCOME_MESSAGES);
     }
 
-    setSessionToken(token);
+    setSessionToken(guestToken);
     setIsLoading(false);
-    return token;
-  }, [isAuthenticated, user]);
+    return guestToken;
+  }, [isAuthenticated, authToken, user]);
 
   useEffect(() => {
     initOrRestoreSession();
   }, [initOrRestoreSession]);
 
-  // Real-time WebSocket listener for incoming admin replies
+  // Real-time WebSocket listener for incoming messages (Admin replies + Multi-device sync)
   useEffect(() => {
     if (!sessionToken) return;
 
@@ -146,33 +176,34 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
       created_at: string;
       session_token: string;
     }) => {
-      if (payload.sender_type === "admin") {
-        setMessages((prev) => {
-          const list = Array.isArray(prev) ? prev : [];
-          if (list.some((m) => String(m.id) === String(payload.id))) {
-            return list;
-          }
-          return [
-            ...list,
-            {
-              id: payload.id,
-              chat_session_id: payload.chat_session_id,
-              sender: "admin",
-              sender_name: "Admin P2R",
-              text: payload.message,
-              attachment_url: payload.attachment_url,
-              created_at: payload.created_at || new Date().toISOString(),
-            },
-          ];
-        });
-
-        const el = messagesContainerRef.current;
-        const isNearBottom = !el || el.scrollHeight - el.scrollTop - el.clientHeight < 120;
-        if (isNearBottom) {
-          setTimeout(() => scrollToBottom(true), 50);
-        } else {
-          setShowScrollBottom(true);
+      setMessages((prev) => {
+        const list = Array.isArray(prev) ? prev : [];
+        if (list.some((m) => String(m.id) === String(payload.id))) {
+          return list;
         }
+        return [
+          ...list,
+          {
+            id: payload.id,
+            chat_session_id: payload.chat_session_id,
+            sender: payload.sender_type === "admin" ? "admin" : "user",
+            sender_name:
+              payload.sender_type === "admin"
+                ? "Admin P2R"
+                : (user?.name || "Player"),
+            text: payload.message,
+            attachment_url: payload.attachment_url,
+            created_at: payload.created_at || new Date().toISOString(),
+          },
+        ];
+      });
+
+      const el = messagesContainerRef.current;
+      const isNearBottom = !el || el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+      if (isNearBottom) {
+        setTimeout(() => scrollToBottom(true), 50);
+      } else {
+        setShowScrollBottom(true);
       }
     };
 
@@ -182,7 +213,7 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
     return () => {
       echo.leaveChannel(channelName);
     };
-  }, [sessionToken]);
+  }, [sessionToken, user?.name]);
 
   // Scroll to bottom when messages update
   useEffect(() => {
@@ -221,23 +252,61 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
     try {
       let activeToken = sessionToken;
       if (!activeToken) {
-        const res = await startChatSession({
-          guest_name: user?.name || "Player",
-          guest_email: user?.email || null,
-          topic: "Live Support P2R",
-        });
+        const res = await startChatSession(
+          {
+            guest_name: user?.name || "Player",
+            guest_email: user?.email || null,
+            topic: "Live Support P2R",
+          },
+          authToken
+        );
         activeToken = res.session.session_token;
         setSessionToken(activeToken);
         localStorage.setItem(CHAT_SESSION_TOKEN_KEY, activeToken);
       }
 
-      const sentMessage = await sendChatMessage(activeToken, text, user?.name);
+      const sentMessage = await sendChatMessage(
+        activeToken,
+        text,
+        user?.name,
+        authToken
+      );
       setMessages((prev) =>
-        Array.isArray(prev) ? [...prev, sentMessage] : [sentMessage],
+        Array.isArray(prev) ? [...prev, sentMessage] : [sentMessage]
       );
       setTimeout(() => scrollToBottom(true), 50);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("[ChatAdmin] Error sending message:", err);
+      if (err instanceof Error && err.message.includes("closed")) {
+        setSendError("Sesi chat sebelumnya telah ditutup. Membuka percakapan baru...");
+        try {
+          const res = await startChatSession(
+            {
+              guest_name: user?.name || "Player",
+              guest_email: user?.email || null,
+              topic: "Live Support P2R",
+            },
+            authToken
+          );
+          const newToken = res.session.session_token;
+          setSessionToken(newToken);
+          localStorage.setItem(CHAT_SESSION_TOKEN_KEY, newToken);
+          const retrySent = await sendChatMessage(
+            newToken,
+            text,
+            user?.name,
+            authToken
+          );
+          setMessages((prev) =>
+            Array.isArray(prev) ? [...prev, retrySent] : [retrySent]
+          );
+          setSendError(null);
+          setTimeout(() => scrollToBottom(true), 50);
+          return;
+        } catch {
+          // ignore
+        }
+      }
       setSendError("Gagal mengirim pesan. Silakan coba lagi.");
     } finally {
       setIsSending(false);

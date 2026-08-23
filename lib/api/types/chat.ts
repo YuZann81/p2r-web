@@ -12,6 +12,7 @@ export type ChatMessage = {
 
 export type ChatSession = {
   id: number;
+  user_id?: number | null;
   guest_name: string;
   guest_email?: string | null;
   topic?: string | null;

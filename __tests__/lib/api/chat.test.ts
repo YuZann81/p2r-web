@@ -49,11 +49,15 @@ describe("Chat API Service", () => {
       topic: "Pameran",
     });
 
-    expect(mockedApiPost).toHaveBeenCalledWith("/chat/session", {
-      guest_name: "Hero",
-      guest_email: "hero@example.com",
-      topic: "Pameran",
-    });
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      "/chat/session",
+      {
+        guest_name: "Hero",
+        guest_email: "hero@example.com",
+        topic: "Pameran",
+      },
+      { token: undefined },
+    );
     expect(result.session.session_token).toBe("token-abc-123");
     expect(result.messages).toHaveLength(1);
     expect(result.messages[0].text).toBe("Halo Hero!");
@@ -79,6 +83,7 @@ describe("Chat API Service", () => {
     expect(mockedApiPost).toHaveBeenCalledWith(
       "/chat/send",
       { session_token: "token-abc-123", message: "Saya ingin tanya harga kaos" },
+      { token: undefined },
     );
     expect(result.text).toBe("Saya ingin tanya harga kaos");
     expect(result.sender).toBe("user");
