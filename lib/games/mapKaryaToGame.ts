@@ -25,7 +25,7 @@ function resolveMediaUrl(value: unknown): string | null {
 }
 
 export function mapKaryaToGame(karya: KaryaDetail): Game {
-  const mediaUrls = karya.media_urls
+  const mediaUrls = (Array.isArray(karya.media_urls) ? karya.media_urls : [])
     .map(resolveMediaUrl)
     .filter((url): url is string => url !== null);
 

@@ -3,6 +3,9 @@ import Link from "next/link";
 import GameDirectoryClient from "@/components/GameDirectoryClient";
 import { getGames } from "@/lib/games/getGames";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Direktori Game — Pixels to Reality",
   description:

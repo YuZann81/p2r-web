@@ -3,6 +3,9 @@ import Link from "next/link";
 import LeaderboardClient from "@/components/LeaderboardClient";
 import { getLeaderboardData } from "@/lib/leaderboard/getLeaderboard";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Leaderboard — Pixels to Reality",
   description:

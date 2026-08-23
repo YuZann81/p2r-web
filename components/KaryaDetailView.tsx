@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import GameArtwork from "@/components/GameArtwork";
 import VoteButton from "@/components/VoteButton";
+import GamePlaySession from "@/components/GamePlaySession";
 import type { KaryaDetail } from "@/lib/api/types/karya";
 
 type KaryaDetailViewProps = {
@@ -184,6 +185,14 @@ export default function KaryaDetailView({
             </div>
           </div>
         </section>
+
+        {/* Arcade Play & Score Session (for Game category) */}
+        {karya.category === "game" && (
+          <GamePlaySession
+            gameSlug={karya.slug}
+            gameTitle={karya.title}
+          />
+        )}
 
         {/* Footer Navigation */}
         <div className="mt-14 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6 md:mt-20">
