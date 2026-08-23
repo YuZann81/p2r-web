@@ -29,6 +29,7 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
   const { user, token: authToken, isAuthenticated } = useAuth();
 
   const [sessionToken, setSessionToken] = useState<string | null>(null);
+  const [sessionStatus, setSessionStatus] = useState<"active" | "closed">("active");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -79,6 +80,7 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
         if (active && active.session) {
           const token = active.session.session_token;
           setSessionToken(token);
+          setSessionStatus(active.session.status === "closed" ? "closed" : "active");
           setMessages(
             active.messages && active.messages.length > 0
               ? active.messages
@@ -100,6 +102,7 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
         );
         const token = res.session.session_token;
         setSessionToken(token);
+        setSessionStatus("active");
         setMessages(
           res.messages && res.messages.length > 0
             ? res.messages
@@ -209,8 +212,21 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
       }
     };
 
+    const handleStatusChanged = (payload: {
+      session_id: number;
+      session_token: string;
+      status: "active" | "closed";
+      updated_at: string;
+    }) => {
+      if (payload.session_token === sessionToken) {
+        setSessionStatus(payload.status);
+      }
+    };
+
     channel.listen(".ChatMessageSent", handleIncomingMessage);
     channel.listen("ChatMessageSent", handleIncomingMessage);
+    channel.listen(".ChatSessionStatusChanged", handleStatusChanged);
+    channel.listen("ChatSessionStatusChanged", handleStatusChanged);
 
     return () => {
       echo.leaveChannel(channelName);
@@ -329,6 +345,35 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
     }, 50);
   };
 
+  const handleStartNewSession = async () => {
+    setIsLoading(true);
+    setSendError(null);
+    setValidationError(null);
+    try {
+      const res = await startChatSession(
+        {
+          guest_name: user?.name || "Player",
+          guest_email: user?.email || null,
+          topic: "Live Support P2R",
+        },
+        authToken
+      );
+      const newToken = res.session.session_token;
+      setSessionToken(newToken);
+      setSessionStatus("active");
+      setMessages(
+        res.messages && res.messages.length > 0
+          ? res.messages
+          : DEFAULT_WELCOME_MESSAGES
+      );
+      localStorage.setItem(CHAT_SESSION_TOKEN_KEY, newToken);
+    } catch (err) {
+      console.error("[ChatAdmin] Failed to start new session:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleCloseSessionConfirm = async () => {
     if (!sessionToken) {
       setShowCloseDialog(false);
@@ -338,10 +383,7 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
     setIsClosingSession(true);
     try {
       await endChatSession(sessionToken);
-      localStorage.removeItem(CHAT_SESSION_TOKEN_KEY);
-      localStorage.removeItem(CHAT_STORAGE_KEY);
-      setSessionToken(null);
-      setMessages(DEFAULT_WELCOME_MESSAGES);
+      setSessionStatus("closed");
       setShowCloseDialog(false);
     } catch (err) {
       console.error("[ChatAdmin] Error closing session:", err);
@@ -522,7 +564,22 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
                 )}
               </div>
             )}
-            {isAuthenticated ? (
+            {sessionStatus === "closed" ? (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-black/50 border border-white/20 rounded-2xl p-3.5 text-center sm:text-left">
+                <div className="flex items-center gap-2 text-xs text-white/80">
+                  <AlertCircle className="size-4 shrink-0 text-amber-400" />
+                  <span>Percakapan telah ditutup oleh Customer Service.</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleStartNewSession}
+                  disabled={isLoading}
+                  className="px-4 py-2 bg-arcade-yellow hover:bg-yellow-300 text-arcade-ink font-display font-bold text-xs rounded-xl shadow-md transition-all active:scale-95 shrink-0 cursor-pointer"
+                >
+                  Mulai Percakapan Baru
+                </button>
+              </div>
+            ) : isAuthenticated ? (
               <form onSubmit={handleSend} className="flex items-center gap-2">
                 <input
                   type="text"

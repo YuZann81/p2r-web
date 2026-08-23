@@ -274,4 +274,68 @@ describe("ChatAdminModal", () => {
       expect(mockedEndChatSession).toHaveBeenCalledWith("session-token-abc");
     });
   });
+
+  it("renders closed session state and allows starting a new session", async () => {
+    mockedGetActiveChatSession.mockResolvedValue({
+      session: {
+        id: 1,
+        guest_name: "Player One",
+        guest_email: "player@example.com",
+        topic: "Live Support P2R",
+        status: "closed",
+        session_token: "session-token-closed",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      messages: [],
+    });
+
+    mockedStartChatSession.mockResolvedValue({
+      session: {
+        id: 2,
+        guest_name: "Player One",
+        guest_email: "player@example.com",
+        topic: "Live Support P2R",
+        status: "active",
+        session_token: "session-token-new",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      messages: [],
+    });
+
+    localStorage.setItem("p2r_auth_token", "sample-token");
+    localStorage.setItem(
+      "p2r_auth_user",
+      JSON.stringify({ id: 1, name: "Player One", email: "player@example.com" }),
+    );
+
+    render(
+      <AuthProvider>
+        <ChatAdminModal onClose={jest.fn()} />
+      </AuthProvider>,
+    );
+
+    expect(
+      await screen.findByText("Percakapan telah ditutup oleh Customer Service."),
+    ).toBeInTheDocument();
+
+    const startNewBtn = screen.getByRole("button", {
+      name: /mulai percakapan baru/i,
+    });
+    expect(startNewBtn).toBeInTheDocument();
+
+    fireEvent.click(startNewBtn);
+
+    await waitFor(() => {
+      expect(mockedStartChatSession).toHaveBeenCalledWith(
+        {
+          guest_name: "Player One",
+          guest_email: "player@example.com",
+          topic: "Live Support P2R",
+        },
+        "sample-token",
+      );
+    });
+  });
 });
