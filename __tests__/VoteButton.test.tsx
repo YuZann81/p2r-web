@@ -1,12 +1,13 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import VoteButton from "@/components/VoteButton";
 import { AuthProvider } from "@/lib/auth/auth-context";
-import { voteKarya, unvoteKarya } from "@/lib/api/karya";
+import { voteKarya, unvoteKarya, fetchKaryaBySlug } from "@/lib/api/karya";
 import { useRouter, useSearchParams } from "next/navigation";
 
 jest.mock("@/lib/api/karya", () => ({
   voteKarya: jest.fn(),
   unvoteKarya: jest.fn(),
+  fetchKaryaBySlug: jest.fn().mockResolvedValue(null),
 }));
 
 jest.mock("next/navigation", () => ({

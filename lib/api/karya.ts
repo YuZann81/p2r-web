@@ -40,9 +40,15 @@ export async function fetchKaryaSlugs(
   }
 }
 
-export async function fetchKaryaBySlug(slug: string): Promise<KaryaDetail | null> {
+export async function fetchKaryaBySlug(
+  slug: string,
+  token?: string | null,
+): Promise<KaryaDetail | null> {
   try {
-    const payload = await apiGet<KaryaDetail>(`/karyas/${encodeURIComponent(slug)}`)
+    const payload = await apiGet<KaryaDetail>(
+      `/karyas/${encodeURIComponent(slug)}`,
+      { token },
+    )
     return payload.data || null
   } catch (error) {
     console.error("[p2r-api] Failed to fetch karya by slug:", slug, error)

@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
-import { voteKarya, unvoteKarya } from "@/lib/api/karya";
+import { voteKarya, unvoteKarya, fetchKaryaBySlug } from "@/lib/api/karya";
 
 type VoteButtonProps = {
   slug: string;
@@ -38,7 +38,7 @@ export default function VoteButton({
   const autoDismissTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Set feedback with auto-dismiss after 4 seconds
-  const showFeedback = (
+  const showFeedback = useCallback((
     type: "success" | "error" | "info",
     message: string,
   ) => {
@@ -49,7 +49,7 @@ export default function VoteButton({
     autoDismissTimerRef.current = setTimeout(() => {
       setFeedback(null);
     }, 4000);
-  };
+  }, []);
 
   // Clear timer on component unmount
   useEffect(() => {
@@ -60,23 +60,27 @@ export default function VoteButton({
     };
   }, []);
 
-  // Auto-resume vote intent after authentication redirect
+  // Sync latest vote state from backend when user authentication is active
   useEffect(() => {
-    const action = searchParams?.get ? searchParams.get("action") : null;
-    const targetSlug = searchParams?.get ? searchParams.get("slug") : null;
-
-    if (
-      action === "vote" &&
-      targetSlug === slug &&
-      isAuthenticated &&
-      !isVoted &&
-      !isLoading
-    ) {
-      handleVote();
+    if (isAuthenticated && token && slug) {
+      fetchKaryaBySlug(slug, token)
+        .then((karya) => {
+          if (karya && typeof karya.is_voted_by_me !== "undefined") {
+            const voted =
+              karya.is_voted_by_me === true ||
+              karya.is_voted_by_me === "1" ||
+              karya.is_voted_by_me === "true";
+            setIsVoted(voted);
+            if (typeof karya.votes_count === "number") {
+              setVotesCount(karya.votes_count);
+            }
+          }
+        })
+        .catch(() => {});
     }
-  }, [searchParams, isAuthenticated, slug]);
+  }, [isAuthenticated, token, slug]);
 
-  const handleVote = async () => {
+  const handleVote = useCallback(async () => {
     if (!isAuthenticated) {
       const currentPath =
         typeof window !== "undefined" ? window.location.pathname : `/karya/${slug}`;
@@ -109,7 +113,6 @@ export default function VoteButton({
             "⭐ Vote kamu berhasil dicatat! Terima kasih telah mendukung karya ini.",
           );
         } catch {
-          // If already voted or duplicate recorded on backend
           setIsVoted(true);
           showFeedback("info", "Kamu telah memberikan vote untuk karya ini.");
         }
@@ -138,7 +141,23 @@ export default function VoteButton({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isAuthenticated, isLoading, isVoted, router, showFeedback, slug, token, votesCount]);
+
+  // Auto-resume vote intent after authentication redirect
+  useEffect(() => {
+    const action = searchParams?.get ? searchParams.get("action") : null;
+    const targetSlug = searchParams?.get ? searchParams.get("slug") : null;
+
+    if (
+      action === "vote" &&
+      targetSlug === slug &&
+      isAuthenticated &&
+      !isVoted &&
+      !isLoading
+    ) {
+      handleVote();
+    }
+  }, [searchParams, isAuthenticated, slug, isVoted, isLoading, handleVote]);
 
   return (
     <div className={`flex flex-col gap-2 ${className}`}>
