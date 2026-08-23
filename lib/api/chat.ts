@@ -1,9 +1,20 @@
-import { apiGet, apiPost } from "@/lib/api/client";
-import type { ChatMessage, SendMessagePayload } from "@/lib/api/types/chat";
+import { apiPost, apiDelete } from "@/lib/api/client";
+import type {
+  ChatMessage,
+  ChatSession,
+  StartSessionPayload,
+  SendMessagePayload,
+} from "@/lib/api/types/chat";
 
-export type { ChatMessage, ChatSender, SendMessagePayload } from "@/lib/api/types/chat";
+export type {
+  ChatMessage,
+  ChatSender,
+  ChatSession,
+  StartSessionPayload,
+  SendMessagePayload,
+} from "@/lib/api/types/chat";
 
-const DEFAULT_WELCOME_MESSAGES: ChatMessage[] = [
+export const DEFAULT_WELCOME_MESSAGES: ChatMessage[] = [
   {
     id: "welcome-1",
     sender: "admin",
@@ -20,50 +31,76 @@ const DEFAULT_WELCOME_MESSAGES: ChatMessage[] = [
   },
 ];
 
-export async function fetchChatMessages(
-  token?: string | null,
-): Promise<ChatMessage[]> {
-  try {
-    const payload = await apiGet<ChatMessage[]>("/chat/messages", {
-      token: token || null,
-    });
-
-    if (Array.isArray(payload.data) && payload.data.length > 0) {
-      return payload.data;
-    }
-  } catch {
-    // Return default welcome message if endpoint is offline or unavailable
-  }
-
+export async function fetchChatMessages(): Promise<ChatMessage[]> {
   return DEFAULT_WELCOME_MESSAGES;
 }
 
+export async function startChatSession(
+  payload: StartSessionPayload,
+): Promise<{ session: ChatSession; messages: ChatMessage[] }> {
+  const res = await apiPost<{
+    session: ChatSession;
+    messages: Array<{
+      id: number;
+      chat_session_id: number;
+      sender_type: string;
+      sender_id: number | null;
+      message: string;
+      attachment_url: string | null;
+      created_at: string;
+    }>;
+  }, StartSessionPayload>("/chat/session", payload);
+
+  const session = res.data.session;
+  const rawMessages = res.data.messages || [];
+
+  const messages: ChatMessage[] = rawMessages.map((m) => ({
+    id: m.id,
+    chat_session_id: m.chat_session_id,
+    sender: m.sender_type === "admin" ? "admin" : "user",
+    sender_name: m.sender_type === "admin" ? "Admin P2R" : payload.guest_name,
+    text: m.message,
+    attachment_url: m.attachment_url,
+    created_at: m.created_at,
+  }));
+
+  return { session, messages };
+}
+
 export async function sendChatMessage(
+  sessionToken: string,
   message: string,
-  token?: string | null,
   userName?: string | null,
 ): Promise<ChatMessage> {
-  const userMsg: ChatMessage = {
-    id: "msg-" + Date.now(),
-    sender: "user",
-    sender_name: userName || "Player",
-    text: message,
-    created_at: new Date().toISOString(),
+  const res = await apiPost<{
+    id: number;
+    chat_session_id: number;
+    sender_type: string;
+    sender_id: number | null;
+    message: string;
+    attachment_url: string | null;
+    created_at: string;
+  }, SendMessagePayload>("/chat/send", {
+    session_token: sessionToken,
+    message,
+  });
+
+  const m = res.data;
+  return {
+    id: m.id,
+    chat_session_id: m.chat_session_id,
+    sender: m.sender_type === "admin" ? "admin" : "user",
+    sender_name: m.sender_type === "admin" ? "Admin P2R" : (userName || "Player"),
+    text: m.message,
+    attachment_url: m.attachment_url,
+    created_at: m.created_at,
   };
+}
 
+export async function endChatSession(sessionToken: string): Promise<void> {
   try {
-    const payload = await apiPost<ChatMessage, SendMessagePayload>(
-      "/chat/send",
-      { message },
-      { token: token || null },
-    );
-
-    if (payload.data) {
-      return payload.data;
-    }
+    await apiDelete(`/chat/session/${sessionToken}`);
   } catch {
-    // If backend chat route is not available, return the created message directly
+    // ignore
   }
-
-  return userMsg;
 }

@@ -5,3 +5,10 @@
 node_modules
 .next/
 .DS_Store
+.vercel
+.env*
+
+# Playwright
+/playwright-report/
+/test-results/
+/playwright/.auth/

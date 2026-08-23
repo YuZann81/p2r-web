@@ -1,20 +1,33 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import ChatAdminModal from "@/components/ChatAdmin";
 import { AuthProvider } from "@/lib/auth/auth-context";
-import { fetchChatMessages, sendChatMessage } from "@/lib/api/chat";
+import { startChatSession, sendChatMessage } from "@/lib/api/chat";
 import { useRouter } from "next/navigation";
 
 jest.mock("@/lib/api/chat", () => ({
-  fetchChatMessages: jest.fn(),
+  DEFAULT_WELCOME_MESSAGES: [
+    {
+      id: "welcome-1",
+      sender: "admin",
+      sender_name: "Admin P2R",
+      text: "Selamat datang di pameran!",
+      created_at: new Date().toISOString(),
+    },
+  ],
+  startChatSession: jest.fn(),
   sendChatMessage: jest.fn(),
+}));
+
+jest.mock("@/lib/echo", () => ({
+  getEcho: jest.fn(() => null),
 }));
 
 jest.mock("next/navigation", () => ({
   useRouter: jest.fn(),
 }));
 
-const mockedFetchChatMessages = fetchChatMessages as jest.MockedFunction<
-  typeof fetchChatMessages
+const mockedStartChatSession = startChatSession as jest.MockedFunction<
+  typeof startChatSession
 >;
 const mockedSendChatMessage = sendChatMessage as jest.MockedFunction<
   typeof sendChatMessage
@@ -41,16 +54,6 @@ describe("ChatAdminModal", () => {
   });
 
   it("renders modal header and guest login prompt when unauthenticated", async () => {
-    mockedFetchChatMessages.mockResolvedValue([
-      {
-        id: "msg-1",
-        sender: "admin",
-        sender_name: "Admin P2R",
-        text: "Selamat datang di pameran!",
-        created_at: new Date().toISOString(),
-      },
-    ]);
-
     render(
       <AuthProvider>
         <ChatAdminModal onClose={jest.fn()} />
@@ -70,18 +73,30 @@ describe("ChatAdminModal", () => {
     localStorage.setItem("p2r_auth_token", "sample-token");
     localStorage.setItem(
       "p2r_auth_user",
-      JSON.stringify({ id: 1, name: "Player One" }),
+      JSON.stringify({ id: 1, name: "Player One", email: "player@example.com" }),
     );
 
-    mockedFetchChatMessages.mockResolvedValue([
-      {
-        id: "msg-1",
-        sender: "admin",
-        sender_name: "Admin P2R",
-        text: "Halo!",
+    mockedStartChatSession.mockResolvedValue({
+      session: {
+        id: 1,
+        guest_name: "Player One",
+        guest_email: "player@example.com",
+        topic: "Live Support P2R",
+        status: "active",
+        session_token: "session-token-abc",
         created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       },
-    ]);
+      messages: [
+        {
+          id: 1,
+          sender: "admin",
+          sender_name: "Admin P2R",
+          text: "Halo!",
+          created_at: new Date().toISOString(),
+        },
+      ],
+    });
 
     mockedSendChatMessage.mockResolvedValue({
       id: "msg-2",
@@ -109,8 +124,8 @@ describe("ChatAdminModal", () => {
 
     await waitFor(() => {
       expect(mockedSendChatMessage).toHaveBeenCalledWith(
+        "session-token-abc",
         "Apakah merchandise kaos masih ada?",
-        "sample-token",
         "Player One",
       );
       expect(
