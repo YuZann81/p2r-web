@@ -8,7 +8,7 @@ import { voteKarya, unvoteKarya } from "@/lib/api/karya";
 type VoteButtonProps = {
   slug: string;
   initialVotesCount: number;
-  initialIsVoted?: boolean | string;
+  initialIsVoted?: boolean | string | null;
   className?: string;
 };
 

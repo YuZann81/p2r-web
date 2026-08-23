@@ -3,6 +3,9 @@ import Link from "next/link";
 import KaryaDirectory from "@/components/KaryaDirectory";
 import { getAllKaryas } from "@/lib/karya/getKaryas";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Direktori Karya — Pixels to Reality",
   description:

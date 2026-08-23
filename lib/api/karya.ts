@@ -9,11 +9,11 @@ export type VoteResult = {
   is_voted_by_me: boolean | string
 }
 
-export async function fetchKaryaSlugs(
+export async function fetchKaryas(
   params: KaryaListParams = {},
-): Promise<string[]> {
+): Promise<KaryaDetail[]> {
   try {
-    const payload = await apiGet<string[]>("/karyas", {
+    const payload = await apiGet<KaryaDetail[]>("/karyas", {
       searchParams: {
         category: params.category,
         sort: params.sort,
@@ -22,6 +22,18 @@ export async function fetchKaryaSlugs(
     })
 
     return Array.isArray(payload.data) ? payload.data : []
+  } catch (error) {
+    console.error("[p2r-api] Failed to fetch karyas:", error)
+    return []
+  }
+}
+
+export async function fetchKaryaSlugs(
+  params: KaryaListParams = {},
+): Promise<string[]> {
+  try {
+    const karyas = await fetchKaryas(params)
+    return karyas.map((k) => k.slug).filter((slug): slug is string => Boolean(slug))
   } catch (error) {
     console.error("[p2r-api] Failed to fetch karya slugs:", error)
     return []
@@ -35,33 +47,6 @@ export async function fetchKaryaBySlug(slug: string): Promise<KaryaDetail | null
   } catch (error) {
     console.error("[p2r-api] Failed to fetch karya by slug:", slug, error)
     return null
-  }
-}
-
-export async function fetchKaryas(
-  params: KaryaListParams = {},
-): Promise<KaryaDetail[]> {
-  try {
-    const slugs = await fetchKaryaSlugs(params)
-    if (!slugs || slugs.length === 0) {
-      return []
-    }
-
-    const details = await Promise.all(
-      slugs.map(async (slug) => {
-        try {
-          return await fetchKaryaBySlug(slug)
-        } catch (error) {
-          console.error("[p2r-api] Failed to load karya detail:", slug, error)
-          return null
-        }
-      }),
-    )
-
-    return details.filter((karya): karya is KaryaDetail => karya !== null)
-  } catch (error) {
-    console.error("[p2r-api] Failed to fetch karyas:", error)
-    return []
   }
 }
 

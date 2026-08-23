@@ -38,7 +38,7 @@ describe("karya API", () => {
       json: async () => ({
         success: true,
         message: "Karya list retrieved.",
-        data: ["pixel-runner"],
+        data: [mockKaryaDetail],
       }),
     })
     global.fetch = fetchMock as typeof fetch
@@ -72,33 +72,18 @@ describe("karya API", () => {
     )
   })
 
-  it("fetchGameKaryas loads details for each slug returned by the list endpoint", async () => {
-    const fetchMock = jest
-      .fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          success: true,
-          message: "Karya list retrieved.",
-          data: ["pixel-runner", "space-blitz"],
-        }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          success: true,
-          message: "Karya retrieved.",
-          data: mockKaryaDetail,
-        }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          success: true,
-          message: "Karya retrieved.",
-          data: { ...mockKaryaDetail, slug: "space-blitz", title: "Space Blitz" },
-        }),
-      })
+  it("fetchGameKaryas loads karyas for category=game", async () => {
+    const fetchMock = jest.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        success: true,
+        message: "Karya list retrieved.",
+        data: [
+          mockKaryaDetail,
+          { ...mockKaryaDetail, slug: "space-blitz", title: "Space Blitz" },
+        ],
+      }),
+    })
     global.fetch = fetchMock as typeof fetch
 
     const karyas = await fetchGameKaryas()

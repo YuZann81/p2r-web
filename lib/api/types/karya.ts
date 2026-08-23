@@ -21,7 +21,7 @@ export type KaryaDetail = {
   votes_count: number
   created_at: string | null
   updated_at: string | null
-  is_voted_by_me: string
+  is_voted_by_me?: boolean | string | null
 }
 
 export type KaryaListParams = {

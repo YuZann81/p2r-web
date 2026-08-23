@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import KaryaDetailView from "@/components/KaryaDetailView";
 import { getKaryaBySlug } from "@/lib/karya/getKaryaBySlug";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type KaryaDetailPageProps = {
   params: Promise<{ slug: string }>;
 };
