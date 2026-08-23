@@ -2,6 +2,7 @@
 
 import React from "react";
 import type { Product } from "@/lib/api/types/product";
+import { formatProductPrice } from "@/lib/utils";
 
 export const pixelClipPath = `polygon(
   8px 0px, calc(100% - 8px) 0px, calc(100% - 8px) 4px, calc(100% - 4px) 4px, 
@@ -18,12 +19,7 @@ export type MerchandiseCardProps = {
   imageBoxClassName?: string;
 };
 
-export function formatProductPrice(price: number | null | undefined): string {
-  if (typeof price === "number" && price > 0) {
-    return `Rp ${price.toLocaleString("id-ID")}`;
-  }
-  return "Info via Admin";
-}
+export { formatProductPrice };
 
 export function PixelImage({
   imageUrl,
@@ -132,7 +128,7 @@ export default function MerchandiseCard({
           {/* Optional Category Overlay Badge */}
           {product.category && (
             <span className="absolute top-2.5 left-2.5 rounded-md border border-white/20 bg-black/70 px-2.5 py-0.5 font-display text-xs font-bold uppercase tracking-wider text-white">
-              {product.category}
+              {typeof product.category === "object" ? product.category.name : product.category}
             </span>
           )}
         </button>

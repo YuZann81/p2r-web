@@ -11,6 +11,12 @@ type MerchandiseCatalogProps = {
   products: Product[];
 };
 
+function getProductCategoryName(category: Product["category"]): string {
+  if (!category) return "";
+  if (typeof category === "string") return category.trim();
+  return (category.name || "").trim();
+}
+
 function MerchandiseCatalogInner({ products }: MerchandiseCatalogProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -25,8 +31,9 @@ function MerchandiseCatalogInner({ products }: MerchandiseCatalogProps) {
   const availableCategories = useMemo(() => {
     const categoriesSet = new Set<string>();
     products.forEach((p) => {
-      if (p.category && p.category.trim() !== "") {
-        categoriesSet.add(p.category.trim());
+      const catName = getProductCategoryName(p.category);
+      if (catName !== "") {
+        categoriesSet.add(catName);
       }
     });
     return Array.from(categoriesSet);
@@ -38,7 +45,9 @@ function MerchandiseCatalogInner({ products }: MerchandiseCatalogProps) {
 
     if (selectedCategory !== "all") {
       list = list.filter(
-        (p) => (p.category || "").toLowerCase().trim() === selectedCategory.toLowerCase().trim(),
+        (p) =>
+          getProductCategoryName(p.category).toLowerCase() ===
+          selectedCategory.toLowerCase().trim(),
       );
     }
 

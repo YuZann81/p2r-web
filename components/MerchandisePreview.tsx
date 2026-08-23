@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { fetchProducts } from "@/lib/api/products";
-import { formatProductPrice } from "@/components/MerchandiseCard";
+import { formatProductPrice } from "@/lib/utils";
 
 export default async function MerchandisePreview() {
   const products = await fetchProducts();

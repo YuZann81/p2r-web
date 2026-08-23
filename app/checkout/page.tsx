@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { useCart } from "@/lib/cart/cart-context";
 import { submitCheckout, type OrderResult } from "@/lib/api/checkout";
 import { formatProductPrice } from "@/components/MerchandiseCard";
+import { addBackendCartItem } from "@/lib/api/cart";
 
 function CheckoutContent() {
   const router = useRouter();
@@ -73,6 +74,20 @@ function CheckoutContent() {
     setErrorMessage(null);
 
     try {
+      // Synchronize items with backend database cart
+      if (token) {
+        for (const item of items) {
+          if (item.product?.id) {
+            try {
+              await addBackendCartItem(
+                { product_id: item.product.id, quantity: item.quantity },
+                token,
+              );
+            } catch {}
+          }
+        }
+      }
+
       const payload = {
         customer_name: formData.fullName.trim(),
         customer_phone: formData.phone.trim(),
@@ -106,6 +121,13 @@ function CheckoutContent() {
 
   // 1. SUCCESS RECEIPT STATE
   if (completedOrder) {
+    const customerDisplayName =
+      completedOrder.customer?.name || completedOrder.customer_name || formData.fullName;
+    const customerDisplayPhone =
+      completedOrder.customer?.phone || completedOrder.customer_phone || formData.phone;
+    const displayTotal =
+      completedOrder.grand_total || completedOrder.subtotal || completedOrder.total_amount;
+
     return (
       <div className="mx-auto w-full max-w-2xl rounded-3xl border-2 border-white/20 bg-[#1e1040] p-6 text-center shadow-2xl sm:p-10">
         <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-arcade-yellow text-3xl font-bold text-arcade-ink shadow-lg">
@@ -121,39 +143,58 @@ function CheckoutContent() {
         </h2>
 
         <p className="mt-3 text-sm leading-relaxed text-white/90 sm:text-base">
-          Terima kasih, <strong>{completedOrder.customer_name}</strong>. Pesanan merchandise Anda telah tercatat di sistem pameran Pixel To Reality.
+          Terima kasih, <strong>{customerDisplayName}</strong>. Pesanan merchandise Anda telah tercatat di sistem pameran Pixel To Reality.
         </p>
 
         {/* Order Details Receipt Box */}
         <div className="my-6 rounded-2xl border border-white/10 bg-black/50 p-5 text-left font-sans">
           <div className="flex items-center justify-between border-b border-white/10 pb-3 text-xs font-semibold uppercase tracking-wider text-arcade-yellow">
-            <span>ID Pesanan</span>
-            <span className="font-mono text-white">{completedOrder.id}</span>
+            <span>Kode Checkout / ID</span>
+            <span className="font-mono font-bold text-white">
+              {completedOrder.checkout_code || completedOrder.id}
+            </span>
           </div>
 
           <div className="flex items-center justify-between border-b border-white/10 py-3 text-sm text-white">
             <span>Nama Pemesan</span>
-            <span className="font-semibold">{completedOrder.customer_name}</span>
+            <span className="font-semibold">{customerDisplayName}</span>
           </div>
 
           <div className="flex items-center justify-between border-b border-white/10 py-3 text-sm text-white">
             <span>Nomor WhatsApp</span>
-            <span className="font-semibold">{completedOrder.customer_phone || "-"}</span>
+            <span className="font-semibold">{customerDisplayPhone || "-"}</span>
           </div>
+
+          {completedOrder.items && completedOrder.items.length > 0 && (
+            <div className="border-b border-white/10 py-3 text-xs text-white/90">
+              <span className="mb-2 block font-semibold uppercase tracking-wider text-arcade-yellow">
+                Daftar Item ({completedOrder.items.length})
+              </span>
+              <ul className="space-y-1.5">
+                {completedOrder.items.map((item, idx) => (
+                  <li key={item.id || idx} className="flex justify-between">
+                    <span>
+                      {item.quantity}x {item.product_name}
+                    </span>
+                    <span className="font-mono text-white">
+                      {formatProductPrice(item.subtotal || item.unit_price)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="flex items-center justify-between pt-3 font-display text-base font-bold text-arcade-yellow">
             <span>Total Tagihan</span>
-            <span className="font-mono text-lg">
-              {typeof completedOrder.total_amount === "number" &&
-              completedOrder.total_amount > 0
-                ? `Rp ${completedOrder.total_amount.toLocaleString("id-ID")}`
-                : "Info via Admin"}
+            <span className="font-mono text-lg text-arcade-yellow">
+              {formatProductPrice(displayTotal)}
             </span>
           </div>
         </div>
 
         <p className="mb-6 text-xs leading-relaxed text-white/70 sm:text-sm">
-          Silakan konfirmasi dan selesaikan transaksi di booth kasir pameran atau tunjukkan ID pesanan kepada tim panitia pameran.
+          Silakan konfirmasi dan selesaikan transaksi di booth kasir pameran atau tunjukkan Kode Checkout kepada panitia pameran.
         </p>
 
         <div className="flex flex-col justify-center gap-3 sm:flex-row">

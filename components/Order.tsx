@@ -7,6 +7,7 @@ import { PixelImage, PixelButton } from "./MerchandiseCard";
 import { useAuth } from "@/lib/auth/auth-context";
 import { submitCheckout, type OrderResult } from "@/lib/api/checkout";
 import { useCart } from "@/lib/cart/cart-context";
+import { addBackendCartItem } from "@/lib/api/cart";
 
 type OrderModalProps = {
   product: Product | null;
@@ -77,6 +78,15 @@ export default function OrderModal({
     setErrorMessage(null);
 
     try {
+      if (token && product.id) {
+        try {
+          await addBackendCartItem(
+            { product_id: product.id, quantity },
+            token,
+          );
+        } catch {}
+      }
+
       const response = await submitCheckout(
         {
           customer_name: formData.fullName.trim(),
@@ -115,9 +125,11 @@ export default function OrderModal({
     product?.description ??
     "Merchandise eksklusif edisi resmi Pixel To Reality. Pesan sekarang dan dukung karya pameran Cyber Arcade.";
 
+  const rawPrice = product?.price;
+  const numPrice = typeof rawPrice === "string" ? parseFloat(rawPrice) : rawPrice;
   const priceDisplay =
-    typeof product?.price === "number" && product.price > 0
-      ? `Harga: Rp ${product.price.toLocaleString("id-ID")}`
+    typeof numPrice === "number" && !isNaN(numPrice) && numPrice > 0
+      ? `Harga: Rp ${Math.round(numPrice).toLocaleString("id-ID")}`
       : "Harga: Info via Admin";
 
   return (
@@ -148,9 +160,12 @@ export default function OrderModal({
             >
               Pesanan Berhasil Dibuat!
             </h2>
-            <p className="text-white text-base max-w-md mb-6 leading-relaxed">
-              Terima kasih, <strong>{orderCompleted.customer_name}</strong>. Pesanan untuk <strong>{quantity}x {productName}</strong> telah tercatat di sistem Cyber Arcade.
+            <p className="text-white text-base max-w-md mb-3 leading-relaxed">
+              Terima kasih, <strong>{orderCompleted.customer?.name || orderCompleted.customer_name || formData.fullName}</strong>. Pesanan untuk <strong>{quantity}x {productName}</strong> telah tercatat di sistem Cyber Arcade.
             </p>
+            <div className="mb-6 rounded-xl border border-white/20 bg-black/40 px-5 py-3 text-sm text-arcade-yellow font-mono font-bold">
+              Kode Checkout: {orderCompleted.checkout_code || orderCompleted.id}
+            </div>
             <div className="flex gap-4">
               <button
                 type="button"
