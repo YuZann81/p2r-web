@@ -15,11 +15,13 @@ function getSourceBadge(source?: string | null): {
   const normalized = (source || "").toLowerCase().trim();
   switch (normalized) {
     case "announcement":
+    case "custom":
       return {
         label: "PENGUMUMAN",
         badgeClass: "bg-arcade-yellow/20 text-arcade-yellow border-arcade-yellow/50",
       };
     case "activity":
+    case "web":
       return {
         label: "AKTIVITAS",
         badgeClass: "bg-emerald-500/20 text-emerald-300 border-emerald-500/50",
@@ -38,8 +40,9 @@ function getSourceBadge(source?: string | null): {
 }
 
 export default function UpdateCard({ feed, onSelect }: UpdateCardProps) {
-  const sourceInfo = getSourceBadge(feed.source);
-  const imageUrl = feed.image_url || feed.media_url || null;
+  const sourceInfo = getSourceBadge(feed.platform || feed.source);
+  const imageUrl = feed.thumbnail_url || feed.image_url || feed.media_url || null;
+  const externalLink = feed.original_url || feed.external_url;
   const displayTitle = feed.title || feed.caption || "Info Resmi Pameran P2R";
   const displayContent =
     feed.content ||
@@ -105,9 +108,9 @@ export default function UpdateCard({ feed, onSelect }: UpdateCardProps) {
           Oleh: <strong className="text-white/90">{feed.author_name || "Panitia P2R"}</strong>
         </span>
 
-        {feed.external_url ? (
+        {externalLink ? (
           <a
-            href={feed.external_url}
+            href={externalLink}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 font-display text-xs font-bold text-arcade-yellow underline transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow"

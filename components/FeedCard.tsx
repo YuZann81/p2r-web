@@ -11,13 +11,13 @@ type FeedCardProps = {
 };
 
 export default function FeedCard({ feed, onSelect }: FeedCardProps) {
-  const normalizedSource = (feed.source || "").toLowerCase().trim();
+  const normalizedPlatform = (feed.platform || feed.source || "custom").toLowerCase().trim();
 
-  if (normalizedSource === "instagram") {
+  if (normalizedPlatform === "instagram") {
     return <InstagramEmbed feed={feed} onSelect={onSelect} />;
   }
 
-  if (normalizedSource === "tiktok") {
+  if (normalizedPlatform === "tiktok") {
     return <TikTokEmbed feed={feed} onSelect={onSelect} />;
   }
 

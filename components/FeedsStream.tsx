@@ -15,7 +15,6 @@ const FILTER_OPTIONS = [
   { key: "tiktok", label: "TikTok" },
   { key: "announcement", label: "Pengumuman" },
   { key: "activity", label: "Aktivitas" },
-  { key: "news", label: "Berita" },
 ];
 
 export default function FeedsStream({ initialFeeds }: FeedsStreamProps) {
@@ -28,11 +27,16 @@ export default function FeedsStream({ initialFeeds }: FeedsStreamProps) {
     let list = initialFeeds;
 
     if (selectedFilter !== "all") {
-      list = list.filter(
-        (feed) =>
-          (feed.source || "").toLowerCase().trim() ===
-          selectedFilter.toLowerCase(),
-      );
+      list = list.filter((feed) => {
+        const plat = (feed.platform || feed.source || "custom").toLowerCase().trim();
+        if (selectedFilter === "announcement" && (plat === "announcement" || plat === "custom")) {
+          return true;
+        }
+        if (selectedFilter === "activity" && (plat === "activity" || plat === "web")) {
+          return true;
+        }
+        return plat === selectedFilter.toLowerCase();
+      });
     }
 
     const q = searchQuery.trim().toLowerCase();
@@ -52,10 +56,10 @@ export default function FeedsStream({ initialFeeds }: FeedsStreamProps) {
   // Featured Social Posts (Top Instagram & Top TikTok)
   const featuredSocial = useMemo(() => {
     const ig = initialFeeds.find(
-      (f) => (f.source || "").toLowerCase().trim() === "instagram",
+      (f) => (f.platform || f.source || "").toLowerCase().trim() === "instagram",
     );
     const tt = initialFeeds.find(
-      (f) => (f.source || "").toLowerCase().trim() === "tiktok",
+      (f) => (f.platform || f.source || "").toLowerCase().trim() === "tiktok",
     );
     return { ig, tt };
   }, [initialFeeds]);
@@ -224,10 +228,10 @@ export default function FeedsStream({ initialFeeds }: FeedsStreamProps) {
               ✕
             </button>
 
-            {selectedFeed.image_url && (
+            {(selectedFeed.thumbnail_url || selectedFeed.image_url) && (
               <div className="mb-5 aspect-video w-full overflow-hidden rounded-xl bg-black/60">
                 <img
-                  src={selectedFeed.image_url}
+                  src={selectedFeed.thumbnail_url || selectedFeed.image_url || undefined}
                   alt={selectedFeed.title || "Detail feed"}
                   className="h-full w-full object-cover [image-rendering:pixelated]"
                 />
@@ -251,13 +255,13 @@ export default function FeedsStream({ initialFeeds }: FeedsStreamProps) {
             )}
 
             <div className="mt-4 max-h-[40vh] overflow-y-auto pr-2 text-sm leading-relaxed text-white/90 sm:text-base">
-              {selectedFeed.content || selectedFeed.caption}
+              {selectedFeed.content || selectedFeed.caption || selectedFeed.title}
             </div>
 
-            {selectedFeed.external_url && (
+            {(selectedFeed.original_url || selectedFeed.external_url) && (
               <div className="mt-6 border-t border-white/15 pt-4">
                 <a
-                  href={selectedFeed.external_url}
+                  href={selectedFeed.original_url || selectedFeed.external_url || undefined}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center rounded-xl bg-arcade-yellow px-6 py-2.5 font-display text-sm font-bold text-arcade-ink shadow-[3px_3px_0_var(--arcade-yellow-shadow)] hover:-translate-y-0.5"

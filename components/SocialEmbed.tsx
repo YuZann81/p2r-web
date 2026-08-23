@@ -9,12 +9,13 @@ type SocialEmbedProps = {
 };
 
 export function InstagramEmbed({ feed, onSelect }: SocialEmbedProps) {
-  const imageUrl = feed.image_url || feed.media_url || "/images/game-1.png";
+  const imageUrl = feed.thumbnail_url || feed.image_url || feed.media_url || "/images/game-1.png";
   const displayTitle = feed.title || "Postingan Instagram P2R";
   const displayCaption =
     feed.caption ||
     feed.content ||
     "Dokumentasi dan aktivitas pameran Pixel To Reality di Instagram.";
+  const externalLink = feed.original_url || feed.external_url;
 
   return (
     <article
@@ -92,9 +93,9 @@ export function InstagramEmbed({ feed, onSelect }: SocialEmbedProps) {
           <span className="text-xs text-white/50">P2R Media</span>
         )}
 
-        {feed.external_url ? (
+        {externalLink ? (
           <a
-            href={feed.external_url}
+            href={externalLink}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 font-display text-xs font-bold text-arcade-yellow underline transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow"
@@ -117,12 +118,13 @@ export function InstagramEmbed({ feed, onSelect }: SocialEmbedProps) {
 }
 
 export function TikTokEmbed({ feed, onSelect }: SocialEmbedProps) {
-  const imageUrl = feed.image_url || feed.media_url || "/images/game-2.png";
+  const imageUrl = feed.thumbnail_url || feed.image_url || feed.media_url || "/images/game-2.png";
   const displayTitle = feed.title || "Cuplikan Video TikTok P2R";
   const displayCaption =
     feed.caption ||
     feed.content ||
     "Video pendek dokumentasi dan gameplay pameran Pixel To Reality.";
+  const externalLink = feed.original_url || feed.external_url;
 
   return (
     <article
@@ -203,9 +205,9 @@ export function TikTokEmbed({ feed, onSelect }: SocialEmbedProps) {
           <span className="text-xs text-white/50">TikTok Video</span>
         )}
 
-        {feed.external_url ? (
+        {externalLink ? (
           <a
-            href={feed.external_url}
+            href={externalLink}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 font-display text-xs font-bold text-arcade-yellow underline transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow"
