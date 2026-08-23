@@ -154,6 +154,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
+      localStorage.removeItem("p2r_live_chat_history");
+      localStorage.removeItem("p2r_live_chat_session_token");
+      localStorage.removeItem("p2r_cart_items");
     } catch {}
   }, [token]);
 

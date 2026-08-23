@@ -594,7 +594,7 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
                 />
                 <button
                   type="submit"
-                  disabled={isSending}
+                  disabled={isSending || !inputText.trim()}
                   aria-label="Kirim pesan"
                   className="h-11 px-5 bg-arcade-yellow hover:bg-yellow-300 text-arcade-ink font-display font-bold text-sm rounded-full flex items-center justify-center gap-1.5 shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
                 >
