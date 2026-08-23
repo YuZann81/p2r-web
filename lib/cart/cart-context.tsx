@@ -73,22 +73,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (!currentToken) return;
     try {
       const res = await fetchBackendCart(currentToken);
-      if (res.data && Array.isArray(res.data.items) && res.data.items.length > 0) {
-        const backendItems: CartItem[] = res.data.items.map((bi) => ({
-          product: {
-            id: bi.product_id,
-            name: bi.product_name,
-            slug: bi.product_slug,
-            price: bi.unit_price,
-            image_url: bi.product_image_url,
-            category: bi.product_category_name || null,
-          },
-          quantity: bi.quantity,
-          backendItemId: bi.id,
-          notes: bi.notes,
-        }));
+      if (res.data && Array.isArray(res.data.items)) {
+        if (res.data.items.length > 0) {
+          const backendItems: CartItem[] = res.data.items.map((bi) => ({
+            product: {
+              id: bi.product_id,
+              name: bi.product_name,
+              slug: bi.product_slug,
+              price: bi.unit_price,
+              image_url: bi.product_image_url,
+              category: bi.product_category_name || null,
+            },
+            quantity: bi.quantity,
+            backendItemId: bi.id,
+            notes: bi.notes,
+          }));
 
-        setItems(backendItems);
+          setItems(backendItems);
+        } else {
+          setItems([]);
+        }
       }
     } catch {
       // Benign sync error
@@ -102,7 +106,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [isAuthenticated, token, syncWithBackend]);
 
   const addItem = useCallback((product: Product, quantity = 1) => {
-    if (quantity <= 0 || !product || product.id === undefined) return;
+    const cleanQty = Math.max(1, Math.floor(quantity));
+    if (isNaN(cleanQty) || cleanQty <= 0 || !product || product.id === undefined) return;
 
     setItems((prev) => {
       const existingIndex = prev.findIndex(
@@ -169,7 +174,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const updateQuantity = useCallback(
     (productId: string | number, quantity: number) => {
-      if (quantity <= 0) {
+      const cleanQty = Math.floor(quantity);
+      if (isNaN(cleanQty) || cleanQty <= 0) {
         removeItem(productId);
         return;
       }
@@ -183,7 +189,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 : Infinity;
             return {
               ...item,
-              quantity: Math.min(quantity, maxStock),
+              quantity: Math.min(cleanQty, maxStock),
             };
           }
           return item;
@@ -192,7 +198,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       const currentToken = tokenRef.current;
       if (currentToken) {
-        addBackendCartItem({ product_id: productId, quantity }, currentToken).catch(() => {});
+        addBackendCartItem({ product_id: productId, quantity: cleanQty }, currentToken).catch(() => {});
       }
     },
     [removeItem],

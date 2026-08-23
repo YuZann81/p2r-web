@@ -449,7 +449,10 @@ function CheckoutContent() {
                           >
                             -
                           </button>
-                          <span className="min-w-[28px] text-center font-display text-sm font-bold text-arcade-yellow">
+                          <span
+                            aria-label={`Jumlah: ${quantity}`}
+                            className="min-w-[28px] text-center font-display text-sm font-bold text-arcade-yellow"
+                          >
                             {quantity}
                           </span>
                           <button
