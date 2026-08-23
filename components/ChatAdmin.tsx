@@ -29,11 +29,22 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
 
+  const [showScrollBottom, setShowScrollBottom] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<"connected" | "connecting" | "offline">("connecting");
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // Auto-scroll to bottom of messages container
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const scrollToBottom = (smooth = true) => {
+    messagesEndRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
+    setShowScrollBottom(false);
+  };
+
+  const handleScroll = () => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    setShowScrollBottom(!isNearBottom);
   };
 
   // Close modal when pressing Escape key
@@ -96,7 +107,31 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
     if (!sessionToken) return;
 
     const echo = getEcho();
-    if (!echo) return;
+    if (!echo) {
+      setConnectionStatus("offline");
+      return;
+    }
+
+    try {
+      const pusherConnector = (
+        echo as unknown as {
+          connector?: { pusher?: { connection?: { state?: string; bind?: (e: string, fn: (st: { current: string }) => void) => void } } };
+        }
+      ).connector?.pusher?.connection;
+
+      if (pusherConnector) {
+        setConnectionStatus(
+          pusherConnector.state === "connected" ? "connected" : "connecting"
+        );
+        pusherConnector.bind?.("state_change", (states: { current: string }) => {
+          if (states.current === "connected") setConnectionStatus("connected");
+          else if (states.current === "connecting") setConnectionStatus("connecting");
+          else setConnectionStatus("offline");
+        });
+      }
+    } catch {
+      // ignore
+    }
 
     const channelName = `chat.session.${sessionToken}`;
     const channel = echo.channel(channelName);
@@ -130,6 +165,14 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
             },
           ];
         });
+
+        const el = messagesContainerRef.current;
+        const isNearBottom = !el || el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+        if (isNearBottom) {
+          setTimeout(() => scrollToBottom(true), 50);
+        } else {
+          setShowScrollBottom(true);
+        }
       }
     };
 
@@ -144,9 +187,9 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
   // Scroll to bottom when messages update
   useEffect(() => {
     if (!isLoading) {
-      scrollToBottom();
+      scrollToBottom(false);
     }
-  }, [messages, isLoading]);
+  }, [isLoading]);
 
   // Save to localStorage when messages change
   useEffect(() => {
@@ -192,6 +235,7 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
       setMessages((prev) =>
         Array.isArray(prev) ? [...prev, sentMessage] : [sentMessage],
       );
+      setTimeout(() => scrollToBottom(true), 50);
     } catch (err) {
       console.error("[ChatAdmin] Error sending message:", err);
       setSendError("Gagal mengirim pesan. Silakan coba lagi.");
@@ -217,16 +261,41 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
     >
       <div className="relative w-full max-w-xl max-h-[85vh] h-[550px] bg-[#5b2be6]/95 backdrop-blur-2xl border border-white/20 rounded-3xl overflow-hidden shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="bg-white/95 px-6 py-4 flex justify-between items-center border-b border-black/10 flex-shrink-0">
+        <div className="bg-white/95 px-5 sm:px-6 py-3.5 flex justify-between items-center border-b border-black/10 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-arcade-violet text-arcade-yellow font-display font-bold text-lg">
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-arcade-violet text-arcade-yellow font-display font-bold text-lg shadow-sm">
               CS
-              <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 ring-2 ring-white" />
+              <span
+                className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-white ${
+                  connectionStatus === "connected"
+                    ? "bg-green-500"
+                    : connectionStatus === "connecting"
+                      ? "bg-amber-500 animate-pulse"
+                      : "bg-red-500"
+                }`}
+              />
             </div>
             <div>
-              <h3 className="text-arcade-ink font-display font-bold text-lg leading-tight">
-                Admin Support P2R
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-arcade-ink font-display font-bold text-base sm:text-lg leading-tight">
+                  Admin Support P2R
+                </h3>
+                <span
+                  className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-semibold ${
+                    connectionStatus === "connected"
+                      ? "bg-green-100 text-green-800"
+                      : connectionStatus === "connecting"
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {connectionStatus === "connected"
+                    ? "Live"
+                    : connectionStatus === "connecting"
+                      ? "Menghubungkan..."
+                      : "Offline"}
+                </span>
+              </div>
               <p className="text-xs font-semibold text-arcade-ink/70">
                 Customer Service &amp; Pameran
               </p>
@@ -243,7 +312,11 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
         </div>
 
         {/* Message Container */}
-        <div className="flex-1 p-5 overflow-y-auto flex flex-col gap-3.5 bg-black/15">
+        <div
+          ref={messagesContainerRef}
+          onScroll={handleScroll}
+          className="relative flex-1 p-4 sm:p-5 overflow-y-auto flex flex-col gap-3.5 bg-black/15"
+        >
           {isLoading ? (
             <div className="flex h-full items-center justify-center">
               <div className="h-8 w-8 animate-spin rounded-full border-3 border-arcade-yellow border-t-transparent" />
@@ -254,12 +327,12 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
               return (
                 <div
                   key={msg.id}
-                  className={`flex flex-col max-w-[80%] ${
+                  className={`flex flex-col max-w-[85%] sm:max-w-[80%] ${
                     isUser ? "self-end items-end" : "self-start items-start"
                   }`}
                 >
                   <div
-                    className={`px-5 py-3 rounded-2xl text-sm leading-relaxed shadow-md ${
+                    className={`px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-md break-words ${
                       isUser
                         ? "bg-arcade-yellow text-arcade-ink font-semibold rounded-br-xs"
                         : "bg-arcade-purple/90 border border-white/10 text-white rounded-bl-xs"
@@ -267,12 +340,15 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
                   >
                     {msg.text}
                   </div>
-                  <span className="mt-1 font-display text-[10px] text-white/50 px-1">
-                    {msg.sender_name || (isUser ? "Kamu" : "Admin")} •{" "}
-                    {new Date(msg.created_at).toLocaleTimeString("id-ID", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                  <span className="mt-1 font-display text-[10px] text-white/60 px-1 flex items-center gap-1">
+                    <span>
+                      {msg.sender_name || (isUser ? "Kamu" : "Admin")} •{" "}
+                      {new Date(msg.created_at).toLocaleTimeString("id-ID", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                    {isUser && <span className="text-arcade-yellow font-bold">✓✓</span>}
                   </span>
                 </div>
               );
@@ -283,6 +359,17 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
             </div>
           )}
           <div ref={messagesEndRef} />
+
+          {/* Floating new message button */}
+          {showScrollBottom && (
+            <button
+              type="button"
+              onClick={() => scrollToBottom(true)}
+              className="sticky bottom-2 self-center z-10 rounded-full bg-arcade-yellow px-3.5 py-1.5 font-display text-xs font-bold text-arcade-ink shadow-lg hover:bg-yellow-300 active:scale-95 transition-all cursor-pointer"
+            >
+              ⬇ Pesan baru
+            </button>
+          )}
         </div>
 
         {/* Footer / Input Area */}
