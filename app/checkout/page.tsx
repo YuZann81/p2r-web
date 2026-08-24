@@ -280,24 +280,24 @@ function CheckoutContent() {
 
         <div className="flex flex-col justify-center gap-3 sm:flex-row">
           <Link
-            href="/merchandise"
+            href="/payment"
             className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-arcade-yellow px-6 py-2.5 font-display text-base font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] transition-transform hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--arcade-yellow-shadow)] active:translate-y-0.5"
           >
-            Lihat Merchandise Lain →
+            Lanjut ke Pembayaran QRIS →
+          </Link>
+          <Link
+            href="/orders"
+            className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-arcade-yellow/50 bg-arcade-yellow/10 px-6 py-2.5 font-display text-base font-bold text-arcade-yellow transition-colors hover:bg-arcade-yellow/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow"
+          >
+            Lihat Pesanan Saya
           </Link>
           <button
             type="button"
             onClick={handleResetOrder}
-            className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-arcade-yellow/50 bg-arcade-yellow/10 px-6 py-2.5 font-display text-base font-bold text-arcade-yellow transition-colors hover:bg-arcade-yellow/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow cursor-pointer"
+            className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-white/30 bg-black/40 px-6 py-2.5 font-display text-base font-bold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow cursor-pointer"
           >
             + Buat Pesanan Baru
           </button>
-          <Link
-            href="/"
-            className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-white/30 bg-black/40 px-6 py-2.5 font-display text-base font-bold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow"
-          >
-            Kembali ke Beranda
-          </Link>
         </div>
       </div>
     );

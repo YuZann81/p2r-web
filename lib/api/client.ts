@@ -248,3 +248,29 @@ export async function apiDelete<T>(
 
   return executeRequest<T>(url, init, timeoutMs);
 }
+
+export async function apiPostFormData<T>(
+  path: string,
+  formData: FormData,
+  options: ApiRequestOptions = {},
+): Promise<ApiResponse<T>> {
+  const url = buildApiUrl(path, options.searchParams);
+  const timeoutMs = options.timeoutMs || DEFAULT_TIMEOUT_MS;
+
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    ...options.headers,
+  };
+
+  if (options.token) {
+    headers.Authorization = `Bearer ${options.token.trim()}`;
+  }
+
+  const init: RequestInit = {
+    method: "POST",
+    headers,
+    body: formData,
+  };
+
+  return executeRequest<T>(url, init, timeoutMs);
+}
