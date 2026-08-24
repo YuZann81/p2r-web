@@ -9,13 +9,14 @@ import { useAuth } from "@/lib/auth/auth-context";
 import type { UserType } from "@/lib/api/types/auth";
 
 const MAJORS = [
-  { value: "Rekayasa Perangkat Lunak (RPL)", label: "Rekayasa Perangkat Lunak (RPL)" },
-  { value: "Teknik Komputer & Jaringan (TKJ)", label: "Teknik Komputer & Jaringan (TKJ)" },
-  { value: "Desain Komunikasi Visual (DKV)", label: "Desain Komunikasi Visual (DKV)" },
-  { value: "Animasi & Multimedia", label: "Animasi & Multimedia" },
-  { value: "Akuntansi & Keuangan (AKL)", label: "Akuntansi & Keuangan (AKL)" },
-  { value: "Manajemen Perkantoran (MP)", label: "Manajemen Perkantoran (MP)" },
-  { value: "Lainnya", label: "Lainnya" },
+  { value: "Teknik Mesin", label: "Teknik Mesin" },
+  { value: "Teknik Otomotif", label: "Teknik Otomotif" },
+  { value: "Teknik Elektronika", label: "Teknik Elektronika" },
+  { value: "Mekatronika", label: "Mekatronika" },
+  { value: "RPL / PPLG", label: "RPL / PPLG" },
+  { value: "Broadcasting & Perfilman (BP)", label: "Broadcasting & Perfilman (BP)" },
+  { value: "TKJ", label: "TKJ" },
+  { value: "Teknik Tekstil", label: "Teknik Tekstil" },
 ];
 
 const GRADES = ["X (Kelas 10)", "XI (Kelas 11)", "XII (Kelas 12)"];
@@ -28,7 +29,7 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState("");
   const [userType, setUserType] = useState<UserType>("siswa");
   const [classGrade, setClassGrade] = useState("XII (Kelas 12)");
-  const [major, setMajor] = useState("Rekayasa Perangkat Lunak (RPL)");
+  const [major, setMajor] = useState("RPL / PPLG");
   const [teacherRole, setTeacherRole] = useState("");
 
   const [statusMsg, setStatusMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -46,7 +47,7 @@ export default function ProfilePage() {
       setPhone(user.phone || "");
       setUserType((user.user_type as UserType) || "siswa");
       setClassGrade(user.class_grade || "XII (Kelas 12)");
-      setMajor(user.major || "Rekayasa Perangkat Lunak (RPL)");
+      setMajor(user.major || "RPL / PPLG");
       setTeacherRole(user.teacher_role || "");
     }
   }, [user]);
@@ -122,7 +123,10 @@ export default function ProfilePage() {
             href="/orders"
             className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-black/30 px-3.5 py-2 text-xs font-bold text-arcade-yellow transition-colors hover:border-arcade-yellow hover:bg-black/50 self-start sm:self-auto"
           >
-            📦 Lihat Pesanan Saya →
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            Lihat Pesanan Saya
           </Link>
         </div>
 
@@ -151,7 +155,7 @@ export default function ProfilePage() {
               <p className="text-xs font-mono text-white/60">{user?.email}</p>
 
               <span className="mt-3 inline-block rounded-full bg-arcade-yellow/20 px-3 py-1 font-display text-[11px] font-bold tracking-wider uppercase text-arcade-yellow border border-arcade-yellow/30">
-                {user?.user_type === "guru" ? "👨‍🏫 Guru / Pendidik" : user?.user_type === "umum" ? "👤 Umum" : "🎒 Siswa RPL"}
+                {user?.user_type === "guru" ? "Guru / Pendidik" : user?.user_type === "umum" ? "Umum" : "Siswa"}
               </span>
             </div>
 
@@ -234,7 +238,7 @@ export default function ProfilePage() {
                           : "border-white/20 bg-black/40 text-white/80 hover:border-white/40"
                       }`}
                     >
-                      {type === "siswa" ? "🎒 Siswa" : type === "guru" ? "👨‍🏫 Guru" : "👤 Umum"}
+                      {type === "siswa" ? "Siswa" : type === "guru" ? "Guru / Staf" : "Umum"}
                     </button>
                   ))}
                 </div>

@@ -238,7 +238,9 @@ export default function OrderPaymentModal({
                   />
                 ) : (
                   <div className="flex h-36 w-36 flex-col items-center justify-center bg-slate-100 text-slate-700 text-xs">
-                    <span>📱</span>
+                    <svg className="h-8 w-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
                     <span className="mt-1 font-bold">QRIS Aktif</span>
                   </div>
                 )}
@@ -261,8 +263,11 @@ export default function OrderPaymentModal({
                 </p>
               </div>
 
-              <div className="mt-3 border-t border-white/10 pt-2 text-[11px] text-arcade-yellow/90">
-                ⚡ Setelah transfer, lampirkan bukti pembayaran di bawah.
+              <div className="mt-3 border-t border-white/10 pt-2 text-[11px] text-arcade-yellow/90 flex items-center gap-1">
+                <svg className="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Setelah transfer, lampirkan bukti pembayaran di bawah.
               </div>
             </div>
           </div>
@@ -317,7 +322,10 @@ export default function OrderPaymentModal({
                       </div>
                     ) : (
                       <div className="space-y-1">
-                        <span className="text-xl">📸</span>
+                        <svg className="mx-auto h-7 w-7 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
                         <span className="block text-xs font-semibold text-white">
                           Pilih Foto Bukti Transfer
                         </span>
@@ -343,7 +351,11 @@ export default function OrderPaymentModal({
           {/* Approved State Summary */}
           {paymentStatus === "approved" && (
             <div className="rounded-2xl border border-emerald-500/40 bg-emerald-950/40 p-4 text-center space-y-2">
-              <div className="text-2xl">🎉</div>
+              <div className="flex justify-center">
+                <svg className="h-8 w-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
               <h3 className="font-display text-base font-bold text-emerald-300">
                 Pembayaran Berhasil Diverifikasi!
               </h3>

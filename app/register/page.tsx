@@ -7,13 +7,14 @@ import { useAuth } from "@/lib/auth/auth-context";
 import type { UserType } from "@/lib/api/types/auth";
 
 const MAJORS = [
-  { value: "Rekayasa Perangkat Lunak (RPL)", label: "Rekayasa Perangkat Lunak (RPL)" },
-  { value: "Teknik Komputer & Jaringan (TKJ)", label: "Teknik Komputer & Jaringan (TKJ)" },
-  { value: "Desain Komunikasi Visual (DKV)", label: "Desain Komunikasi Visual (DKV)" },
-  { value: "Animasi & Multimedia", label: "Animasi & Multimedia" },
-  { value: "Akuntansi & Keuangan (AKL)", label: "Akuntansi & Keuangan (AKL)" },
-  { value: "Manajemen Perkantoran (MP)", label: "Manajemen Perkantoran (MP)" },
-  { value: "Lainnya", label: "Lainnya" },
+  { value: "Teknik Mesin", label: "Teknik Mesin" },
+  { value: "Teknik Otomotif", label: "Teknik Otomotif" },
+  { value: "Teknik Elektronika", label: "Teknik Elektronika" },
+  { value: "Mekatronika", label: "Mekatronika" },
+  { value: "RPL / PPLG", label: "RPL / PPLG" },
+  { value: "Broadcasting & Perfilman (BP)", label: "Broadcasting & Perfilman (BP)" },
+  { value: "TKJ", label: "TKJ" },
+  { value: "Teknik Tekstil", label: "Teknik Tekstil" },
 ];
 
 const GRADES = ["X (Kelas 10)", "XI (Kelas 11)", "XII (Kelas 12)"];
@@ -331,7 +332,7 @@ function RegisterForm() {
                       : "border-white/20 bg-black/40 text-white/80 hover:border-white/40"
                   }`}
                 >
-                  {type === "siswa" ? "🎒 Siswa" : type === "guru" ? "👨‍🏫 Guru/Staf" : "👤 Umum"}
+                  {type === "siswa" ? "Siswa" : type === "guru" ? "Guru / Staf" : "Umum"}
                 </button>
               ))}
             </div>
@@ -455,7 +456,7 @@ function RegisterForm() {
               disabled={isSubmitting}
               className="inline-flex w-full items-center justify-center rounded-xl bg-arcade-yellow py-3 font-display text-base font-bold text-arcade-ink shadow-[3px_3px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 disabled:opacity-50 cursor-pointer"
             >
-              {isSubmitting ? "Menyimpan Profil..." : "Selesaikan Pendaftaran 🚀"}
+              {isSubmitting ? "Menyimpan Profil..." : "Selesaikan Pendaftaran"}
             </button>
 
             <button

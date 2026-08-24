@@ -84,17 +84,22 @@ export default function ReceiptsPage() {
           </div>
           <Link
             href="/orders"
-            className="rounded-xl border border-white/20 bg-black/40 px-4 py-2 font-display text-xs font-bold text-arcade-yellow transition-colors hover:border-arcade-yellow hover:bg-black/60"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-black/40 px-4 py-2 font-display text-xs font-bold text-arcade-yellow transition-colors hover:border-arcade-yellow hover:bg-black/60"
           >
-            📦 Buka Pesanan Saya
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            Buka Pesanan Saya
           </Link>
         </div>
 
         {/* Receipt List */}
         {receipts.length === 0 ? (
           <div className="rounded-3xl border border-white/10 bg-[#1a0e3b] p-10 text-center shadow-xl">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-arcade-yellow/30 bg-arcade-yellow/10 text-2xl text-arcade-yellow">
-              🧾
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-arcade-yellow/30 bg-arcade-yellow/10 text-arcade-yellow">
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
             </div>
             <h3 className="font-display text-lg text-white">
               Belum Ada Kuitansi Resmi

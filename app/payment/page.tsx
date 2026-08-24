@@ -161,9 +161,12 @@ export default function PaymentPage() {
           </div>
           <Link
             href="/orders"
-            className="rounded-xl border border-white/20 bg-black/40 px-4 py-2 font-display text-xs font-bold text-arcade-yellow transition-colors hover:border-arcade-yellow hover:bg-black/60"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-black/40 px-4 py-2 font-display text-xs font-bold text-arcade-yellow transition-colors hover:border-arcade-yellow hover:bg-black/60"
           >
-            📦 Buka Pesanan Saya
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            Buka Pesanan Saya
           </Link>
         </div>
 
@@ -182,8 +185,10 @@ export default function PaymentPage() {
         {/* If no active payment */}
         {!payment ? (
           <div className="rounded-3xl border border-white/10 bg-[#1a0e3b] p-8 text-center shadow-xl">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-arcade-yellow/30 bg-arcade-yellow/10 text-2xl text-arcade-yellow">
-              💳
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-arcade-yellow/30 bg-arcade-yellow/10 text-arcade-yellow">
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
             </div>
             <h2 className="font-display text-xl text-white">
               Tidak Ada Tagihan Pembayaran Aktif
@@ -282,7 +287,9 @@ export default function PaymentPage() {
                       />
                     ) : (
                       <div className="flex h-48 w-48 flex-col items-center justify-center bg-slate-100 text-slate-700">
-                        <span className="text-3xl">📱</span>
+                        <svg className="h-10 w-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
                         <span className="mt-2 font-mono text-xs font-bold">
                           QRIS P2R Active
                         </span>
@@ -345,7 +352,10 @@ export default function PaymentPage() {
                           </div>
                         ) : (
                           <div className="space-y-1">
-                            <span className="text-2xl">📸</span>
+                            <svg className="mx-auto h-7 w-7 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
                             <span className="block text-xs font-semibold text-white">
                               Pilih Foto Bukti Transfer
                             </span>

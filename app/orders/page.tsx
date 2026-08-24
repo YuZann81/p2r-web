@@ -241,8 +241,10 @@ export default function OrdersPage() {
         {/* Order List Cards */}
         {filteredOrders.length === 0 ? (
           <div className="rounded-3xl border border-white/10 bg-[#1a0e3b] p-10 text-center shadow-xl">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-arcade-yellow/30 bg-arcade-yellow/10 text-2xl text-arcade-yellow">
-              📦
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-arcade-yellow/30 bg-arcade-yellow/10 text-arcade-yellow">
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
             </div>
             <h3 className="font-display text-lg text-white">
               Belum Ada Pesanan
@@ -338,9 +340,12 @@ export default function OrdersPage() {
                         <button
                           type="button"
                           onClick={() => handleOpenPayment(order)}
-                          className="rounded-xl bg-arcade-yellow px-4 py-1.5 font-display text-xs font-bold text-arcade-ink shadow-md transition-transform hover:-translate-y-0.5 cursor-pointer"
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-arcade-yellow px-4 py-1.5 font-display text-xs font-bold text-arcade-ink shadow-md transition-transform hover:-translate-y-0.5 cursor-pointer"
                         >
-                          💳 Lanjutkan Pembayaran
+                          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                          </svg>
+                          Lanjutkan Pembayaran
                         </button>
                       )}
 
@@ -348,9 +353,12 @@ export default function OrdersPage() {
                         <button
                           type="button"
                           onClick={() => handleOpenPayment(order)}
-                          className="rounded-xl border border-blue-400/50 bg-blue-500/20 px-3.5 py-1.5 font-display text-xs font-bold text-blue-200 hover:bg-blue-500/30 cursor-pointer"
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-blue-400/50 bg-blue-500/20 px-3.5 py-1.5 font-display text-xs font-bold text-blue-200 hover:bg-blue-500/30 cursor-pointer"
                         >
-                          ⏳ Cek Status Verifikasi
+                          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Cek Status Verifikasi
                         </button>
                       )}
 
@@ -359,9 +367,12 @@ export default function OrdersPage() {
                           type="button"
                           disabled={isLoadingReceipt}
                           onClick={() => handleOpenReceipt(order)}
-                          className="rounded-xl bg-emerald-500/20 border border-emerald-400/50 px-3.5 py-1.5 font-display text-xs font-bold text-emerald-300 hover:bg-emerald-500/30 cursor-pointer"
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400/50 px-3.5 py-1.5 font-display text-xs font-bold text-emerald-300 hover:bg-emerald-500/30 cursor-pointer"
                         >
-                          🧾 Lihat Kuitansi Resmi
+                          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          Lihat Kuitansi Resmi
                         </button>
                       )}
                     </div>

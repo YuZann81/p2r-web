@@ -173,10 +173,10 @@ export default function Navbar() {
                         {user?.user_type && (
                           <span className="mt-1 inline-block rounded-md bg-arcade-yellow/20 px-2 py-0.5 font-display text-[10px] font-bold uppercase tracking-wider text-arcade-yellow border border-arcade-yellow/30">
                             {user.user_type === "guru"
-                              ? "👨‍🏫 Guru/Staf"
+                              ? "Guru / Staf"
                               : user.user_type === "umum"
-                              ? "👤 Umum"
-                              : "🎒 Siswa"}
+                              ? "Umum"
+                              : "Siswa"}
                           </span>
                         )}
                       </div>
@@ -188,7 +188,9 @@ export default function Navbar() {
                           onClick={() => setIsUserMenuOpen(false)}
                           className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-white/90 transition-colors hover:bg-white/10 hover:text-arcade-yellow"
                         >
-                          <span className="text-sm">📦</span>
+                          <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                          </svg>
                           <span>Pesanan Saya</span>
                         </Link>
 
@@ -197,7 +199,9 @@ export default function Navbar() {
                           onClick={() => setIsUserMenuOpen(false)}
                           className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-white/90 transition-colors hover:bg-white/10 hover:text-arcade-yellow"
                         >
-                          <span className="text-sm">👤</span>
+                          <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
                           <span>Profil Saya</span>
                         </Link>
                       </div>
@@ -212,7 +216,9 @@ export default function Navbar() {
                           }}
                           className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-red-300 transition-colors hover:bg-red-500/20 hover:text-red-200 cursor-pointer"
                         >
-                          <span className="text-sm">🚪</span>
+                          <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
                           <span>Keluar dari Akun</span>
                         </button>
                       </div>
@@ -275,17 +281,23 @@ export default function Navbar() {
                   <Link
                     href="/orders"
                     onClick={closeMobileMenu}
-                    className="font-bold text-arcade-yellow underline"
+                    className="inline-flex items-center gap-1 font-bold text-arcade-yellow underline"
                   >
-                    📦 Pesanan Saya
+                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    Pesanan Saya
                   </Link>
                   <span className="text-white/40">•</span>
                   <Link
                     href="/profile"
                     onClick={closeMobileMenu}
-                    className="font-bold text-white/80 hover:text-arcade-yellow"
+                    className="inline-flex items-center gap-1 font-bold text-white/80 hover:text-arcade-yellow"
                   >
-                    👤 Profil
+                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Profil
                   </Link>
                 </div>
               </div>
