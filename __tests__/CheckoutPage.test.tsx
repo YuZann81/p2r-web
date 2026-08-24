@@ -1,9 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import CheckoutPage from "@/app/checkout/page";
-import { AuthProvider, useAuth } from "@/lib/auth/auth-context";
+import { AuthProvider } from "@/lib/auth/auth-context";
 import { CartProvider, useCart } from "@/lib/cart/cart-context";
 import { submitCheckout } from "@/lib/api/checkout";
+import { createPayment, getActiveQris } from "@/lib/api/payment";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 import type { Product } from "@/lib/api/types/product";
@@ -13,16 +14,30 @@ jest.mock("next/navigation", () => ({
   useSearchParams: jest.fn(() => ({
     get: jest.fn(),
   })),
+  usePathname: jest.fn().mockReturnValue("/checkout"),
 }));
 
 jest.mock("@/lib/api/checkout", () => ({
   submitCheckout: jest.fn(),
 }));
 
+jest.mock("@/lib/api/payment", () => ({
+  createPayment: jest.fn(),
+  getActiveQris: jest.fn(),
+  uploadPaymentProof: jest.fn(),
+  cancelPayment: jest.fn(),
+}));
+
 const mockPush = jest.fn();
 const mockedUseRouter = useRouter as jest.MockedFunction<typeof useRouter>;
 const mockedSubmitCheckout = submitCheckout as jest.MockedFunction<
   typeof submitCheckout
+>;
+const mockedCreatePayment = createPayment as jest.MockedFunction<
+  typeof createPayment
+>;
+const mockedGetActiveQris = getActiveQris as jest.MockedFunction<
+  typeof getActiveQris
 >;
 
 const sampleProduct: Product = {
@@ -154,14 +169,14 @@ describe("CheckoutPage Component", () => {
     ).toBeInTheDocument();
 
     const submitBtn = screen.getByRole("button", {
-      name: /masuk & konfirmasi pesanan/i,
+      name: /masuk & bayar sekarang/i,
     });
     await user.click(submitBtn);
 
     expect(mockPush).toHaveBeenCalledWith("/login?redirect=/checkout");
   });
 
-  it("submits checkout payload successfully when authenticated and clears cart", async () => {
+  it("submits checkout payload successfully and displays QRIS payment component directly", async () => {
     localStorage.setItem("p2r_auth_token", "sample-valid-token");
     localStorage.setItem(
       "p2r_auth_user",
@@ -178,12 +193,28 @@ describe("CheckoutPage Component", () => {
       message: "Order placed successfully",
       data: {
         id: "P2R-998877",
-        order_number: "ORD-998877",
+        checkout_code: "P2R-998877",
         customer_name: "Razzan Player",
         customer_phone: "081234567890",
-        total_amount: 170000,
+        grand_total: 170000,
         status: "pending",
       },
+    });
+
+    mockedCreatePayment.mockResolvedValueOnce({
+      id: "pay_998877",
+      checkout_code: "P2R-998877",
+      payment_method: "qris",
+      payment_status: "waiting_payment",
+      transfer_amount: "170000.00",
+    });
+
+    mockedGetActiveQris.mockResolvedValueOnce({
+      id: "qris_1",
+      name: "QRIS Resmi P2R",
+      qr_image_path: "qris/qris.png",
+      qr_image_url: "https://api.razzan.site/storage/qris/qris.png",
+      is_active: true,
     });
 
     const user = userEvent.setup();
@@ -205,7 +236,7 @@ describe("CheckoutPage Component", () => {
     expect(phoneInput).toHaveValue("081234567890");
 
     const submitBtn = screen.getByRole("button", {
-      name: /konfirmasi pesanan sekarang/i,
+      name: /pesan & bayar qris sekarang/i,
     });
     await user.click(submitBtn);
 
@@ -223,10 +254,11 @@ describe("CheckoutPage Component", () => {
       );
     });
 
-    // Confirmation receipt screen should be visible
+    // In-place automated payment component should be visible
     expect(
-      await screen.findByRole("heading", { name: "PESANAN BERHASIL DIBUAT!" }),
+      await screen.findByRole("heading", { name: "PEMBAYARAN QRIS" }),
     ).toBeInTheDocument();
     expect(screen.getByText("P2R-998877")).toBeInTheDocument();
+    expect(screen.getByText("QRIS Resmi P2R")).toBeInTheDocument();
   });
 });

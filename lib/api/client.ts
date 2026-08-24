@@ -209,6 +209,27 @@ export async function apiPost<T, B = unknown>(
   return executeRequest<T>(url, init, timeoutMs);
 }
 
+export async function apiPut<T, B = unknown>(
+  path: string,
+  body: B,
+  options: ApiRequestOptions = {},
+): Promise<ApiResponse<T>> {
+  const url = buildApiUrl(path, options.searchParams);
+  const timeoutMs = options.timeoutMs || DEFAULT_TIMEOUT_MS;
+
+  const init: RequestInit = {
+    method: "PUT",
+    headers: buildHeaders(options, true),
+    body: JSON.stringify(body),
+  };
+
+  if (options.cache) {
+    init.cache = options.cache;
+  }
+
+  return executeRequest<T>(url, init, timeoutMs);
+}
+
 export async function apiPatch<T, B = unknown>(
   path: string,
   body: B,

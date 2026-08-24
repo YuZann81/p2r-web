@@ -53,6 +53,7 @@ describe("MerchandiseSection & Components", () => {
       isLoading: false,
       login: jest.fn(),
       register: jest.fn(),
+      updateProfile: jest.fn(),
       logout: jest.fn(),
     })
   })
@@ -280,6 +281,7 @@ describe("MerchandiseSection & Components", () => {
         isLoading: false,
         login: jest.fn(),
         register: jest.fn(),
+        updateProfile: jest.fn(),
         logout: jest.fn(),
       })
 

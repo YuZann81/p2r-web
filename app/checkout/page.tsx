@@ -1,25 +1,23 @@
 "use client";
 
-import React, { Suspense, useState, useEffect } from "react";
+import React, { Suspense, useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useCart } from "@/lib/cart/cart-context";
+import { submitCheckout, type OrderResult } from "@/lib/api/checkout";
 import {
-  submitCheckout,
-  fetchCheckoutById,
-  type OrderResult,
-} from "@/lib/api/checkout";
+  createPayment,
+  getActiveQris,
+  uploadPaymentProof,
+  type ActiveQris,
+  type PaymentData,
+} from "@/lib/api/payment";
 import { formatProductPrice } from "@/lib/utils";
 import { addBackendCartItem } from "@/lib/api/cart";
 
-const COMPLETED_ORDER_STORAGE_KEY = "p2r_last_completed_order";
-
 function CheckoutContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const queryCode = searchParams?.get("code");
-
   const { user, token, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const {
     items,
@@ -30,64 +28,39 @@ function CheckoutContent() {
     clearCart,
   } = useCart();
 
+  // Form State initialized from User Profile (No redundant typing!)
   const [formData, setFormData] = useState({
-    fullName: user?.name || "",
-    phone: user?.phone || "",
+    fullName: "",
+    phone: "",
     className: "",
     jurusan: "",
     notes: "",
   });
 
-  // Pre-fill user data when user logs in or auth state resolves
   useEffect(() => {
     if (user) {
-      setFormData((prev) => ({
-        ...prev,
-        fullName: prev.fullName || user.name || "",
-        phone: prev.phone || user.phone || "",
-      }));
+      setFormData({
+        fullName: user.name || "",
+        phone: user.phone || "",
+        className: user.class_grade || "",
+        jurusan: user.major || (user.teacher_role ? `Peran: ${user.teacher_role}` : ""),
+        notes: "",
+      });
     }
   }, [user]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [completedOrder, setCompletedOrder] = useState<OrderResult | null>(null);
 
-  // Restore completed order from sessionStorage on mount (prevents receipt loss on refresh)
-  useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem(COMPLETED_ORDER_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as OrderResult;
-        if (parsed && (parsed.checkout_code || parsed.id)) {
-          setCompletedOrder(parsed);
-        }
-      }
-    } catch {
-      // ignore parsing error
-    }
-  }, []);
-
-  // Restore completed order if ?code=... is present in URL
-  useEffect(() => {
-    if (!queryCode || !token) return;
-
-    fetchCheckoutById(queryCode, token)
-      .then((res) => {
-        if (res.data) {
-          setCompletedOrder(res.data);
-          try {
-            sessionStorage.setItem(
-              COMPLETED_ORDER_STORAGE_KEY,
-              JSON.stringify(res.data),
-            );
-          } catch {}
-        }
-      })
-      .catch(() => {
-        // Benign lookup error
-      });
-  }, [queryCode, token]);
+  // Seamless in-place Payment State after checkout created
+  const [createdOrder, setCreatedOrder] = useState<OrderResult | null>(null);
+  const [createdPayment, setCreatedPayment] = useState<PaymentData | null>(null);
+  const [activeQris, setActiveQris] = useState<ActiveQris | null>(null);
+  const [selectedProofFile, setSelectedProofFile] = useState<File | null>(null);
+  const [proofPreviewUrl, setProofPreviewUrl] = useState<string | null>(null);
+  const [isUploadingProof, setIsUploadingProof] = useState(false);
+  const [uploadSuccessMsg, setUploadSuccessMsg] = useState<string | null>(null);
+  const proofInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -96,6 +69,7 @@ function CheckoutContent() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Automated Checkout -> Payment flow
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -119,7 +93,7 @@ function CheckoutContent() {
     setErrorMessage(null);
 
     try {
-      // Synchronize items with backend database cart
+      // Sync items to backend cart
       if (token) {
         for (const item of items) {
           if (item.product?.id) {
@@ -145,19 +119,29 @@ function CheckoutContent() {
         })),
       };
 
-      const response = await submitCheckout(payload, token);
+      // 1. Submit Checkout
+      const checkoutRes = await submitCheckout(payload, token);
+      const orderData = checkoutRes.data;
 
-      if (response.data) {
-        setCompletedOrder(response.data);
-        try {
-          sessionStorage.setItem(
-            COMPLETED_ORDER_STORAGE_KEY,
-            JSON.stringify(response.data),
-          );
-        } catch {}
-        clearCart();
-      } else {
-        setErrorMessage("Respons server tidak valid. Silakan coba lagi.");
+      if (!orderData) {
+        throw new Error("Gagal membuat pesanan.");
+      }
+
+      setCreatedOrder(orderData);
+      clearCart();
+
+      // 2. Automatically initiate QRIS Payment and load Active QRIS
+      try {
+        const [paymentRes, qrisData] = await Promise.all([
+          createPayment("qris", token),
+          getActiveQris(),
+        ]);
+        setCreatedPayment(paymentRes);
+        setActiveQris(qrisData);
+      } catch {
+        // Fallback: load active QRIS alone
+        const qrisData = await getActiveQris().catch(() => null);
+        setActiveQris(qrisData);
       }
     } catch (err) {
       const msg =
@@ -170,140 +154,241 @@ function CheckoutContent() {
     }
   };
 
-  const handleResetOrder = () => {
-    try {
-      sessionStorage.removeItem(COMPLETED_ORDER_STORAGE_KEY);
-    } catch {}
-    setCompletedOrder(null);
+  // Proof File Change Handler
+  const handleProofChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setErrorMessage("Ukuran file maksimal 5MB.");
+        return;
+      }
+      setSelectedProofFile(file);
+      setProofPreviewUrl(URL.createObjectURL(file));
+      setErrorMessage(null);
+    }
   };
 
-  // 1. SUCCESS RECEIPT STATE
-  if (completedOrder) {
+  // Upload Proof Directly
+  const handleUploadProof = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProofFile || !token) {
+      setErrorMessage("Silakan pilih file bukti transfer terlebih dahulu.");
+      return;
+    }
+
+    setIsUploadingProof(true);
+    setErrorMessage(null);
+    setUploadSuccessMsg(null);
+
+    try {
+      const updated = await uploadPaymentProof(selectedProofFile, token);
+      setCreatedPayment(updated);
+      setSelectedProofFile(null);
+      setProofPreviewUrl(null);
+      setUploadSuccessMsg("Bukti pembayaran berhasil dikirim! Menunggu verifikasi admin.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Gagal mengunggah bukti transfer.";
+      setErrorMessage(msg);
+    } finally {
+      setIsUploadingProof(false);
+    }
+  };
+
+  // ════════════════════════════════════════════════════════════════
+  // 1. AUTOMATIC PAYMENT COMPONENT (ORDER CREATED IN-PLACE VIEW)
+  // ════════════════════════════════════════════════════════════════
+  if (createdOrder) {
     const customerDisplayName =
-      completedOrder.customer?.name || completedOrder.customer_name || formData.fullName;
-    const customerDisplayPhone =
-      completedOrder.customer?.phone || completedOrder.customer_phone || formData.phone;
+      createdOrder.customer?.name ||
+      createdOrder.customer_name ||
+      formData.fullName ||
+      "Pelanggan";
+    const orderCode =
+      createdOrder.checkout_code ||
+      (createdOrder as unknown as { order_code?: string }).order_code ||
+      String(createdOrder.id);
     const displayTotal =
-      completedOrder.grand_total || completedOrder.subtotal || completedOrder.total_amount;
-    const orderStatusText = (completedOrder.status || "pending").toUpperCase();
+      createdPayment?.transfer_amount ||
+      createdOrder.grand_total ||
+      createdOrder.subtotal ||
+      totalPrice;
+    const paymentStatus = createdPayment?.payment_status || "waiting_payment";
 
     return (
-      <div className="mx-auto w-full max-w-2xl rounded-3xl border-2 border-white/20 bg-[#1e1040] p-6 text-center shadow-2xl sm:p-10">
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-arcade-yellow text-3xl font-bold text-arcade-ink shadow-lg">
-          ✓
+      <div className="mx-auto w-full max-w-3xl rounded-3xl border-2 border-white/20 bg-[#1e1040] p-5 sm:p-8 text-center shadow-2xl animate-in fade-in">
+        {/* Order Header */}
+        <div className="mb-4 flex flex-col items-center">
+          <span className="inline-block rounded-full bg-emerald-500/20 border border-emerald-400/40 px-3.5 py-1 font-mono text-xs font-bold text-emerald-400 uppercase">
+            ✓ Pesanan Berhasil Dibuat
+          </span>
+          <h2 className="mt-2 font-display text-2xl sm:text-3xl text-arcade-yellow [text-shadow:2px_2px_0_var(--arcade-ink)]">
+            PEMBAYARAN QRIS
+          </h2>
+          <p className="mt-1 text-xs sm:text-sm text-white/80">
+            Pesanan <strong>{orderCode}</strong> untuk <strong>{customerDisplayName}</strong>.
+          </p>
         </div>
 
-        <div className="flex items-center justify-center gap-2">
-          <span className="inline-block rounded-md border border-arcade-yellow/40 bg-arcade-yellow/10 px-3.5 py-0.5 font-display text-xs font-bold tracking-wider uppercase text-arcade-yellow">
-            Pesanan Dikonfirmasi
-          </span>
-          <span className="inline-block rounded-md border border-emerald-400/40 bg-emerald-500/15 px-3 py-0.5 font-mono text-xs font-bold uppercase tracking-wider text-emerald-400">
-            {orderStatusText}
-          </span>
-        </div>
-
-        <h2 className="mt-3 font-display text-2xl text-arcade-yellow [text-shadow:2px_2px_0_var(--arcade-ink)] sm:text-4xl">
-          PESANAN BERHASIL DIBUAT!
-        </h2>
-
-        <p className="mt-3 text-sm leading-relaxed text-white/90 sm:text-base">
-          Terima kasih, <strong>{customerDisplayName}</strong>. Pesanan merchandise Anda telah tercatat di sistem pameran Pixel To Reality.
-        </p>
-
-        {/* Order Details Receipt Box */}
-        <div className="my-6 rounded-2xl border border-white/10 bg-black/50 p-5 text-left font-sans">
-          <div className="flex items-center justify-between border-b border-white/10 pb-3 text-xs font-semibold uppercase tracking-wider text-arcade-yellow">
-            <span>Kode Checkout / ID</span>
-            <span className="font-mono font-bold text-white">
-              {completedOrder.checkout_code || completedOrder.id}
-            </span>
+        {/* Status Alert */}
+        {uploadSuccessMsg && (
+          <div className="mb-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/20 p-3.5 text-xs font-bold text-emerald-200">
+            {uploadSuccessMsg}
           </div>
-
-          <div className="flex items-center justify-between border-b border-white/10 py-3 text-sm text-white">
-            <span>Nama Pemesan</span>
-            <span className="font-semibold">{customerDisplayName}</span>
+        )}
+        {errorMessage && (
+          <div className="mb-4 rounded-2xl border border-red-500/40 bg-red-500/20 p-3.5 text-xs font-bold text-red-200">
+            {errorMessage}
           </div>
+        )}
 
-          <div className="flex items-center justify-between border-b border-white/10 py-3 text-sm text-white">
-            <span>Nomor WhatsApp</span>
-            <span className="font-semibold">{customerDisplayPhone || "-"}</span>
-          </div>
-
-          {completedOrder.items && completedOrder.items.length > 0 && (
-            <div className="border-b border-white/10 py-3 text-xs text-white/90">
-              <span className="mb-2 block font-semibold uppercase tracking-wider text-arcade-yellow">
-                Daftar Item ({completedOrder.items.length})
+        {/* Unified Payment Block */}
+        <div className="my-5 grid grid-cols-1 md:grid-cols-2 gap-5 text-left">
+          {/* Left: QRIS Display */}
+          <div className="flex flex-col items-center justify-between rounded-2xl border border-white/10 bg-black/50 p-5 text-center">
+            <div>
+              <span className="inline-block rounded-md bg-arcade-yellow/20 border border-arcade-yellow/30 px-2.5 py-0.5 font-display text-[10px] font-bold tracking-wider uppercase text-arcade-yellow">
+                {activeQris?.name || "QRIS Dana Usaha P2R"}
               </span>
-              <ul className="space-y-2">
-                {completedOrder.items.map((item, idx) => {
-                  const itemName =
-                    item.product?.name || item.product_name || "Official Merchandise";
-                  const itemPrice = item.unit_price;
-                  const itemSubtotal =
-                    item.subtotal ||
-                    parseFloat(String(itemPrice || 0)) * (item.quantity || 1);
-
-                  return (
-                    <li
-                      key={item.id || idx}
-                      className="flex items-center justify-between gap-2"
-                    >
-                      <div>
-                        <span className="font-medium text-white">
-                          {item.quantity}x {itemName}
-                        </span>
-                        <span className="block text-[11px] text-white/60">
-                          @{formatProductPrice(itemPrice)}
-                        </span>
-                      </div>
-                      <span className="font-mono font-semibold text-white">
-                        {formatProductPrice(itemSubtotal)}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
+              <p className="mt-1 text-xs text-white/70">
+                Scan QRIS dengan aplikasi M-Banking / E-Wallet Anda
+              </p>
             </div>
-          )}
 
-          <div className="flex items-center justify-between pt-3 font-display text-base font-bold text-arcade-yellow">
-            <span>Total Tagihan</span>
-            <span className="font-mono text-lg text-arcade-yellow">
-              {formatProductPrice(displayTotal)}
-            </span>
+            <div className="my-3 overflow-hidden rounded-2xl border-2 border-white/20 bg-white p-2.5 shadow-md">
+              {activeQris?.qr_image_url ? (
+                <img
+                  src={activeQris.qr_image_url}
+                  alt="QRIS Barcode"
+                  className="h-44 w-44 object-contain"
+                />
+              ) : (
+                <div className="flex h-44 w-44 flex-col items-center justify-center bg-slate-100 text-slate-700">
+                  <span className="text-3xl">📱</span>
+                  <span className="mt-1 font-mono text-xs font-bold">QRIS P2R</span>
+                </div>
+              )}
+            </div>
+
+            <div className="w-full rounded-xl border border-white/10 bg-black/60 p-2.5">
+              <span className="text-[11px] text-white/60 block">Nominal Tagihan:</span>
+              <span className="font-mono text-xl font-bold text-arcade-yellow">
+                {formatProductPrice(displayTotal)}
+              </span>
+            </div>
+          </div>
+
+          {/* Right: Upload Proof Form */}
+          <div className="flex flex-col justify-between rounded-2xl border border-white/10 bg-black/50 p-5">
+            <div>
+              <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3">
+                <span className="font-display text-sm font-bold text-white">
+                  Bukti Pembayaran
+                </span>
+                {paymentStatus === "waiting_verification" ? (
+                  <span className="rounded bg-blue-500/20 border border-blue-400/40 px-2 py-0.5 font-mono text-[10px] font-bold text-blue-300 uppercase">
+                    Menunggu Verifikasi
+                  </span>
+                ) : (
+                  <span className="rounded bg-amber-500/20 border border-amber-400/40 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-300 uppercase">
+                    Belum Dibayar
+                  </span>
+                )}
+              </div>
+
+              {paymentStatus === "waiting_verification" ? (
+                <div className="rounded-xl border border-blue-500/30 bg-blue-950/40 p-3 text-xs text-blue-200 space-y-2">
+                  <p className="font-semibold">
+                    ✓ Bukti pembayaran Anda telah terkirim ke panitia!
+                  </p>
+                  <p className="text-[11px] text-white/70 leading-relaxed">
+                    Admin sedang memverifikasi transfer Anda. Anda dapat menutup halaman ini kapan saja dan memantau status pesanan di <strong>Pesanan Saya</strong>.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleUploadProof} className="space-y-3">
+                  <div>
+                    <input
+                      type="file"
+                      ref={proofInputRef}
+                      accept="image/*"
+                      onChange={handleProofChange}
+                      className="hidden"
+                      id="proof-upload-input"
+                    />
+                    <label
+                      htmlFor="proof-upload-input"
+                      className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/30 bg-black/30 p-3.5 text-center transition-colors hover:border-arcade-yellow hover:bg-black/40"
+                    >
+                      {proofPreviewUrl ? (
+                        <div className="space-y-1">
+                          <img
+                            src={proofPreviewUrl}
+                            alt="Preview Bukti"
+                            className="mx-auto max-h-28 rounded object-contain"
+                          />
+                          <span className="block text-xs font-semibold text-arcade-yellow">
+                            Ganti Foto
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          <span className="text-2xl">📸</span>
+                          <span className="block text-xs font-semibold text-white">
+                            Pilih Foto / Screenshot Transfer
+                          </span>
+                          <span className="block text-[10px] text-white/50">
+                            Format JPG, PNG (Maks 5MB)
+                          </span>
+                        </div>
+                      )}
+                    </label>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isUploadingProof || !selectedProofFile}
+                    className="flex w-full min-h-[42px] items-center justify-center rounded-xl bg-arcade-yellow py-2.5 font-display text-sm font-bold text-arcade-ink shadow-[2px_2px_0_var(--arcade-yellow-shadow)] transition-transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    {isUploadingProof ? "Mengunggah Bukti..." : "Kirim Bukti Pembayaran"}
+                  </button>
+                </form>
+              )}
+            </div>
+
+            {/* Quick Helper Links */}
+            <div className="mt-4 border-t border-white/10 pt-3 text-center">
+              <Link
+                href="/orders"
+                className="font-display text-xs font-bold text-arcade-yellow underline hover:opacity-80"
+              >
+                Lihat di Pesanan Saya →
+              </Link>
+            </div>
           </div>
         </div>
 
-        <p className="mb-6 text-xs leading-relaxed text-white/70 sm:text-sm">
-          Silakan konfirmasi dan selesaikan transaksi di booth kasir pameran atau tunjukkan Kode Checkout kepada panitia pameran.
-        </p>
-
-        <div className="flex flex-col justify-center gap-3 sm:flex-row">
-          <Link
-            href="/payment"
-            className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-arcade-yellow px-6 py-2.5 font-display text-base font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] transition-transform hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--arcade-yellow-shadow)] active:translate-y-0.5"
-          >
-            Lanjut ke Pembayaran QRIS →
-          </Link>
+        {/* Footer Actions */}
+        <div className="mt-6 flex flex-col sm:flex-row justify-center gap-3">
           <Link
             href="/orders"
-            className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-arcade-yellow/50 bg-arcade-yellow/10 px-6 py-2.5 font-display text-base font-bold text-arcade-yellow transition-colors hover:bg-arcade-yellow/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow"
+            className="inline-flex min-h-[42px] items-center justify-center rounded-xl bg-arcade-yellow px-6 py-2.5 font-display text-sm font-bold text-arcade-ink shadow-md transition-transform hover:-translate-y-0.5"
           >
-            Lihat Pesanan Saya
+            📦 Buka Pesanan Saya
           </Link>
-          <button
-            type="button"
-            onClick={handleResetOrder}
-            className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-white/30 bg-black/40 px-6 py-2.5 font-display text-base font-bold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow cursor-pointer"
+          <Link
+            href="/merchandise"
+            className="inline-flex min-h-[42px] items-center justify-center rounded-xl border border-white/20 bg-black/40 px-6 py-2.5 font-display text-sm font-bold text-white hover:bg-white/10"
           >
-            + Buat Pesanan Baru
-          </button>
+            Kembali ke Katalog
+          </Link>
         </div>
       </div>
     );
   }
 
-  // 2. MAIN CHECKOUT INTERFACE
+  // ════════════════════════════════════════════════════════════════
+  // 2. MAIN CHECKOUT FORM
+  // ════════════════════════════════════════════════════════════════
   return (
     <div className="w-full">
       {/* Guest Notice if not authenticated */}
@@ -318,7 +403,7 @@ function CheckoutContent() {
               Masuk untuk Menyelesaikan Pesanan
             </h3>
             <p className="mt-1 text-xs font-medium text-white/80 sm:text-sm">
-              Anda perlu masuk ke akun Anda agar pesanan dapat diverifikasi dan diproses oleh panitia.
+              Masuk ke akun Anda agar pesanan langsung tersimpan di profil dan kuitansi dapat diterbitkan.
             </p>
           </div>
           <Link
@@ -501,9 +586,19 @@ function CheckoutContent() {
           {/* Right Column: Customer Details Form & Order Summary */}
           <div className="lg:col-span-5">
             <div className="sticky top-24 rounded-3xl border-2 border-white/20 bg-[#1e1040] p-5 shadow-xl sm:p-7">
-              <h2 className="mb-4 font-display text-xl font-bold text-arcade-yellow sm:text-2xl">
-                Data Pemesan
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-display text-xl font-bold text-arcade-yellow sm:text-2xl">
+                  Data Pemesan
+                </h2>
+                {user && (
+                  <Link
+                    href="/profile"
+                    className="text-[11px] font-bold text-arcade-yellow underline hover:opacity-80"
+                  >
+                    Edit Profil
+                  </Link>
+                )}
+              </div>
 
               {errorMessage && (
                 <div
@@ -582,7 +677,7 @@ function CheckoutContent() {
                       htmlFor="jurusan"
                       className="block font-display text-xs font-bold uppercase tracking-wider text-arcade-yellow"
                     >
-                      Jurusan
+                      Jurusan / Peran
                     </label>
                     <input
                       id="jurusan"
@@ -590,7 +685,7 @@ function CheckoutContent() {
                       name="jurusan"
                       value={formData.jurusan}
                       onChange={handleChange}
-                      placeholder="RPL"
+                      placeholder="RPL / Guru"
                       disabled={isSubmitting}
                       className="mt-1 w-full rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white placeholder-white/40 outline-none transition-colors focus:border-arcade-yellow disabled:opacity-50"
                     />
@@ -602,7 +697,7 @@ function CheckoutContent() {
                     htmlFor="notes"
                     className="block font-display text-xs font-bold uppercase tracking-wider text-arcade-yellow"
                   >
-                    Catatan Tambahan
+                    Catatan Tambahan (Opsional)
                   </label>
                   <textarea
                     id="notes"
@@ -645,8 +740,8 @@ function CheckoutContent() {
                   {isSubmitting
                     ? "Memproses Pesanan..."
                     : isAuthenticated
-                      ? "Konfirmasi Pesanan Sekarang →"
-                      : "Masuk & Konfirmasi Pesanan →"}
+                      ? "Pesan & Bayar QRIS Sekarang →"
+                      : "Masuk & Bayar Sekarang →"}
                 </button>
               </form>
             </div>
@@ -660,24 +755,24 @@ function CheckoutContent() {
 export default function CheckoutPage() {
   return (
     <main
-      className="flex min-h-screen flex-col items-center justify-between px-4 py-10 sm:px-6 sm:py-12 md:px-12 md:py-16"
+      className="flex min-h-[100dvh] flex-col items-center justify-between px-4 py-8 sm:px-6 sm:py-12 md:px-12 md:py-16 overflow-x-hidden"
       style={{
         background:
           "linear-gradient(160deg, var(--arcade-violet) 0%, var(--arcade-purple) 100%)",
       }}
     >
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center">
-        <header className="mb-8 text-center sm:mb-10">
+        <header className="mb-6 text-center sm:mb-8">
           <Link
             href="/"
-            className="inline-block rounded-lg px-2 py-1 font-display text-sm uppercase tracking-wider text-arcade-yellow transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow md:text-base"
+            className="inline-block rounded-lg px-2 py-1 font-display text-xs uppercase tracking-wider text-arcade-yellow transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow sm:text-sm"
           >
             ← Kembali ke Beranda
           </Link>
-          <h1 className="mt-4 font-display text-3xl text-arcade-yellow [text-shadow:3px_3px_0_var(--arcade-ink)] sm:text-5xl md:text-6xl">
+          <h1 className="mt-3 font-display text-3xl text-arcade-yellow [text-shadow:3px_3px_0_var(--arcade-ink)] sm:text-5xl">
             CHECKOUT PESANAN
           </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm font-semibold leading-relaxed text-pretty text-white/90 sm:text-base md:text-lg">
+          <p className="mx-auto mt-2 max-w-2xl text-xs font-semibold leading-relaxed text-white/90 sm:text-sm">
             Selesaikan pemesanan merchandise resmi pameran Pixel To Reality: The Cyber Arcade.
           </p>
         </header>
@@ -693,7 +788,7 @@ export default function CheckoutPage() {
         </Suspense>
       </div>
 
-      <footer className="mt-16 text-center font-display text-xs text-white/50">
+      <footer className="mt-12 text-center font-display text-xs text-white/50">
         Pixel To Reality: The Cyber Arcade
       </footer>
     </main>

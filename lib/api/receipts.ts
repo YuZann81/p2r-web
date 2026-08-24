@@ -49,3 +49,5 @@ export async function getReceiptByOrder(orderId: string, token?: string | null):
     return null;
   }
 }
+
+export const getOrderReceipt = getReceiptByOrder;

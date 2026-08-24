@@ -1,19 +1,21 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import RegisterPage from "@/app/register/page";
 import { AuthProvider } from "@/lib/auth/auth-context";
-import { registerUser } from "@/lib/api/auth";
+import { registerUser, updateUserProfile } from "@/lib/api/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 
 jest.mock("@/lib/api/auth", () => ({
   loginUser: jest.fn(),
   getCurrentUser: jest.fn().mockRejectedValue(new Error("No user")),
   registerUser: jest.fn(),
+  updateUserProfile: jest.fn(),
   logoutUser: jest.fn(),
 }));
 
 jest.mock("next/navigation", () => ({
   useRouter: jest.fn(),
   useSearchParams: jest.fn(),
+  usePathname: jest.fn().mockReturnValue("/register"),
 }));
 
 const mockedRegisterUser = registerUser as jest.MockedFunction<
@@ -43,7 +45,7 @@ describe("RegisterPage (/register)", () => {
     mockedUseSearchParams.mockReturnValue(new URLSearchParams() as any);
   });
 
-  it("renders register form and links", () => {
+  it("renders register form step 1", () => {
     render(
       <AuthProvider>
         <RegisterPage />
@@ -57,11 +59,11 @@ describe("RegisterPage (/register)", () => {
     expect(screen.getByLabelText(/^email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^kata sandi/i)).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /buat akun sekarang/i }),
+      screen.getByRole("button", { name: /lanjut ke profil/i }),
     ).toBeInTheDocument();
   });
 
-  it("submits register form and redirects on success", async () => {
+  it("submits register form step 1 and transitions to step 2", async () => {
     mockedRegisterUser.mockResolvedValueOnce({
       success: true,
       message: "Registered successfully",
@@ -87,7 +89,7 @@ describe("RegisterPage (/register)", () => {
       target: { value: "secret123" },
     });
     fireEvent.click(
-      screen.getByRole("button", { name: /buat akun sekarang/i }),
+      screen.getByRole("button", { name: /lanjut ke profil/i }),
     );
 
     await waitFor(() => {
@@ -96,7 +98,8 @@ describe("RegisterPage (/register)", () => {
         email: "hero@test.com",
         password: "secret123",
       });
-      expect(mockPush).toHaveBeenCalledWith("/");
+      expect(screen.getByText(/tahap 2: lengkapi profil/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/nomor whatsapp/i)).toBeInTheDocument();
     });
   });
 });

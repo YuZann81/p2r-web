@@ -12,9 +12,11 @@ import {
   loginUser,
   logoutUser,
   registerUser,
+  updateUserProfile,
 } from "@/lib/api/auth";
 import type {
   LoginCredentials,
+  ProfileUpdateData,
   RegisterData,
   User,
 } from "@/lib/api/types/auth";
@@ -25,7 +27,8 @@ type AuthContextType = {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<{ success: boolean; message?: string }>;
-  register: (data: RegisterData) => Promise<{ success: boolean; message?: string }>;
+  register: (data: RegisterData) => Promise<{ success: boolean; message?: string; user?: User }>;
+  updateProfile: (data: ProfileUpdateData) => Promise<{ success: boolean; message?: string; user?: User }>;
   logout: () => Promise<void>;
 };
 
@@ -133,13 +136,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch {}
       }
 
-      return { success: true, message: res.message };
+      return { success: true, message: res.message, user: authUser || undefined };
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Gagal mendaftar. Silakan coba lagi.";
       return { success: false, message };
     }
   }, []);
+
+  const updateProfile = useCallback(
+    async (data: ProfileUpdateData) => {
+      if (!token) {
+        return { success: false, message: "Sesi tidak ditemukan. Silakan login kembali." };
+      }
+      try {
+        const res = await updateUserProfile(data, token);
+        const updatedUser = res.data;
+        if (updatedUser) {
+          setUser(updatedUser);
+          try {
+            localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+          } catch {}
+        }
+        return { success: true, message: res.message, user: updatedUser };
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Gagal memperbarui profil.";
+        return { success: false, message };
+      }
+    },
+    [token],
+  );
 
   const logout = useCallback(async () => {
     if (token) {
@@ -169,6 +196,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         login,
         register,
+        updateProfile,
         logout,
       }}
     >
@@ -184,6 +212,7 @@ const defaultAuthContext: AuthContextType = {
   isLoading: false,
   login: async () => ({ success: false }),
   register: async () => ({ success: false }),
+  updateProfile: async () => ({ success: false }),
   logout: async () => {},
 };
 

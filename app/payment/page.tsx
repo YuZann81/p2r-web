@@ -3,10 +3,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   getPendingPayment,
-  createPayment,
   uploadPaymentProof,
   cancelPayment,
   getActiveQris,
@@ -67,25 +68,13 @@ export default function PaymentPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setErrorMessage("Ukuran file maksimal 5MB.");
+        return;
+      }
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
       setErrorMessage(null);
-    }
-  };
-
-  const handleCreateQrisPayment = async () => {
-    if (!token) return;
-    try {
-      setIsLoading(true);
-      setErrorMessage(null);
-      const newPayment = await createPayment("qris", token);
-      setPayment(newPayment);
-      setSuccessMessage("Pembayaran QRIS berhasil diinisiasi.");
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Gagal membuat sesi pembayaran.";
-      setErrorMessage(msg);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -105,7 +94,7 @@ export default function PaymentPage() {
       setPayment(updated);
       setSelectedFile(null);
       setPreviewUrl(null);
-      setSuccessMessage("Bukti pembayaran berhasil diunggah! Menunggu verifikasi admin.");
+      setSuccessMessage("Bukti pembayaran berhasil dikirim! Menunggu verifikasi admin.");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Gagal mengunggah bukti transfer.";
       setErrorMessage(msg);
@@ -134,54 +123,58 @@ export default function PaymentPage() {
 
   if (isAuthLoading || isLoading) {
     return (
-      <main className="min-h-screen bg-[#11092a] px-4 py-12 text-white sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-arcade-yellow border-t-transparent"></div>
-          <p className="mt-4 font-display text-sm tracking-wider text-arcade-yellow">
-            Memuat Data Pembayaran…
-          </p>
-        </div>
-      </main>
+      <div className="flex min-h-[100dvh] flex-col justify-between bg-[#11092a] text-white overflow-x-hidden">
+        <Navbar />
+        <main className="flex flex-1 items-center justify-center px-4 py-12">
+          <div className="text-center">
+            <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-arcade-yellow border-t-transparent"></div>
+            <p className="mt-4 font-display text-sm tracking-wider text-arcade-yellow">
+              Memuat Data Pembayaran…
+            </p>
+          </div>
+        </main>
+        <Footer />
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#11092a] px-4 py-8 text-white sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-3xl">
+    <div
+      className="flex min-h-[100dvh] flex-col justify-between overflow-x-hidden"
+      style={{
+        background:
+          "linear-gradient(160deg, var(--arcade-violet) 0%, var(--arcade-purple) 100%)",
+      }}
+    >
+      <Navbar />
+
+      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 py-8 sm:px-6 md:px-8 text-white">
         {/* Page Header */}
-        <div className="mb-6 flex flex-col items-start justify-between gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-center">
+        <div className="mb-6 flex flex-col items-start justify-between gap-4 border-b border-white/10 pb-4 sm:flex-row sm:items-center">
           <div>
-            <span className="font-mono text-xs font-bold tracking-widest uppercase text-arcade-yellow">
-              Pixel To Reality • Checkout & Billing
-            </span>
-            <h1 className="mt-1 font-display text-2xl text-white sm:text-3xl">
-              Pembayaran & Konfirmasi QRIS
+            <h1 className="font-display text-2xl text-arcade-yellow sm:text-3xl [text-shadow:2px_2px_0_var(--arcade-ink)]">
+              PEMBAYARAN QRIS
             </h1>
+            <p className="mt-1 text-xs text-white/80 sm:text-sm">
+              Selesaikan pembayaran pesanan Anda menggunakan QRIS resmi Dana Usaha.
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/orders"
-              className="rounded-xl border border-white/20 bg-black/40 px-3.5 py-2 font-display text-xs font-bold text-white transition-colors hover:border-arcade-yellow hover:text-arcade-yellow"
-            >
-              Daftar Pesanan
-            </Link>
-            <Link
-              href="/receipts"
-              className="rounded-xl border border-white/20 bg-black/40 px-3.5 py-2 font-display text-xs font-bold text-white transition-colors hover:border-arcade-yellow hover:text-arcade-yellow"
-            >
-              Receipts
-            </Link>
-          </div>
+          <Link
+            href="/orders"
+            className="rounded-xl border border-white/20 bg-black/40 px-4 py-2 font-display text-xs font-bold text-arcade-yellow transition-colors hover:border-arcade-yellow hover:bg-black/60"
+          >
+            📦 Buka Pesanan Saya
+          </Link>
         </div>
 
         {/* Notification Alerts */}
         {errorMessage && (
-          <div className="mb-6 rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-300">
+          <div className="mb-6 rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-xs font-bold text-red-200">
             {errorMessage}
           </div>
         )}
         {successMessage && (
-          <div className="mb-6 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm text-emerald-300">
+          <div className="mb-6 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-xs font-bold text-emerald-200">
             {successMessage}
           </div>
         )}
@@ -193,22 +186,21 @@ export default function PaymentPage() {
               💳
             </div>
             <h2 className="font-display text-xl text-white">
-              Tidak Ada Pembayaran Aktif
+              Tidak Ada Tagihan Pembayaran Aktif
             </h2>
-            <p className="mt-2 text-sm text-white/70">
+            <p className="mt-2 text-xs text-white/70">
               Anda tidak memiliki tagihan pembayaran yang sedang aktif saat ini.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <button
-                type="button"
-                onClick={handleCreateQrisPayment}
-                className="rounded-xl bg-arcade-yellow px-5 py-2.5 font-display text-sm font-bold text-arcade-ink shadow-md transition-transform hover:-translate-y-0.5"
+              <Link
+                href="/orders"
+                className="rounded-xl bg-arcade-yellow px-5 py-2.5 font-display text-xs font-bold text-arcade-ink shadow-md"
               >
-                Inisiasi Pembayaran QRIS dari Checkout
-              </button>
+                Cek Pesanan Saya
+              </Link>
               <Link
                 href="/merchandise"
-                className="rounded-xl border border-white/20 bg-black/40 px-5 py-2.5 font-display text-sm font-bold text-white transition-colors hover:bg-white/10"
+                className="rounded-xl border border-white/20 bg-black/40 px-5 py-2.5 font-display text-xs font-bold text-white hover:bg-white/10"
               >
                 Katalog Merchandise
               </Link>
@@ -244,14 +236,6 @@ export default function PaymentPage() {
                       ✕ Ditolak
                     </span>
                   )}
-                  {payment.payment_status === "expired" && (
-                    <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-400/40 bg-slate-500/15 px-3 py-1 font-mono text-xs font-bold text-slate-400 uppercase">
-                      Kedaluwarsa
-                    </span>
-                  )}
-                  <span className="font-mono text-xs text-white/70 uppercase">
-                    • Metode: {payment.payment_method}
-                  </span>
                 </div>
               </div>
 
@@ -273,9 +257,6 @@ export default function PaymentPage() {
                 </h3>
                 <p className="mt-1 text-xs text-red-200">
                   Alasan: <strong>{payment.rejection_reason}</strong>
-                </p>
-                <p className="mt-2 text-[11px] text-red-300/80">
-                  Silakan unggah ulang bukti transfer yang jelas di bawah ini.
                 </p>
               </div>
             )}
@@ -325,7 +306,7 @@ export default function PaymentPage() {
                     Unggah Bukti Pembayaran
                   </h3>
                   <p className="mt-1 text-xs text-white/70">
-                    Setelah melakukan scan dan transfer via QRIS / M-Banking, unggah tangkapan layar (screenshot) bukti transfer Anda.
+                    Setelah scan dan transfer via QRIS, unggah screenshot atau foto bukti transfer Anda.
                   </p>
 
                   <form onSubmit={handleUploadProof} className="mt-4 space-y-4">
@@ -379,7 +360,7 @@ export default function PaymentPage() {
                     <button
                       type="submit"
                       disabled={isUploading || !selectedFile}
-                      className="flex w-full min-h-[44px] items-center justify-center rounded-xl bg-arcade-yellow py-2.5 font-display text-sm font-bold text-arcade-ink shadow-[2px_2px_0_var(--arcade-yellow-shadow)] transition-transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex w-full min-h-[44px] items-center justify-center rounded-xl bg-arcade-yellow py-2.5 font-display text-sm font-bold text-arcade-ink shadow-[2px_2px_0_var(--arcade-yellow-shadow)] transition-transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                       {isUploading ? "Mengunggah Bukti…" : "Kirim Bukti Pembayaran"}
                     </button>
@@ -391,14 +372,14 @@ export default function PaymentPage() {
                     <button
                       type="button"
                       onClick={handleCancelPayment}
-                      className="text-red-400 hover:underline"
+                      className="text-red-400 hover:underline cursor-pointer"
                     >
                       Batalkan Pembayaran
                     </button>
                     <button
                       type="button"
                       onClick={loadData}
-                      className="text-arcade-yellow hover:underline"
+                      className="text-arcade-yellow hover:underline cursor-pointer"
                     >
                       Refresh Status
                     </button>
@@ -408,7 +389,9 @@ export default function PaymentPage() {
             </div>
           </div>
         )}
-      </div>
-    </main>
+      </main>
+
+      <Footer />
+    </div>
   );
 }

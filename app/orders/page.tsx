@@ -3,9 +3,14 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getOrders, type OrderData } from "@/lib/api/orders";
+import { getOrderReceipt, type ReceiptData } from "@/lib/api/receipts";
 import { formatProductPrice } from "@/lib/utils";
+import OrderPaymentModal from "@/components/OrderPaymentModal";
+import OrderReceiptModal from "@/components/OrderReceiptModal";
 
 type FilterTab =
   | "all"
@@ -23,7 +28,16 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
-  const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
+  const [selectedOrderForDetail, setSelectedOrderForDetail] = useState<OrderData | null>(null);
+
+  // Active Payment Modal State
+  const [paymentModalOrder, setPaymentModalOrder] = useState<OrderData | null>(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
+  // Active Receipt Modal State
+  const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+  const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
   const loadOrders = React.useCallback(async () => {
     if (!token) {
@@ -50,6 +64,31 @@ export default function OrdersPage() {
       }
     }
   }, [isAuthenticated, isAuthLoading, loadOrders, router]);
+
+  // Open Payment Modal for a given order
+  const handleOpenPayment = (order: OrderData) => {
+    setPaymentModalOrder(order);
+    setIsPaymentModalOpen(true);
+  };
+
+  // Open Receipt Modal for a paid order
+  const handleOpenReceipt = async (order: OrderData) => {
+    if (!token) return;
+    setIsLoadingReceipt(true);
+    try {
+      const receipt = await getOrderReceipt(order.id, token);
+      if (receipt) {
+        setSelectedReceipt(receipt);
+        setIsReceiptModalOpen(true);
+      } else {
+        alert("Kuitansi resmi belum tersedia untuk pesanan ini.");
+      }
+    } catch {
+      alert("Gagal memuat kuitansi pesanan.");
+    } finally {
+      setIsLoadingReceipt(false);
+    }
+  };
 
   const filteredOrders = orders.filter((order) => {
     if (activeTab === "all") return true;
@@ -110,6 +149,13 @@ export default function OrdersPage() {
         </span>
       );
     }
+    if (order.payment_status === "rejected") {
+      return (
+        <span className="rounded-md border border-red-400/40 bg-red-500/15 px-2.5 py-0.5 font-mono text-[11px] font-bold text-red-400 uppercase">
+          Bukti Ditolak
+        </span>
+      );
+    }
     return (
       <span className="rounded-md border border-amber-400/40 bg-amber-500/15 px-2.5 py-0.5 font-mono text-[11px] font-bold text-amber-300 uppercase">
         Belum Dibayar
@@ -119,44 +165,49 @@ export default function OrdersPage() {
 
   if (isAuthLoading || isLoading) {
     return (
-      <main className="min-h-screen bg-[#11092a] px-4 py-12 text-white sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-arcade-yellow border-t-transparent"></div>
-          <p className="mt-4 font-display text-sm tracking-wider text-arcade-yellow">
-            Memuat Daftar Pesanan…
-          </p>
-        </div>
-      </main>
+      <div className="flex min-h-[100dvh] flex-col justify-between bg-[#11092a] text-white overflow-x-hidden">
+        <Navbar />
+        <main className="flex flex-1 items-center justify-center px-4 py-12">
+          <div className="text-center">
+            <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-arcade-yellow border-t-transparent"></div>
+            <p className="mt-4 font-display text-sm tracking-wider text-arcade-yellow">
+              Memuat Daftar Pesanan…
+            </p>
+          </div>
+        </main>
+        <Footer />
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#11092a] px-4 py-8 text-white sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl">
+    <div
+      className="flex min-h-[100dvh] flex-col justify-between overflow-x-hidden"
+      style={{
+        background:
+          "linear-gradient(160deg, var(--arcade-violet) 0%, var(--arcade-purple) 100%)",
+      }}
+    >
+      <Navbar />
+
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-8 sm:px-6 md:px-10">
         {/* Page Header */}
-        <div className="mb-6 flex flex-col items-start justify-between gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-center">
+        <div className="mb-6 flex flex-col items-start justify-between gap-4 border-b border-white/10 pb-4 sm:flex-row sm:items-center">
           <div>
-            <span className="font-mono text-xs font-bold tracking-widest uppercase text-arcade-yellow">
-              Pixel To Reality • Order History
-            </span>
-            <h1 className="mt-1 font-display text-2xl text-white sm:text-3xl">
-              Daftar Pesanan Merchandise
+            <h1 className="font-display text-2xl text-arcade-yellow sm:text-3xl [text-shadow:2px_2px_0_var(--arcade-ink)]">
+              PESANAN SAYA
             </h1>
+            <p className="mt-1 text-xs text-white/80 sm:text-sm">
+              Pusat pelacakan pesanan merchandise, status verifikasi pembayaran, dan kuitansi resmi.
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/payment"
-              className="rounded-xl border border-white/20 bg-black/40 px-3.5 py-2 font-display text-xs font-bold text-white transition-colors hover:border-arcade-yellow hover:text-arcade-yellow"
-            >
-              Pembayaran QRIS
-            </Link>
-            <Link
-              href="/receipts"
-              className="rounded-xl border border-white/20 bg-black/40 px-3.5 py-2 font-display text-xs font-bold text-white transition-colors hover:border-arcade-yellow hover:text-arcade-yellow"
-            >
-              Kumpulan Receipt
-            </Link>
-          </div>
+
+          <Link
+            href="/merchandise"
+            className="rounded-xl border border-white/20 bg-black/40 px-4 py-2 font-display text-xs font-bold text-arcade-yellow transition-colors hover:border-arcade-yellow hover:bg-black/60"
+          >
+            + Belanja Merchandise
+          </Link>
         </div>
 
         {/* Filter Tabs */}
@@ -175,7 +226,7 @@ export default function OrdersPage() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id as FilterTab)}
-                className={`whitespace-nowrap rounded-xl px-3.5 py-1.5 font-display text-xs font-bold transition-all ${
+                className={`whitespace-nowrap rounded-xl px-3.5 py-1.5 font-display text-xs font-bold transition-all cursor-pointer ${
                   activeTab === tab.id
                     ? "bg-arcade-yellow text-arcade-ink shadow-sm"
                     : "text-white/70 hover:bg-white/10 hover:text-white"
@@ -197,7 +248,7 @@ export default function OrdersPage() {
               Belum Ada Pesanan
             </h3>
             <p className="mt-2 text-xs text-white/60">
-              Tidak ada transaksi pesanan yang sesuai dengan filter yang dipilih.
+              Tidak ada riwayat transaksi pesanan pada kategori yang dipilih.
             </p>
             <div className="mt-6">
               <Link
@@ -210,102 +261,139 @@ export default function OrdersPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredOrders.map((order) => (
-              <div
-                key={order.id}
-                className="rounded-2xl border border-white/15 bg-[#180e3d] p-5 shadow-lg transition-all hover:border-arcade-yellow/50"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono text-sm font-bold text-arcade-yellow">
-                      {order.order_code}
-                    </span>
-                    {getStatusBadge(order)}
-                  </div>
-                  <span className="text-xs text-white/50">
-                    {new Date(order.created_at).toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                </div>
+            {filteredOrders.map((order) => {
+              const isPaid = order.status === "paid" || order.status === "completed" || order.status === "processing";
+              const isWaitingPayment = order.status !== "paid" && (order.payment_status === "waiting_payment" || order.payment_status === "rejected");
+              const isWaitingVerification = order.payment_status === "waiting_verification";
 
-                <div className="my-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <span className="text-xs text-white/70">
-                      {order.total_items} Item ({order.total_quantity} pcs)
+              return (
+                <div
+                  key={order.id}
+                  className="rounded-2xl border border-white/15 bg-[#180e3d] p-5 shadow-lg transition-all hover:border-arcade-yellow/50"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono text-sm font-bold text-arcade-yellow">
+                        {order.order_code}
+                      </span>
+                      {getStatusBadge(order)}
+                    </div>
+                    <span className="text-xs text-white/50">
+                      {new Date(order.created_at).toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </span>
-                    <ul className="mt-1 space-y-1">
-                      {order.items.slice(0, 2).map((item) => (
-                        <li key={item.id} className="text-xs text-white/90">
-                          • {item.quantity}x {item.product_name}
-                        </li>
-                      ))}
-                      {order.items.length > 2 && (
-                        <li className="text-[11px] text-arcade-yellow">
-                          +{order.items.length - 2} item lainnya…
-                        </li>
+                  </div>
+
+                  <div className="my-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <span className="text-xs text-white/70">
+                        {order.total_items} Item ({order.total_quantity} pcs)
+                      </span>
+                      <ul className="mt-1 space-y-1">
+                        {order.items.slice(0, 2).map((item) => (
+                          <li key={item.id} className="text-xs text-white/90">
+                            • {item.quantity}x {item.product_name}
+                          </li>
+                        ))}
+                        {order.items.length > 2 && (
+                          <li className="text-[11px] text-arcade-yellow">
+                            +{order.items.length - 2} item lainnya…
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+
+                    <div className="text-left sm:text-right">
+                      <span className="text-xs text-white/60">Total Pesanan:</span>
+                      <div className="font-mono text-lg font-bold text-arcade-yellow">
+                        {formatProductPrice(order.grand_total)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Bar (Tokopedia-style Actions) */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-3">
+                    <div className="text-xs text-white/60">
+                      {order.customer_name && (
+                        <span>Pemesan: <strong>{order.customer_name}</strong></span>
                       )}
-                    </ul>
-                  </div>
+                    </div>
 
-                  <div className="text-left sm:text-right">
-                    <span className="text-xs text-white/60">Total Pesanan:</span>
-                    <div className="font-mono text-lg font-bold text-arcade-yellow">
-                      {formatProductPrice(order.grand_total)}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedOrderForDetail(order)}
+                        className="rounded-xl border border-white/20 bg-black/40 px-3 py-1.5 font-display text-xs font-bold text-white transition-colors hover:bg-white/10 cursor-pointer"
+                      >
+                        Detail Pesanan
+                      </button>
+
+                      {/* Primary CTA according to Order State */}
+                      {isWaitingPayment && (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenPayment(order)}
+                          className="rounded-xl bg-arcade-yellow px-4 py-1.5 font-display text-xs font-bold text-arcade-ink shadow-md transition-transform hover:-translate-y-0.5 cursor-pointer"
+                        >
+                          💳 Lanjutkan Pembayaran
+                        </button>
+                      )}
+
+                      {isWaitingVerification && (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenPayment(order)}
+                          className="rounded-xl border border-blue-400/50 bg-blue-500/20 px-3.5 py-1.5 font-display text-xs font-bold text-blue-200 hover:bg-blue-500/30 cursor-pointer"
+                        >
+                          ⏳ Cek Status Verifikasi
+                        </button>
+                      )}
+
+                      {isPaid && (
+                        <button
+                          type="button"
+                          disabled={isLoadingReceipt}
+                          onClick={() => handleOpenReceipt(order)}
+                          className="rounded-xl bg-emerald-500/20 border border-emerald-400/50 px-3.5 py-1.5 font-display text-xs font-bold text-emerald-300 hover:bg-emerald-500/30 cursor-pointer"
+                        >
+                          🧾 Lihat Kuitansi Resmi
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
-
-                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-3">
-                  <div className="text-xs text-white/60">
-                    {order.customer_name && (
-                      <span>Pemesan: {order.customer_name}</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedOrder(order)}
-                      className="rounded-xl border border-white/20 bg-black/40 px-3 py-1.5 font-display text-xs font-bold text-white transition-colors hover:bg-white/10"
-                    >
-                      Detail Pesanan
-                    </button>
-                    {order.status === "paid" && (
-                      <Link
-                        href="/receipts"
-                        className="rounded-xl bg-emerald-500/20 border border-emerald-400/40 px-3 py-1.5 font-display text-xs font-bold text-emerald-300 transition-colors hover:bg-emerald-500/30"
-                      >
-                        Lihat Receipt
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
         {/* Order Detail Modal */}
-        {selectedOrder && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+        {selectedOrderForDetail && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="order-detail-title"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm animate-in fade-in"
+          >
             <div className="w-full max-w-lg rounded-3xl border border-white/20 bg-[#1a0e3b] p-6 shadow-2xl">
               <div className="flex items-center justify-between border-b border-white/10 pb-3">
                 <div>
                   <span className="font-mono text-xs font-bold text-arcade-yellow">
-                    {selectedOrder.order_code}
+                    {selectedOrderForDetail.order_code}
                   </span>
-                  <h3 className="font-display text-lg text-white">
+                  <h3 id="order-detail-title" className="font-display text-lg text-white">
                     Detail Pesanan
                   </h3>
                 </div>
                 <button
                   type="button"
-                  onClick={() => setSelectedOrder(null)}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-black/30 text-white/70 hover:text-white"
+                  onClick={() => setSelectedOrderForDetail(null)}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-black/30 text-white/70 hover:text-white cursor-pointer"
                 >
                   ✕
                 </button>
@@ -315,15 +403,15 @@ export default function OrdersPage() {
                 <div className="rounded-xl border border-white/10 bg-black/40 p-3">
                   <div className="flex justify-between py-1">
                     <span className="text-white/60">Nama Pemesan:</span>
-                    <span className="font-semibold text-white">{selectedOrder.customer_name || "-"}</span>
+                    <span className="font-semibold text-white">{selectedOrderForDetail.customer_name || "-"}</span>
                   </div>
                   <div className="flex justify-between py-1">
                     <span className="text-white/60">Nomor Telepon:</span>
-                    <span className="font-semibold text-white">{selectedOrder.customer_phone || "-"}</span>
+                    <span className="font-semibold text-white">{selectedOrderForDetail.customer_phone || "-"}</span>
                   </div>
                   <div className="flex justify-between py-1">
                     <span className="text-white/60">Status Pesanan:</span>
-                    <span>{getStatusBadge(selectedOrder)}</span>
+                    <span>{getStatusBadge(selectedOrderForDetail)}</span>
                   </div>
                 </div>
 
@@ -332,7 +420,7 @@ export default function OrdersPage() {
                     Daftar Produk
                   </span>
                   <ul className="mt-2 space-y-2">
-                    {selectedOrder.items.map((item) => (
+                    {selectedOrderForDetail.items.map((item) => (
                       <li
                         key={item.id}
                         className="flex items-center justify-between border-b border-white/5 pb-1.5"
@@ -358,32 +446,78 @@ export default function OrdersPage() {
                     Total Pembayaran
                   </span>
                   <span className="font-mono text-base font-bold text-arcade-yellow">
-                    {formatProductPrice(selectedOrder.grand_total)}
+                    {formatProductPrice(selectedOrderForDetail.grand_total)}
                   </span>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 border-t border-white/10 pt-3">
+              <div className="flex items-center justify-between border-t border-white/10 pt-3">
                 <button
                   type="button"
-                  onClick={() => setSelectedOrder(null)}
-                  className="rounded-xl border border-white/20 bg-black/40 px-4 py-2 font-display text-xs font-bold text-white hover:bg-white/10"
+                  onClick={() => setSelectedOrderForDetail(null)}
+                  className="rounded-xl border border-white/20 bg-black/40 px-4 py-2 font-display text-xs font-bold text-white hover:bg-white/10 cursor-pointer"
                 >
                   Tutup
                 </button>
-                {selectedOrder.status === "paid" && (
-                  <Link
-                    href="/receipts"
-                    className="rounded-xl bg-arcade-yellow px-4 py-2 font-display text-xs font-bold text-arcade-ink shadow-md"
+
+                {selectedOrderForDetail.status === "paid" ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const ord = selectedOrderForDetail;
+                      setSelectedOrderForDetail(null);
+                      handleOpenReceipt(ord);
+                    }}
+                    className="rounded-xl bg-arcade-yellow px-4 py-2 font-display text-xs font-bold text-arcade-ink shadow-md cursor-pointer"
                   >
-                    Buka Receipt Resmi
-                  </Link>
+                    Buka Kuitansi Resmi
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const ord = selectedOrderForDetail;
+                      setSelectedOrderForDetail(null);
+                      handleOpenPayment(ord);
+                    }}
+                    className="rounded-xl bg-arcade-yellow px-4 py-2 font-display text-xs font-bold text-arcade-ink shadow-md cursor-pointer"
+                  >
+                    Bayar Sekarang →
+                  </button>
                 )}
               </div>
             </div>
           </div>
         )}
-      </div>
-    </main>
+
+        {/* Stateful Payment Component Modal */}
+        {paymentModalOrder && (
+          <OrderPaymentModal
+            isOpen={isPaymentModalOpen}
+            onClose={() => {
+              setIsPaymentModalOpen(false);
+              setPaymentModalOrder(null);
+            }}
+            orderCode={paymentModalOrder.order_code}
+            grandTotal={paymentModalOrder.grand_total}
+            onPaymentUpdated={() => {
+              loadOrders();
+            }}
+          />
+        )}
+
+        {/* Printable Receipt Modal */}
+        <OrderReceiptModal
+          receipt={selectedReceipt}
+          isOpen={isReceiptModalOpen}
+          onClose={() => {
+            setIsReceiptModalOpen(false);
+            setSelectedReceipt(null);
+          }}
+        />
+      </main>
+
+      <Footer />
+    </div>
   );
 }

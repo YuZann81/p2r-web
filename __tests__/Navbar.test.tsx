@@ -77,8 +77,10 @@ describe("Navbar Component", () => {
       </AuthProvider>,
     );
 
-    expect(screen.getByText("Hai, PlayerOne")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Keluar" })).toBeInTheDocument();
+    expect(screen.getByText("PlayerOne")).toBeInTheDocument();
+    const userMenuBtn = screen.getByRole("button", { name: /menu pengguna/i });
+    fireEvent.click(userMenuBtn);
+    expect(screen.getByRole("button", { name: /keluar dari akun/i })).toBeInTheDocument();
   });
 
   it("toggles mobile drawer on hamburger click and closes on link click", () => {
@@ -125,7 +127,10 @@ describe("Navbar Component", () => {
       </AuthProvider>,
     );
 
-    const logoutBtn = screen.getByRole("button", { name: "Keluar" });
+    const userMenuBtn = screen.getByRole("button", { name: /menu pengguna/i });
+    fireEvent.click(userMenuBtn);
+
+    const logoutBtn = screen.getByRole("button", { name: /keluar dari akun/i });
     fireEvent.click(logoutBtn);
 
     // Custom dialog appears

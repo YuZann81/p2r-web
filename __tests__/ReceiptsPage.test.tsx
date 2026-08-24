@@ -13,12 +13,14 @@ jest.mock("@/lib/api/receipts", () => ({
   getReceipts: jest.fn(),
   getReceiptById: jest.fn(),
   getReceiptByOrder: jest.fn(),
+  getOrderReceipt: jest.fn(),
 }));
 
 jest.mock("next/navigation", () => ({
   useRouter: () => ({
     push: jest.fn(),
   }),
+  usePathname: jest.fn().mockReturnValue("/receipts"),
 }));
 
 const mockedUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
@@ -37,6 +39,7 @@ describe("ReceiptsPage", () => {
       isLoading: false,
       login: jest.fn(),
       register: jest.fn(),
+      updateProfile: jest.fn(),
       logout: jest.fn(),
     });
 
@@ -45,7 +48,7 @@ describe("ReceiptsPage", () => {
     render(<ReceiptsPage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Receipt belum tersedia.")).toBeInTheDocument();
+      expect(screen.getByText("Belum Ada Kuitansi Resmi")).toBeInTheDocument();
     });
   });
 
@@ -57,6 +60,7 @@ describe("ReceiptsPage", () => {
       isLoading: false,
       login: jest.fn(),
       register: jest.fn(),
+      updateProfile: jest.fn(),
       logout: jest.fn(),
     });
 
@@ -90,7 +94,7 @@ describe("ReceiptsPage", () => {
     await waitFor(() => {
       expect(screen.getByText("RCT-20260824-000001")).toBeInTheDocument();
       expect(screen.getByText("LUNAS")).toBeInTheDocument();
-      expect(screen.getByText("Buka Receipt")).toBeInTheDocument();
+      expect(screen.getByText("Buka Kuitansi")).toBeInTheDocument();
     });
   });
 });

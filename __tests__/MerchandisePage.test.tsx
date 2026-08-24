@@ -70,6 +70,7 @@ describe("MerchandisePage (/merchandise)", () => {
       isLoading: false,
       login: jest.fn(),
       register: jest.fn(),
+      updateProfile: jest.fn(),
       logout: jest.fn(),
     })
   })
@@ -170,6 +171,7 @@ describe("MerchandisePage (/merchandise)", () => {
       isLoading: false,
       login: jest.fn(),
       register: jest.fn(),
+      updateProfile: jest.fn(),
       logout: jest.fn(),
     })
 

@@ -18,6 +18,7 @@ jest.mock("next/navigation", () => ({
   useRouter: () => ({
     push: jest.fn(),
   }),
+  usePathname: () => "/orders",
 }));
 
 const mockedUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
@@ -36,6 +37,7 @@ describe("OrdersPage", () => {
       isLoading: false,
       login: jest.fn(),
       register: jest.fn(),
+      updateProfile: jest.fn(),
       logout: jest.fn(),
     });
 
@@ -67,7 +69,7 @@ describe("OrdersPage", () => {
     render(<OrdersPage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Daftar Pesanan Merchandise")).toBeInTheDocument();
+      expect(screen.getByText("PESANAN SAYA")).toBeInTheDocument();
       expect(screen.getByText("ORD-20260824-000001")).toBeInTheDocument();
       expect(screen.getAllByText("Sudah Dibayar").length).toBeGreaterThanOrEqual(1);
     });

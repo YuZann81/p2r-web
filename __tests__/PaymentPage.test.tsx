@@ -3,33 +3,31 @@ import { render, screen, waitFor } from "@testing-library/react";
 import PaymentPage from "@/app/payment/page";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getPendingPayment, getActiveQris } from "@/lib/api/payment";
+import { useRouter } from "next/navigation";
 
-jest.mock("@/lib/auth/auth-context", () => ({
-  useAuth: jest.fn(),
-  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
-
-jest.mock("@/lib/api/payment", () => ({
-  getPendingPayment: jest.fn(),
-  getActiveQris: jest.fn(),
-  createPayment: jest.fn(),
-  uploadPaymentProof: jest.fn(),
-  cancelPayment: jest.fn(),
-}));
-
+jest.mock("@/lib/auth/auth-context");
+jest.mock("@/lib/api/payment");
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-  }),
+  useRouter: jest.fn(),
+  usePathname: jest.fn().mockReturnValue("/payment"),
 }));
 
 const mockedUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
 const mockedGetPendingPayment = getPendingPayment as jest.MockedFunction<typeof getPendingPayment>;
 const mockedGetActiveQris = getActiveQris as jest.MockedFunction<typeof getActiveQris>;
+const mockedUseRouter = useRouter as jest.MockedFunction<typeof useRouter>;
 
 describe("PaymentPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedUseRouter.mockReturnValue({
+      push: jest.fn(),
+      replace: jest.fn(),
+      back: jest.fn(),
+      forward: jest.fn(),
+      refresh: jest.fn(),
+      prefetch: jest.fn(),
+    } as any);
   });
 
   it("renders active payment with QRIS image and nominal", async () => {
@@ -40,6 +38,7 @@ describe("PaymentPage", () => {
       isLoading: false,
       login: jest.fn(),
       register: jest.fn(),
+      updateProfile: jest.fn(),
       logout: jest.fn(),
     });
 
@@ -62,7 +61,7 @@ describe("PaymentPage", () => {
     render(<PaymentPage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Pembayaran & Konfirmasi QRIS")).toBeInTheDocument();
+      expect(screen.getByText("PEMBAYARAN QRIS")).toBeInTheDocument();
       expect(screen.getByText("QRIS Utama P2R")).toBeInTheDocument();
       expect(screen.getByText("P2R-20260824-000001")).toBeInTheDocument();
       expect(screen.getByText("Belum Dibayar")).toBeInTheDocument();
@@ -77,6 +76,7 @@ describe("PaymentPage", () => {
       isLoading: false,
       login: jest.fn(),
       register: jest.fn(),
+      updateProfile: jest.fn(),
       logout: jest.fn(),
     });
 
@@ -85,17 +85,22 @@ describe("PaymentPage", () => {
       checkout_code: "P2R-20260824-000001",
       payment_method: "qris",
       payment_status: "rejected",
+      rejection_reason: "Bukti buram / tidak terbaca",
       transfer_amount: "150000.00",
-      rejection_reason: "Bukti transfer buram.",
     });
 
-    mockedGetActiveQris.mockResolvedValue(null);
+    mockedGetActiveQris.mockResolvedValue({
+      id: "qris_1",
+      name: "QRIS Utama P2R",
+      qr_image_path: "qris/qris.png",
+      qr_image_url: "https://api.razzan.site/storage/qris/qris.png",
+      is_active: true,
+    });
 
     render(<PaymentPage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Pembayaran Ditolak oleh Admin")).toBeInTheDocument();
-      expect(screen.getByText("Bukti transfer buram.")).toBeInTheDocument();
+      expect(screen.getByText("Bukti buram / tidak terbaca")).toBeInTheDocument();
     });
   });
 });
