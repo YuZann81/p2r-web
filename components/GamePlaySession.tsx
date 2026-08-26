@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { submitScore, type ScoreResult } from "@/lib/api/scores";
+import {
+  createGameSession,
+  submitScore,
+  type ScoreResult,
+} from "@/lib/api/scores";
 import { useAuth } from "@/lib/auth/auth-context";
 
 type GamePlaySessionProps = {
@@ -22,7 +26,9 @@ export default function GamePlaySession({
   const [startTime, setStartTime] = useState<number | null>(null);
   const [calculatedScore, setCalculatedScore] = useState<number | null>(null);
   const [playerName, setPlayerName] = useState(user?.name || "");
+  const [isStartingSession, setIsStartingSession] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [submittedScore, setSubmittedScore] = useState<ScoreResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -32,13 +38,35 @@ export default function GamePlaySession({
     }
   }, [user, playerName]);
 
-  const handleStartGame = () => {
-    setIsPlaying(true);
-    setTypedText("");
+  const handleStartGame = async () => {
+    setIsStartingSession(true);
+    setErrorMessage(null);
     setCalculatedScore(null);
     setSubmittedScore(null);
-    setErrorMessage(null);
-    setStartTime(Date.now());
+    setTypedText("");
+    setSessionToken(null);
+
+    try {
+      const sessionRes = await createGameSession(gameSlug, token);
+
+      if (!sessionRes.data?.session_token) {
+        setErrorMessage(
+          sessionRes.message || "Gagal membuat sesi permainan. Silakan coba lagi.",
+        );
+        return;
+      }
+
+      setSessionToken(sessionRes.data.session_token);
+      setIsPlaying(true);
+      setStartTime(Date.now());
+    } catch (err) {
+      console.error("Failed to create game session:", err);
+      setErrorMessage(
+        "Gagal memulai sesi arcade. Pastikan koneksi internet stabil lalu coba lagi.",
+      );
+    } finally {
+      setIsStartingSession(false);
+    }
   };
 
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,7 +74,10 @@ export default function GamePlaySession({
     setTypedText(val);
 
     if (val.trim().toUpperCase() === CHALLENGE_TEXT) {
-      const elapsedSeconds = Math.max(1, (Date.now() - (startTime || Date.now())) / 1000);
+      const elapsedSeconds = Math.max(
+        1,
+        (Date.now() - (startTime || Date.now())) / 1000,
+      );
       const score = Math.max(10, Math.round(500 - elapsedSeconds * 20));
       setCalculatedScore(score);
       setIsPlaying(false);
@@ -57,6 +88,13 @@ export default function GamePlaySession({
     e.preventDefault();
     if (!calculatedScore || isSubmitting) return;
 
+    if (!sessionToken) {
+      setErrorMessage(
+        "Sesi permainan tidak valid atau sudah kedaluwarsa. Silakan mulai main lagi.",
+      );
+      return;
+    }
+
     const trimmedName = playerName.trim() || "Arcade Player";
     setIsSubmitting(true);
     setErrorMessage(null);
@@ -65,8 +103,10 @@ export default function GamePlaySession({
       const res = await submitScore(
         gameSlug,
         {
+          session_token: sessionToken,
           player_name: trimmedName,
           final_score: calculatedScore,
+          platform: "web",
           meta: {
             challenge: "speed_typing",
             game_title: gameTitle,
@@ -77,12 +117,17 @@ export default function GamePlaySession({
 
       if (res.data) {
         setSubmittedScore(res.data);
+        setSessionToken(null);
       } else {
-        setErrorMessage("Gagal mencatat skor ke leaderboard. Silakan coba lagi.");
+        setErrorMessage(
+          res.message || "Gagal mencatat skor ke leaderboard. Silakan coba lagi.",
+        );
       }
     } catch (err) {
       console.error("Failed to submit score:", err);
-      setErrorMessage("Terjadi kendala saat mengirim skor. Pastikan koneksi internet stabil.");
+      setErrorMessage(
+        "Terjadi kendala saat mengirim skor. Pastikan sesi masih berlaku dan coba lagi.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -107,12 +152,20 @@ export default function GamePlaySession({
           <button
             type="button"
             onClick={handleStartGame}
-            className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-arcade-yellow px-6 py-2.5 font-display text-base font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 cursor-pointer"
+            disabled={isStartingSession}
+            className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-arcade-yellow px-6 py-2.5 font-display text-base font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 disabled:opacity-60 cursor-pointer"
           >
-            Mulai Main Arcade!
+            {isStartingSession ? "Menyiapkan Sesi..." : "Mulai Main Arcade!"}
           </button>
         )}
       </div>
+
+      {/* Startup error if session creation failed before play */}
+      {!isPlaying && !calculatedScore && errorMessage && (
+        <p className="mt-4 text-center text-sm font-semibold text-red-300" role="alert">
+          {errorMessage}
+        </p>
+      )}
 
       {/* Game State: In Progress */}
       {isPlaying && (
@@ -203,9 +256,10 @@ export default function GamePlaySession({
             <button
               type="button"
               onClick={handleStartGame}
-              className="inline-flex min-h-[40px] items-center justify-center rounded-lg border border-white/30 bg-black/40 px-5 py-2 font-display text-sm font-bold text-white hover:bg-white/10 cursor-pointer"
+              disabled={isStartingSession}
+              className="inline-flex min-h-[40px] items-center justify-center rounded-lg border border-white/30 bg-black/40 px-5 py-2 font-display text-sm font-bold text-white hover:bg-white/10 disabled:opacity-60 cursor-pointer"
             >
-              Main Lagi
+              {isStartingSession ? "Menyiapkan..." : "Main Lagi"}
             </button>
           </div>
         </div>

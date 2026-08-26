@@ -84,7 +84,7 @@ describe("Landing Feature Discovery Previews", () => {
   });
 
   describe("Games (Arcade Showcase)", () => {
-    it("renders section heading, compact game cards, play button, and link to /games", async () => {
+    it("renders section heading, game showcase cards with artwork, and links to /games", async () => {
       mockedGetGames.mockResolvedValueOnce([
         {
           id: "game-1",
@@ -105,7 +105,7 @@ describe("Landing Feature Discovery Previews", () => {
       ).toBeInTheDocument();
       expect(screen.getByText("Cyber Runner 2099")).toBeInTheDocument();
       expect(
-        screen.getByRole("link", { name: /mainkan game/i }),
+        screen.getByRole("link", { name: /lihat detail game/i }),
       ).toHaveAttribute("href", "/games/game-1");
       expect(
         screen.getByRole("link", { name: /eksplorasi semua game/i }),
