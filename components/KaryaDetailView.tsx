@@ -3,13 +3,19 @@ import Link from "next/link";
 import GameArtwork from "@/components/GameArtwork";
 import VoteButton from "@/components/VoteButton";
 import GamePlaySession from "@/components/GamePlaySession";
-import type { KaryaDetail } from "@/lib/api/types/karya";
+import type { KaryaDetail, Distribution } from "@/lib/api/types/karya";
 
 type KaryaDetailViewProps = {
   karya: KaryaDetail;
   backHref: string;
   backLabel: string;
 };
+
+function isSafeUrl(url: string | null | undefined): boolean {
+  if (!url || typeof url !== "string") return false;
+  const trimmed = url.trim();
+  return trimmed.startsWith("http://") || trimmed.startsWith("https://");
+}
 
 function resolveMediaUrl(value: unknown): string | null {
   if (typeof value === "string" && value.trim().length > 0) {
@@ -35,6 +41,14 @@ const CATEGORY_LABELS: Record<string, string> = {
   software: "Software Engineering",
   hardware_robotics: "IoT & Hardware",
   digital_art: "Digital Art",
+};
+
+const DOWNLOAD_PLATFORM_LABELS: Record<string, string> = {
+  windows: "Download Windows",
+  android: "Download Android",
+  linux: "Download Linux",
+  macos: "Download macOS",
+  other: "Download",
 };
 
 export default function KaryaDetailView({
@@ -63,6 +77,25 @@ export default function KaryaDetailView({
             typeof item === "string" && item.trim().length > 0,
         )
     : [];
+
+  // P2R Arcade capability: only render GamePlaySession if explicitly enabled
+  const isP2rArcade =
+    karya.capabilities?.p2r_arcade === true ||
+    (Array.isArray(karya.distributions) &&
+      karya.distributions.some((dist) => dist.type === "p2r_arcade"));
+
+  // External action distributions (web_external, download)
+  const nonArcadeDistributions: Distribution[] = Array.isArray(
+    karya.distributions,
+  )
+    ? karya.distributions.filter(
+        (dist) => dist.type !== "p2r_arcade" && isSafeUrl(dist.url),
+      )
+    : [];
+
+  // Fallback to legacy live_url if no non-arcade distributions were provided
+  const hasFallbackLiveUrl =
+    nonArcadeDistributions.length === 0 && isSafeUrl(karya.live_url);
 
   return (
     <main
@@ -157,11 +190,49 @@ export default function KaryaDetailView({
                 />
               </div>
 
-              {/* Action Links */}
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                {karya.live_url && (
+              {/* Action Links & Distributions */}
+              <div className="flex flex-wrap items-center gap-3">
+                {/* 1. Explicit Web External Distribution */}
+                {nonArcadeDistributions.map((dist, idx) => {
+                  if (dist.type === "web_external") {
+                    return (
+                      <a
+                        key={`dist-web-${idx}`}
+                        href={dist.url!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-arcade-yellow px-6 py-2.5 text-center font-display text-base font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70 cursor-pointer"
+                      >
+                        <span>Mainkan Web</span>
+                        <span aria-hidden="true" className="ml-1.5">↗</span>
+                      </a>
+                    );
+                  }
+
+                  if (dist.type === "download") {
+                    const label =
+                      DOWNLOAD_PLATFORM_LABELS[dist.platform] || "Download";
+                    return (
+                      <a
+                        key={`dist-dl-${dist.platform}-${idx}`}
+                        href={dist.url!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-arcade-yellow px-6 py-2.5 text-center font-display text-base font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70 cursor-pointer"
+                      >
+                        <span>{label}</span>
+                        <span aria-hidden="true" className="ml-1.5">⤓</span>
+                      </a>
+                    );
+                  }
+
+                  return null;
+                })}
+
+                {/* 2. Legacy Live URL Fallback (when no explicit non-arcade distributions) */}
+                {hasFallbackLiveUrl && (
                   <a
-                    href={karya.live_url}
+                    href={karya.live_url!}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-arcade-yellow px-6 py-2.5 text-center font-display text-base font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70 cursor-pointer"
@@ -171,9 +242,10 @@ export default function KaryaDetailView({
                   </a>
                 )}
 
-                {karya.repo_url && (
+                {/* 3. Source Code Repo */}
+                {isSafeUrl(karya.repo_url) && (
                   <a
-                    href={karya.repo_url}
+                    href={karya.repo_url!}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex min-h-[44px] items-center justify-center rounded-xl border-2 border-white/30 bg-black/40 px-6 py-2.5 text-center font-display text-base font-bold text-white transition-colors hover:border-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-arcade-yellow cursor-pointer"
@@ -186,8 +258,8 @@ export default function KaryaDetailView({
           </div>
         </section>
 
-        {/* Arcade Play & Score Session (for Game category) */}
-        {karya.category === "game" && (
+        {/* Arcade Play & Score Session: Rendered ONLY when P2R Arcade capability is enabled */}
+        {isP2rArcade && (
           <GamePlaySession
             gameSlug={karya.slug}
             gameTitle={karya.title}

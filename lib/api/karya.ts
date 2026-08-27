@@ -1,8 +1,20 @@
-import { apiDelete, apiGet, apiPost } from "@/lib/api/client"
+import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/api/client"
 import type { ApiResponse } from "@/lib/api/types/api-response"
-import type { KaryaDetail, KaryaListParams } from "@/lib/api/types/karya"
+import type {
+  KaryaDetail,
+  KaryaListParams,
+  StoreKaryaPayload,
+} from "@/lib/api/types/karya"
 
-export type { KaryaDetail, KaryaListParams, KaryaCategory } from "@/lib/api/types/karya"
+export type {
+  KaryaDetail,
+  KaryaListParams,
+  KaryaCategory,
+  StoreKaryaPayload,
+  Distribution,
+  DistributionPlatform,
+  DistributionType,
+} from "@/lib/api/types/karya"
 
 export type VoteResult = {
   votes_count: number
@@ -79,4 +91,51 @@ export async function unvoteKarya(
     `/karyas/${encodeURIComponent(slug)}/vote`,
     { token },
   )
+}
+
+// ── Admin Karya Endpoints ──────────────────────────────────────────
+
+export async function fetchAdminKaryas(
+  token?: string | null,
+): Promise<ApiResponse<KaryaDetail[]>> {
+  return apiGet<KaryaDetail[]>("/admin/karyas", { token })
+}
+
+export async function fetchAdminKaryaById(
+  id: string,
+  token?: string | null,
+): Promise<ApiResponse<KaryaDetail>> {
+  return apiGet<KaryaDetail>(`/admin/karyas/${encodeURIComponent(id)}`, {
+    token,
+  })
+}
+
+export async function createAdminKarya(
+  payload: StoreKaryaPayload,
+  token?: string | null,
+): Promise<ApiResponse<KaryaDetail>> {
+  return apiPost<KaryaDetail, StoreKaryaPayload>("/admin/karyas", payload, {
+    token,
+  })
+}
+
+export async function updateAdminKarya(
+  id: string,
+  payload: Partial<StoreKaryaPayload>,
+  token?: string | null,
+): Promise<ApiResponse<KaryaDetail>> {
+  return apiPut<KaryaDetail, Partial<StoreKaryaPayload>>(
+    `/admin/karyas/${encodeURIComponent(id)}`,
+    payload,
+    { token },
+  )
+}
+
+export async function deleteAdminKarya(
+  id: string,
+  token?: string | null,
+): Promise<ApiResponse<null>> {
+  return apiDelete<null>(`/admin/karyas/${encodeURIComponent(id)}`, {
+    token,
+  })
 }
