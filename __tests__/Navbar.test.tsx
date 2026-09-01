@@ -27,7 +27,7 @@ describe("Navbar Component", () => {
     jest.clearAllMocks();
   });
 
-  it("renders desktop navigation links and cart button with count", () => {
+  it("renders desktop navigation links and single commerce entry point (Shop) with badge count", () => {
     render(
       <AuthProvider>
         <CartProvider>
@@ -44,12 +44,18 @@ describe("Navbar Component", () => {
     expect(screen.getByRole("link", { name: "Feeds" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Merchandise" })).toBeInTheDocument();
 
-    expect(
-      screen.getByRole("link", { name: /keranjang belanja \(3 item\)/i }),
-    ).toBeInTheDocument();
+    // Single Commerce Entry Point: Shop with badge count
+    const shopLink = screen.getByRole("link", { name: /shop \(3 item\)/i });
+    expect(shopLink).toBeInTheDocument();
+    expect(shopLink).toHaveAttribute("href", "/shop");
+    expect(within(shopLink).getByText("3")).toBeInTheDocument();
+
+    // Cart and Orders should not exist as separate individual primary buttons in the navbar action area
+    expect(screen.queryByRole("link", { name: /keranjang belanja/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /^pesanan saya$/i })).not.toBeInTheDocument();
   });
 
-  it("renders login button for guests and user session for authenticated user", () => {
+  it("renders login button for guests and separate user profile session for authenticated user", () => {
     // 1. Guest state
     const { unmount } = render(
       <AuthProvider>
@@ -77,10 +83,19 @@ describe("Navbar Component", () => {
       </AuthProvider>,
     );
 
-    expect(screen.getByText("PlayerOne")).toBeInTheDocument();
+    expect(screen.getAllByText("PlayerOne").length).toBeGreaterThanOrEqual(1);
     const userMenuBtn = screen.getByRole("button", { name: /menu pengguna/i });
     fireEvent.click(userMenuBtn);
+
+    // Profile menu contains account only (Profil Saya & Keluar dari Akun)
+    expect(screen.getByRole("link", { name: /profil saya/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /keluar dari akun/i })).toBeInTheDocument();
+
+    // Orders is not mixed into Profile menu
+    const profileDropdown = screen.getAllByText("PlayerOne")[0].closest("div");
+    if (profileDropdown) {
+      expect(within(profileDropdown).queryByText("Pesanan Saya")).not.toBeInTheDocument();
+    }
   });
 
   it("toggles mobile drawer on hamburger click and closes on link click", () => {
@@ -103,6 +118,9 @@ describe("Navbar Component", () => {
     expect(
       screen.getByRole("button", { name: /tutup menu navigasi/i }),
     ).toBeInTheDocument();
+
+    // Mobile drawer should contain P2R Shop shortcut
+    expect(screen.getByText(/p2r shop \(cart & pesanan\)/i)).toBeInTheDocument();
 
     // Click link inside drawer to close
     const karyaLinks = screen.getAllByRole("link", { name: "Karya" });

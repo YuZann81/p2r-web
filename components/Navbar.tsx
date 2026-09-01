@@ -96,16 +96,16 @@ export default function Navbar() {
             ))}
           </ul>
 
-          {/* Right: Actions (Cart & User Center) */}
+          {/* Right: Actions (Commerce Single Entry Point [Shop] & Profile Center) */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Cart Icon */}
+            {/* Single Commerce Entry Point: Shop (Cart + Orders + Catalog) */}
             <Link
-              href="/checkout"
-              aria-label={`Keranjang Belanja (${totalItems} item)`}
-              className="relative flex min-h-[38px] min-w-[38px] items-center justify-center rounded-xl border border-white/20 bg-black/40 p-2 text-white transition-colors hover:border-arcade-yellow hover:text-arcade-yellow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow"
+              href="/shop"
+              aria-label={totalItems > 0 ? `Shop (${totalItems} item)` : "Shop"}
+              className="relative flex min-h-[38px] items-center gap-1.5 rounded-xl border border-white/20 bg-black/40 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-white transition-all hover:border-arcade-yellow hover:text-arcade-yellow hover:bg-black/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow"
             >
               <svg
-                className="h-5 w-5"
+                className="h-4 w-4 shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -118,14 +118,17 @@ export default function Navbar() {
                   d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
                 />
               </svg>
+              <span className="font-display tracking-wide hidden xs:inline sm:inline">
+                Shop
+              </span>
               {totalItems > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-arcade-yellow font-display text-xs font-bold text-arcade-ink shadow-sm animate-pulse">
+                <span className="flex h-4.5 min-w-[18px] items-center justify-center rounded-full bg-arcade-yellow px-1 font-display text-[10px] font-bold text-arcade-ink shadow-sm">
                   {totalItems}
                 </span>
               )}
             </Link>
 
-            {/* Desktop User Center (Tokopedia-style Dropdown) */}
+            {/* Desktop User Center (Profile / Account Only) */}
             <div className="relative hidden sm:block" ref={userMenuRef}>
               {isAuthenticated ? (
                 <div>
@@ -140,7 +143,7 @@ export default function Navbar() {
                       {userInitials}
                     </span>
                     <span className="max-w-[110px] md:max-w-[140px] truncate font-display tracking-wide text-white">
-                      {user?.name || "Akun Saya"}
+                      {user?.name || "Profil"}
                     </span>
                     <svg
                       className={`h-4 w-4 text-arcade-yellow transition-transform duration-200 ${
@@ -159,7 +162,7 @@ export default function Navbar() {
                     </svg>
                   </button>
 
-                  {/* Tokopedia-Style User Center Popover */}
+                  {/* Profile Popover (Account Only, Orders moved under Shop) */}
                   {isUserMenuOpen && (
                     <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-white/20 bg-[#180e3d]/98 p-3 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 z-50">
                       {/* User Header Profile */}
@@ -181,19 +184,8 @@ export default function Navbar() {
                         )}
                       </div>
 
-                      {/* Unified Navigation Links */}
+                      {/* Account Navigation Links */}
                       <div className="py-2 space-y-1">
-                        <Link
-                          href="/orders"
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-white/90 transition-colors hover:bg-white/10 hover:text-arcade-yellow"
-                        >
-                          <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                          </svg>
-                          <span>Pesanan Saya</span>
-                        </Link>
-
                         <Link
                           href="/profile"
                           onClick={() => setIsUserMenuOpen(false)}
@@ -277,31 +269,41 @@ export default function Navbar() {
                   {user?.name || "Pengguna"}
                 </p>
                 <p className="font-mono text-xs text-white/60 truncate">{user?.email}</p>
-                <div className="mt-2.5 flex items-center gap-2 border-t border-white/10 pt-2 text-xs">
-                  <Link
-                    href="/orders"
-                    onClick={closeMobileMenu}
-                    className="inline-flex items-center gap-1 font-bold text-arcade-yellow underline"
-                  >
-                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                    </svg>
-                    Pesanan Saya
-                  </Link>
-                  <span className="text-white/40">•</span>
+                <div className="mt-2.5 border-t border-white/10 pt-2 text-xs">
                   <Link
                     href="/profile"
                     onClick={closeMobileMenu}
-                    className="inline-flex items-center gap-1 font-bold text-white/80 hover:text-arcade-yellow"
+                    className="inline-flex items-center gap-1.5 font-bold text-white/90 hover:text-arcade-yellow transition-colors"
                   >
-                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    Profil
+                    <span>Profil Saya</span>
                   </Link>
                 </div>
               </div>
             )}
+
+            {/* Mobile Commerce Hub Shortcut */}
+            <div className="mb-3">
+              <Link
+                href="/shop"
+                onClick={closeMobileMenu}
+                className="flex items-center justify-between rounded-xl border border-white/20 bg-black/40 px-3.5 py-2.5 text-xs font-bold text-arcade-yellow transition-colors hover:border-arcade-yellow hover:bg-black/60"
+              >
+                <div className="flex items-center gap-2">
+                  <svg className="h-4 w-4 shrink-0 text-arcade-yellow" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                  <span>P2R Shop (Cart &amp; Pesanan)</span>
+                </div>
+                {totalItems > 0 && (
+                  <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-arcade-yellow px-1.5 font-display text-[10px] font-bold text-arcade-ink">
+                    {totalItems}
+                  </span>
+                )}
+              </Link>
+            </div>
 
             <ul className="flex flex-col gap-2">
               {NAV_LINKS.map((link) => (

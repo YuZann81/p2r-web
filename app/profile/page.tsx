@@ -120,13 +120,13 @@ export default function ProfilePage() {
           </div>
 
           <Link
-            href="/orders"
+            href="/shop"
             className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-black/30 px-3.5 py-2 text-xs font-bold text-arcade-yellow transition-colors hover:border-arcade-yellow hover:bg-black/50 self-start sm:self-auto"
           >
             <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
-            Lihat Pesanan Saya
+            Buka P2R Shop
           </Link>
         </div>
 
