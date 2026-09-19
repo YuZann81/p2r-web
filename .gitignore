@@ -1,7 +1,14 @@
 # Environment variables
-.env*.local
+.env*
+!.env.example
 
 # Common ignores
 node_modules
 .next/
 .DS_Store
+dist/
+build/
+.vercel/
+playwright-report/
+test-results/
+*.tsbuildinfo
