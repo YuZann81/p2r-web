@@ -1,0 +1,20 @@
+# Keep local-only and production configuration out of the image.
+#
+# Without this, `COPY . .` would bake p2r-web/.env.local into an image layer.
+# NEXT_PUBLIC_* values used by the local image are supplied as build args by
+# docker-compose, never copied from the host file.
+
+.env
+.env.*
+!.env.example
+
+node_modules/
+.next/
+out/
+
+.git/
+.gitignore
+.gitattributes
+Dockerfile*
+*.log
+coverage/

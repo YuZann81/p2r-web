@@ -1,8 +1,16 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import GameCard from "@/components/GameCard";
-import { GAMES } from "@/lib/content";
+import type { Game } from "@/lib/content";
 
-const game = GAMES[0];
+const game: Game = {
+  id: "pixel-runner",
+  name: "Pixel Runner",
+  description: "An arcade platformer.",
+  image: "https://cdn.example.com/game.png",
+  imageAlt: "Pixel Runner artwork",
+  logo: "https://cdn.example.com/game-logo.png",
+  logoAlt: "Pixel Runner logo",
+};
 
 describe("GameCard", () => {
   beforeEach(() => {

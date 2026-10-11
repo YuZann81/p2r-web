@@ -34,8 +34,9 @@ describe("VoteButton", () => {
       forward: jest.fn(),
       refresh: jest.fn(),
       prefetch: jest.fn(),
+      bfcacheId: '',
     });
-    mockedUseSearchParams.mockReturnValue(new URLSearchParams() as any);
+    mockedUseSearchParams.mockReturnValue(new URLSearchParams() as unknown as ReturnType<typeof useSearchParams>);
   });
 
   it("renders with initial vote count and redirects guest to login on click", () => {

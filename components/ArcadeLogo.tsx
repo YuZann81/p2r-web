@@ -1,28 +1,29 @@
-const WORDMARK = "PIXELS TO REALITY";
+import Image from "next/image";
 
-export default function ArcadeLogo() {
-  const chars = WORDMARK.split("");
-  const lastIndex = chars.length - 1;
+/**
+ * Official Pixel2Reality logo.
+ *
+ * The artwork is the official asset served from /public/brand. It is NOT
+ * redrawn as text: the previous wordmark was a text approximation of the real
+ * mark. Sizing is driven by height so the 1600x1600 source keeps its 1:1
+ * aspect ratio at every breakpoint.
+ */
+const LOGO_SRC = "/brand/pixel2reality-logo.png";
 
+export default function ArcadeLogo({ className = "" }: { className?: string }) {
   return (
-    <span
-      aria-label={WORDMARK}
-      className="flex select-none items-end font-display text-2xl leading-none text-arcade-yellow sm:text-3xl lg:text-4xl"
-      style={{ textShadow: "3px 4px 0 var(--arcade-ink)" }}
-    >
-      {chars.map((char, index) => {
-        const arc = -Math.sin((index / lastIndex) * Math.PI) * 16;
-        return (
-          <span
-            key={`${char}-${index}`}
-            aria-hidden="true"
-            className="inline-block"
-            style={{ transform: `translateY(${arc}px)` }}
-          >
-            {char === " " ? "\u00A0" : char}
-          </span>
-        );
-      })}
+    <span className={`inline-flex items-center ${className}`}>
+      <Image
+        src={LOGO_SRC}
+        alt="Pixel2Reality — Pameran Karya Teknologi"
+        width={1600}
+        height={1600}
+        priority
+        sizes="(max-width: 640px) 48px, (max-width: 1024px) 60px, 72px"
+        className="h-10 w-10 sm:h-12 sm:w-12 lg:h-[4.5rem] lg:w-[4.5rem]"
+      />
     </span>
   );
 }
+
+export { LOGO_SRC };

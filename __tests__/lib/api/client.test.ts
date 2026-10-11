@@ -2,6 +2,14 @@ import { apiGet, apiPost, apiDelete, ApiError } from "@/lib/api/client";
 
 // Save original global.fetch
 const originalFetch = global.fetch;
+// etch carries a static preconnect helper in the current lib definitions,
+// which a bare jest.Mock does not implement. Route every mock assignment
+// through this helper so the cast happens in exactly one place.
+function mockFetch(): jest.Mock {
+  const fn = jest.fn();
+  global.fetch = fn as unknown as typeof fetch;
+  return fn;
+}
 
 describe("API Client (Hardened Fetcher)", () => {
   beforeEach(() => {
@@ -14,7 +22,7 @@ describe("API Client (Hardened Fetcher)", () => {
 
   it("performs GET request and parses JSON response successfully", async () => {
     const mockData = { id: 1, name: "Sample Item" };
-    global.fetch = jest.fn().mockResolvedValueOnce({
+    mockFetch().mockResolvedValueOnce({
       ok: true,
       status: 200,
       text: jest.fn().mockResolvedValueOnce(
@@ -39,7 +47,7 @@ describe("API Client (Hardened Fetcher)", () => {
   });
 
   it("attaches Authorization header only when token is provided", async () => {
-    global.fetch = jest.fn().mockResolvedValueOnce({
+    mockFetch().mockResolvedValueOnce({
       ok: true,
       status: 200,
       text: jest.fn().mockResolvedValueOnce(
@@ -61,7 +69,7 @@ describe("API Client (Hardened Fetcher)", () => {
 
   it("performs POST request with JSON body and Content-Type header", async () => {
     const postBody = { email: "user@test.com", password: "123" };
-    global.fetch = jest.fn().mockResolvedValueOnce({
+    mockFetch().mockResolvedValueOnce({
       ok: true,
       status: 200,
       text: jest.fn().mockResolvedValueOnce(
@@ -90,7 +98,7 @@ describe("API Client (Hardened Fetcher)", () => {
   });
 
   it("performs DELETE request correctly", async () => {
-    global.fetch = jest.fn().mockResolvedValueOnce({
+    mockFetch().mockResolvedValueOnce({
       ok: true,
       status: 200,
       text: jest.fn().mockResolvedValueOnce(
@@ -113,7 +121,7 @@ describe("API Client (Hardened Fetcher)", () => {
   });
 
   it("throws ApiError with HTTP status when API returns error response", async () => {
-    global.fetch = jest.fn().mockResolvedValueOnce({
+    mockFetch().mockResolvedValueOnce({
       ok: false,
       status: 422,
       text: jest.fn().mockResolvedValueOnce(
@@ -127,7 +135,7 @@ describe("API Client (Hardened Fetcher)", () => {
 
     await expect(apiPost("/auth/login", {})).rejects.toThrow(ApiError);
 
-    global.fetch = jest.fn().mockResolvedValueOnce({
+    mockFetch().mockResolvedValueOnce({
       ok: false,
       status: 422,
       text: jest.fn().mockResolvedValueOnce(
@@ -149,7 +157,7 @@ describe("API Client (Hardened Fetcher)", () => {
   });
 
   it("gracefully handles HTML / non-JSON error pages without throwing syntax errors", async () => {
-    global.fetch = jest.fn().mockResolvedValueOnce({
+    mockFetch().mockResolvedValueOnce({
       ok: false,
       status: 502,
       statusText: "Bad Gateway",
@@ -167,7 +175,7 @@ describe("API Client (Hardened Fetcher)", () => {
 
   it("handles request abort / timeout with typed ApiError", async () => {
     const abortError = new DOMException("The operation was aborted", "AbortError");
-    global.fetch = jest.fn().mockRejectedValueOnce(abortError);
+    mockFetch().mockRejectedValueOnce(abortError);
 
     try {
       await apiGet("/slow-endpoint", { timeoutMs: 100 });

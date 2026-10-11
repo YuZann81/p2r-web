@@ -2,23 +2,16 @@
 
 import React, { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
 import type { Product } from '@/lib/api/types/product';
 import { fetchProducts } from '@/lib/api/products';
-import Order from './Order';
+import MerchandiseDetailModal from './MerchandiseDetailModal';
 import ChatAdmin from './ChatAdmin';
 import MerchandiseCard, { PixelBorder } from './MerchandiseCard';
-import { useAuth } from '@/lib/auth/auth-context';
 
 function MerchandiseSectionContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { isAuthenticated } = useAuth();
-
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isOrderOpen, setIsOrderOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
@@ -42,50 +35,26 @@ function MerchandiseSectionContent() {
     };
   }, []);
 
-  // Auto-resume order when returning from auth redirect
-  useEffect(() => {
-    const action = searchParams?.get ? searchParams.get("action") : null;
-    const productId = searchParams?.get ? searchParams.get("productId") : null;
-
-    if (action === "order" && productId && isAuthenticated && products.length > 0) {
-      const match = products.find((p) => String(p.id) === String(productId));
-      if (match) {
-        setSelectedProduct(match);
-        setIsOrderOpen(true);
-      }
-    }
-  }, [searchParams, isAuthenticated, products]);
-
-  const handleOpenOrder = (product: Product) => {
-    if (!isAuthenticated) {
-      const currentPath = typeof window !== "undefined" ? window.location.pathname : "/";
-      const redirectUrl = `/login?redirect=${encodeURIComponent(currentPath)}&action=order&productId=${encodeURIComponent(product.id)}`;
-      router.push(redirectUrl);
-      return;
-    }
-
+  const handleOpenDetail = (product: Product) => {
     setSelectedProduct(product);
-    setIsOrderOpen(true);
   };
 
-  const handleCloseOrder = () => {
-    setIsOrderOpen(false);
+  const handleCloseDetail = () => {
     setSelectedProduct(null);
   };
 
   return (
     <section id="merchandise" className="relative w-full bg-arcade-violet font-body text-white min-h-screen pb-24">
-      <PixelBorder/>
+      <PixelBorder />
       <div
         className="w-full h-10 bg-repeat-x bg-auto"
         style={{
           backgroundImage: "url('/image_775622.png')",
-          imageRendering: "pixelated"
+          imageRendering: "pixelated",
         }}
       />
 
       <div className="max-w-6xl mx-auto px-6 pt-12 flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
-
         {/* KIRI: Loading State, Grid Produk, atau Empty State */}
         {isLoading ? (
           <div className="flex-1 w-full flex flex-col items-center justify-center p-10 md:p-14 border-2 border-dashed border-arcade-yellow/30 bg-black/20 text-center rounded-2xl backdrop-blur-xs min-h-[300px]">
@@ -96,11 +65,11 @@ function MerchandiseSectionContent() {
           </div>
         ) : products.length > 0 ? (
           <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-8">
-            {products.map((product, index) => (
+            {products.slice(0, 3).map((product, index) => (
               <MerchandiseCard
                 key={product.id}
                 product={product}
-                onClick={() => handleOpenOrder(product)}
+                onClick={() => handleOpenDetail(product)}
                 containerClassName={index === 0 ? "md:col-span-2" : "col-span-1"}
                 imageBoxClassName={index === 0 ? "aspect-[16/10]" : "aspect-square"}
               />
@@ -120,7 +89,7 @@ function MerchandiseSectionContent() {
               Merchandise Segera Hadir
             </h3>
             <p className="text-white/80 font-medium text-base max-w-md leading-relaxed">
-              Koleksi resmi Pixel To Reality sedang dipersiapkan. Pantau informasi terbaru melalui admin atau kunjungi booth pameran!
+              Koleksi resmi Pixel To Reality sedang dipersiapkan. Pantau informasi terbaru melalui admin atau kunjungi booth panitia pameran!
             </p>
           </div>
         )}
@@ -128,10 +97,10 @@ function MerchandiseSectionContent() {
         {/* KANAN: Detail & CTA */}
         <div className="w-full lg:w-80 pt-2 lg:pt-0">
           <h2 className="text-arcade-yellow text-4xl font-display font-bold mb-5 drop-shadow-[2px_3px_0_var(--arcade-ink)] leading-tight">
-            Detail<br />Merchandise
+            Katalog<br />Merchandise
           </h2>
           <p className="text-white font-semibold text-lg leading-relaxed">
-            Koleksi merchandise resmi edisi Cyber Arcade: kaos eksklusif, gantungan kunci, lanyard, stiker pack, dan aksesori resmi Pixel To Reality.
+            Koleksi merchandise resmi edisi Cyber Arcade: kaos eksklusif, gantungan kunci, lanyard, stiker pack, dan reward game resmi Pixel To Reality.
           </p>
 
           <div className="mt-8">
@@ -145,10 +114,11 @@ function MerchandiseSectionContent() {
         </div>
       </div>
 
+      {/* Floating Helpdesk Button */}
       <button
         type="button"
         onClick={() => setIsChatOpen(true)}
-        aria-label="Buka Chat Admin"
+        aria-label="Buka Informasi Helpdesk Panitia"
         className="fixed bottom-8 right-8 w-16 h-16 bg-white rounded-full flex items-center justify-center drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)] hover:scale-105 active:scale-95 transition-all z-40 outline-none cursor-pointer"
       >
         <svg className="w-8 h-8 text-arcade-ink" fill="currentColor" viewBox="0 0 24 24">
@@ -156,14 +126,13 @@ function MerchandiseSectionContent() {
         </svg>
       </button>
 
-      {isOrderOpen && (
-        <Order
+      {selectedProduct && (
+        <MerchandiseDetailModal
           product={selectedProduct}
-          onClose={handleCloseOrder}
+          onClose={handleCloseDetail}
         />
       )}
       {isChatOpen && <ChatAdmin onClose={() => setIsChatOpen(false)} />}
-
     </section>
   );
 }

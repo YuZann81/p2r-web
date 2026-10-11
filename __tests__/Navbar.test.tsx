@@ -1,25 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import Navbar from "@/components/Navbar";
 import { AuthProvider } from "@/lib/auth/auth-context";
-import { CartProvider, useCart } from "@/lib/cart/cart-context";
-import React, { useEffect } from "react";
-
-function SeedCart() {
-  const { addItem } = useCart();
-  useEffect(() => {
-    addItem(
-      {
-        id: "prod-1",
-        name: "Lanyard",
-        slug: "lanyard",
-        description: "",
-        price: 25000,
-      },
-      3,
-    );
-  }, [addItem]);
-  return null;
-}
+import React from "react";
 
 describe("Navbar Component", () => {
   beforeEach(() => {
@@ -27,13 +9,10 @@ describe("Navbar Component", () => {
     jest.clearAllMocks();
   });
 
-  it("renders desktop navigation links and cart button with count", () => {
+  it("renders desktop navigation links and login action", () => {
     render(
       <AuthProvider>
-        <CartProvider>
-          <SeedCart />
-          <Navbar />
-        </CartProvider>
+        <Navbar />
       </AuthProvider>,
     );
 
@@ -42,19 +21,14 @@ describe("Navbar Component", () => {
     expect(screen.getByRole("link", { name: "Games" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Leaderboard" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Feeds" })).toBeInTheDocument();
-
-    expect(
-      screen.getByRole("link", { name: /keranjang belanja \(3 item\)/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Masuk" })).toBeInTheDocument();
   });
 
   it("renders login button for guests and user session for authenticated user", () => {
     // 1. Guest state
     const { unmount } = render(
       <AuthProvider>
-        <CartProvider>
-          <Navbar />
-        </CartProvider>
+        <Navbar />
       </AuthProvider>,
     );
 
@@ -70,9 +44,7 @@ describe("Navbar Component", () => {
 
     render(
       <AuthProvider>
-        <CartProvider>
-          <Navbar />
-        </CartProvider>
+        <Navbar />
       </AuthProvider>,
     );
 
@@ -83,9 +55,7 @@ describe("Navbar Component", () => {
   it("toggles mobile drawer on hamburger click and closes on link click", () => {
     render(
       <AuthProvider>
-        <CartProvider>
-          <Navbar />
-        </CartProvider>
+        <Navbar />
       </AuthProvider>,
     );
 

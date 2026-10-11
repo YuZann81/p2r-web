@@ -124,14 +124,22 @@ async function executeRequest<T>(
                   ? "Server sedang mengalami gangguan. Silakan coba lagi nanti."
                   : `Permintaan API gagal dengan status ${response.status}`);
 
+      // Extract P2R machine-readable error code
+      const errorCode =
+        payload && typeof payload === "object" && "code" in payload
+          ? String((payload as Record<string, unknown>).code)
+          : undefined;
+
       console.error(
         `[p2r-api] ${init.method || "GET"} ${url} failed (${response.status}):`,
         errorMessage,
+        errorCode ? ` [code: ${errorCode}]` : "",
       );
 
       throw new ApiError(errorMessage, {
         status: response.status,
         data: payload?.data ?? null,
+        code: errorCode,
       });
     }
 

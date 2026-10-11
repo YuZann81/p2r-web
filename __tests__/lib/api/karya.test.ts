@@ -41,7 +41,7 @@ describe("karya API", () => {
         data: ["pixel-runner"],
       }),
     })
-    global.fetch = fetchMock as typeof fetch
+    global.fetch = fetchMock as unknown as typeof fetch
 
     const slugs = await fetchKaryaSlugs({ category: "game", limit: 10 })
 
@@ -61,7 +61,7 @@ describe("karya API", () => {
         data: mockKaryaDetail,
       }),
     })
-    global.fetch = fetchMock as typeof fetch
+    global.fetch = fetchMock as unknown as typeof fetch
 
     const karya = await fetchKaryaBySlug("pixel-runner")
 
@@ -99,7 +99,7 @@ describe("karya API", () => {
           data: { ...mockKaryaDetail, slug: "space-blitz", title: "Space Blitz" },
         }),
       })
-    global.fetch = fetchMock as typeof fetch
+    global.fetch = fetchMock as unknown as typeof fetch
 
     const karyas = await fetchGameKaryas()
 

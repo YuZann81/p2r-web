@@ -3,6 +3,7 @@ export class ApiError extends Error {
   readonly data?: unknown;
   readonly isTimeout: boolean;
   readonly isNetworkError: boolean;
+  readonly code?: string;
 
   constructor(
     message: string,
@@ -11,6 +12,7 @@ export class ApiError extends Error {
       data?: unknown;
       isTimeout?: boolean;
       isNetworkError?: boolean;
+      code?: string;
     } = {},
   ) {
     super(message);
@@ -19,8 +21,8 @@ export class ApiError extends Error {
     this.data = options.data;
     this.isTimeout = options.isTimeout ?? false;
     this.isNetworkError = options.isNetworkError ?? false;
+    this.code = options.code;
 
-    // Maintain proper prototype chain for instanceof checks
     Object.setPrototypeOf(this, ApiError.prototype);
   }
 }

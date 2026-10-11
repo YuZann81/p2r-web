@@ -36,8 +36,9 @@ describe("LoginPage (/login)", () => {
       forward: jest.fn(),
       refresh: jest.fn(),
       prefetch: jest.fn(),
+      bfcacheId: '',
     });
-    mockedUseSearchParams.mockReturnValue(new URLSearchParams() as any);
+    mockedUseSearchParams.mockReturnValue(new URLSearchParams() as unknown as ReturnType<typeof useSearchParams>);
   });
 
   it("renders login form and links", () => {
@@ -63,7 +64,7 @@ describe("LoginPage (/login)", () => {
       action: "order",
       productId: "prod-1",
     });
-    mockedUseSearchParams.mockReturnValue(searchParams as any);
+    mockedUseSearchParams.mockReturnValue(searchParams as unknown as ReturnType<typeof useSearchParams>);
 
     mockedLoginUser.mockResolvedValueOnce({
       success: true,

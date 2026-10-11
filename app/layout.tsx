@@ -2,7 +2,6 @@ import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Jersey_15 } from "next/font/google";
 import { AuthProvider } from "@/lib/auth/auth-context";
-import { CartProvider } from "@/lib/cart/cart-context";
 import "./globals.css";
 
 const jersey = Jersey_15({
@@ -10,6 +9,18 @@ const jersey = Jersey_15({
   subsets: ["latin"],
   variable: "--font-jersey",
 });
+
+/*
+ * Institutional branding (name, tagline, description, logo) is rendered by the
+ * Footer in this layout and is managed by a Superadmin at runtime through
+ * PUT /admin/settings. Without a revalidation window the whole site was fully
+ * static and permanently served whatever was fetched during `next build`, so a
+ * branding change never reached the public pages.
+ *
+ * This follows the convention already used by the feeds (60s) and leaderboard
+ * (30s) routes.
+ */
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Pixels to Reality: The Cyber Arcade",
@@ -47,9 +58,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${jersey.variable} bg-arcade-violet scroll-smooth`}>
       <body className="font-body antialiased">
-        <AuthProvider>
-          <CartProvider>{children}</CartProvider>
-        </AuthProvider>
+        <AuthProvider>{children}</AuthProvider>
         {process.env.NODE_ENV === "production" && <Analytics />}
       </body>
     </html>

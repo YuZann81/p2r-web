@@ -1,13 +1,9 @@
 "use client";
 
-import ExploreButton from "@/components/ExploreButton";
+import Link from "next/link";
 import { HERO_CONTENT } from "@/lib/content";
 
-type HeroProps = {
-  onExplore?: () => void;
-};
-
-export default function Hero({ onExplore }: HeroProps) {
+export default function Hero() {
   return (
     <section className="flex flex-1 items-center justify-center px-6 py-16 md:py-24">
       <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
@@ -20,7 +16,12 @@ export default function Hero({ onExplore }: HeroProps) {
         </p>
 
         <div className="mt-10">
-          <ExploreButton onExplore={onExplore} />
+          <Link
+            href="/karya"
+            className="inline-flex items-center justify-center bg-arcade-yellow px-8 py-3 text-lg font-bold text-arcade-ink shadow-[6px_6px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[3px_3px_0_var(--arcade-yellow-shadow)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
+          >
+            {HERO_CONTENT.ctaLabel}
+          </Link>
         </div>
       </div>
     </section>

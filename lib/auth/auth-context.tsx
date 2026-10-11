@@ -39,6 +39,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Hydrates the session from localStorage after mount. Reading storage cannot
+  // happen during render without breaking SSR hydration, so the state update is
+  // intentionally performed inside this effect.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     try {
       const storedToken = localStorage.getItem(TOKEN_KEY);
@@ -76,6 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setIsLoading(false);
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const login = useCallback(async (credentials: LoginCredentials) => {
     try {

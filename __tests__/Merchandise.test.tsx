@@ -1,7 +1,7 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { fireEvent, render, screen } from "@testing-library/react"
 import MerchandiseSection from "@/components/MerchandiseSection"
 import MerchandiseCard from "@/components/MerchandiseCard"
-import OrderModal from "@/components/Order"
+import MerchandiseDetailModal from "@/components/MerchandiseDetailModal"
 import { fetchProducts } from "@/lib/api/products"
 import type { Product } from "@/lib/api/types/product"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -42,8 +42,9 @@ describe("MerchandiseSection & Components", () => {
       forward: jest.fn(),
       refresh: jest.fn(),
       prefetch: jest.fn(),
+      bfcacheId: '',
     })
-    mockedUseSearchParams.mockReturnValue(new URLSearchParams() as any)
+    mockedUseSearchParams.mockReturnValue(new URLSearchParams() as unknown as ReturnType<typeof useSearchParams>)
     mockedUseAuth.mockReturnValue({
       user: { id: 1, name: "Player One", email: "player@test.com" },
       token: "valid-token",
@@ -66,6 +67,8 @@ describe("MerchandiseSection & Components", () => {
       slug: "cyber-arcade-lanyard",
       description: "Official lanyard with retro pixel artwork.",
       price: 25000,
+      coin_price: 35,
+      source_type: "organizer",
       image_url: "https://example.com/lanyard.png",
     }
 
@@ -92,63 +95,32 @@ describe("MerchandiseSection & Components", () => {
     })
   })
 
-  describe("OrderModal", () => {
-    it("renders selected product information with formatted price", () => {
+  describe("MerchandiseDetailModal", () => {
+    it("renders selected product information with provider and acquisition instructions", () => {
       const mockProduct: Product = {
         id: "prod-2",
         name: "Cyber Keychain",
         slug: "cyber-keychain",
         description: "Pixel keychain collectible.",
-        price: 35000,
+        coin_price: 35,
+        source_type: "organizer",
         image_url: null,
       }
 
-      render(<OrderModal product={mockProduct} onClose={jest.fn()} />)
+      render(<MerchandiseDetailModal product={mockProduct} onClose={jest.fn()} />)
 
       expect(screen.getByText("Cyber Keychain")).toBeInTheDocument()
       expect(
         screen.getByText("Pixel keychain collectible."),
       ).toBeInTheDocument()
-      expect(screen.getByText("Price : Rp 35.000")).toBeInTheDocument()
+      expect(screen.getByText("★ Made by Committee")).toBeInTheDocument()
+      expect(screen.getByText("Redeem at the committee booth")).toBeInTheDocument()
     })
 
-    it("renders neutral 'Price : Info via Admin' when price is null", () => {
-      const mockProduct: Product = {
-        id: "prod-3",
-        name: "Special Sticker Pack",
-        slug: "special-sticker-pack",
-        description: null,
-        price: null,
-      }
+    it("handles null product prop safely without rendering", () => {
+      const { container } = render(<MerchandiseDetailModal product={null} onClose={jest.fn()} />)
 
-      render(<OrderModal product={mockProduct} onClose={jest.fn()} />)
-
-      expect(screen.getByText("Special Sticker Pack")).toBeInTheDocument()
-      expect(screen.getByText("Price : Info via Admin")).toBeInTheDocument()
-    })
-
-    it("renders neutral 'Price : Info via Admin' when price is 0 or undefined", () => {
-      const mockZeroPriceProduct: Product = {
-        id: "prod-zero",
-        name: "Promo Card",
-        slug: "promo-card",
-        description: "Free promo item",
-        price: 0,
-      }
-
-      render(<OrderModal product={mockZeroPriceProduct} onClose={jest.fn()} />)
-
-      expect(screen.getByText("Promo Card")).toBeInTheDocument()
-      expect(screen.getByText("Price : Info via Admin")).toBeInTheDocument()
-    })
-
-    it("handles null product prop safely with defaults", () => {
-      render(<OrderModal product={null} onClose={jest.fn()} />)
-
-      expect(
-        screen.getByText("Official P2R Merchandise"),
-      ).toBeInTheDocument()
-      expect(screen.getByText("Price : Info via Admin")).toBeInTheDocument()
+      expect(container.firstChild).toBeNull()
     })
   })
 
@@ -190,6 +162,8 @@ describe("MerchandiseSection & Components", () => {
           slug: "cyber-t-shirt",
           description: "Black neon cyber t-shirt.",
           price: 85000,
+          coin_price: 45,
+          source_type: "organizer",
           image_url: "https://example.com/shirt.png",
         },
       ]
@@ -206,11 +180,11 @@ describe("MerchandiseSection & Components", () => {
         screen.getByRole("button", { name: "Pesan Cyber T-Shirt" }),
       )
 
-      expect(screen.getByText("Cyber T-Shirt")).toBeInTheDocument()
-      expect(screen.getByText("Price : Rp 85.000")).toBeInTheDocument()
+      expect(screen.getAllByText("Cyber T-Shirt").length).toBeGreaterThan(0)
+      expect(screen.getByText("Black neon cyber t-shirt.")).toBeInTheDocument()
     })
 
-    it("redirects guest to login when ordering without authentication", async () => {
+    it("allows guests to view merchandise details without redirecting to login", async () => {
       mockedUseAuth.mockReturnValue({
         user: null,
         token: null,
@@ -228,6 +202,8 @@ describe("MerchandiseSection & Components", () => {
           slug: "cyber-t-shirt",
           description: "Black neon cyber t-shirt.",
           price: 85000,
+          coin_price: 45,
+          source_type: "organizer",
           image_url: null,
         },
       ]
@@ -244,12 +220,8 @@ describe("MerchandiseSection & Components", () => {
         screen.getByRole("button", { name: "Pesan Cyber T-Shirt" }),
       )
 
-      expect(mockPush).toHaveBeenCalledWith(
-        expect.stringContaining("/login?redirect="),
-      )
-      expect(mockPush).toHaveBeenCalledWith(
-        expect.stringContaining("productId=prod-1"),
-      )
+      expect(screen.getAllByText("Cyber T-Shirt").length).toBeGreaterThan(0)
+      expect(mockPush).not.toHaveBeenCalled()
     })
   })
 })

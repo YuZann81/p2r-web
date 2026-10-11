@@ -1,52 +1,22 @@
 "use client";
 
-import React, { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import React, { Suspense, useState } from "react";
 import type { Product } from "@/lib/api/types/product";
 import MerchandiseCard from "@/components/MerchandiseCard";
-import OrderModal from "@/components/Order";
-import { useAuth } from "@/lib/auth/auth-context";
+import MerchandiseDetailModal from "@/components/MerchandiseDetailModal";
 
 type MerchandiseCatalogProps = {
   products: Product[];
 };
 
 function MerchandiseCatalogInner({ products }: MerchandiseCatalogProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { isAuthenticated } = useAuth();
-
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isOrderOpen, setIsOrderOpen] = useState(false);
 
-  // Auto-resume order when returning from auth redirect
-  useEffect(() => {
-    const action = searchParams.get("action");
-    const productId = searchParams.get("productId");
-
-    if (action === "order" && productId && isAuthenticated && products.length > 0) {
-      const match = products.find((p) => String(p.id) === String(productId));
-      if (match) {
-        setSelectedProduct(match);
-        setIsOrderOpen(true);
-      }
-    }
-  }, [searchParams, isAuthenticated, products]);
-
-  const handleOpenOrder = (product: Product) => {
-    if (!isAuthenticated) {
-      const currentPath = typeof window !== "undefined" ? window.location.pathname : "/merchandise";
-      const redirectUrl = `/login?redirect=${encodeURIComponent(currentPath)}&action=order&productId=${encodeURIComponent(product.id)}`;
-      router.push(redirectUrl);
-      return;
-    }
-
+  const handleOpenDetail = (product: Product) => {
     setSelectedProduct(product);
-    setIsOrderOpen(true);
   };
 
-  const handleCloseOrder = () => {
-    setIsOrderOpen(false);
+  const handleCloseDetail = () => {
     setSelectedProduct(null);
   };
 
@@ -68,7 +38,7 @@ function MerchandiseCatalogInner({ products }: MerchandiseCatalogProps) {
           Merchandise Segera Hadir
         </h2>
         <p className="text-white/80 font-medium text-base max-w-md leading-relaxed">
-          Koleksi resmi Pixel To Reality sedang dipersiapkan. Pantau informasi terbaru melalui admin atau kunjungi booth pameran!
+          Koleksi resmi Pixel To Reality sedang dipersiapkan. Pantau informasi terbaru melalui admin atau kunjungi booth panitia pameran!
         </p>
       </section>
     );
@@ -81,17 +51,17 @@ function MerchandiseCatalogInner({ products }: MerchandiseCatalogProps) {
           <MerchandiseCard
             key={product.id}
             product={product}
-            onClick={() => handleOpenOrder(product)}
+            onClick={() => handleOpenDetail(product)}
             containerClassName="col-span-1"
             imageBoxClassName="aspect-square"
           />
         ))}
       </div>
 
-      {isOrderOpen && (
-        <OrderModal
+      {selectedProduct && (
+        <MerchandiseDetailModal
           product={selectedProduct}
-          onClose={handleCloseOrder}
+          onClose={handleCloseDetail}
         />
       )}
     </section>

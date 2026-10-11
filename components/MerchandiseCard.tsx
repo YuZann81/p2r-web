@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Product } from '@/lib/api/types/product';
+import { getProviderLabel } from '@/lib/api/products';
 
 const tilePattern = [
   "0000000000000000",
@@ -139,8 +140,16 @@ export default function MerchandiseCard({
   containerClassName = "",
   imageBoxClassName = "aspect-square"
 }: MerchandiseCardProps) {
+  const providerLabel =
+    typeof getProviderLabel === "function"
+      ? getProviderLabel(product)
+      : product.source_type === "game" && product.game?.title
+        ? `Made by ${product.game.title}`
+        : "Made by Committee";
+  const coinPrice = product.coin_price ?? product.price ?? 0;
+
   return (
-    <div className={`flex flex-col items-center gap-4 ${containerClassName}`}>
+    <div className={`flex flex-col items-center gap-3 ${containerClassName}`}>
       <button
         type="button"
         onClick={onClick}
@@ -164,17 +173,32 @@ export default function MerchandiseCard({
             </span>
           </div>
         )}
+
+        {/* Floating Provider Badge */}
+        <span className="absolute top-2 left-2 bg-black/70 backdrop-blur-xs text-arcade-yellow font-display text-[10px] sm:text-xs px-2.5 py-1 rounded-full uppercase tracking-wider border border-arcade-yellow/40">
+          {providerLabel}
+        </span>
       </button>
+
+      {/* Info Name & Price */}
+      <div className="text-center space-y-0.5">
+        <h3 className="font-display text-lg text-white font-bold leading-tight">
+          {product.name}
+        </h3>
+        <p className="font-display text-sm text-arcade-yellow font-bold">
+          {coinPrice.toLocaleString("id-ID")} P2R COIN
+        </p>
+      </div>
 
       <div style={{ filter: "drop-shadow(0px 5px 0px var(--arcade-yellow-shadow))" }}>
         <button
           type="button"
           onClick={onClick}
           aria-label={`Pesan ${product.name} Sekarang`}
-          className="bg-arcade-yellow text-arcade-ink font-display font-bold text-xl px-12 py-2 active:translate-y-1 transition-transform outline-none hover:bg-[#ffe100] cursor-pointer focus-visible:ring-4 focus-visible:ring-white"
+          className="bg-arcade-yellow text-arcade-ink font-display font-bold text-base sm:text-lg px-8 py-2 active:translate-y-1 transition-transform outline-none hover:bg-[#ffe100] cursor-pointer focus-visible:ring-4 focus-visible:ring-white"
           style={{ clipPath: pixelClipPath }}
         >
-          Order Now!
+          Lihat Detail →
         </button>
       </div>
     </div>

@@ -35,6 +35,8 @@ const mockProducts: Product[] = [
     slug: "cyber-t-shirt",
     description: "Official cyberpunk t-shirt.",
     price: 85000,
+    coin_price: 45,
+    source_type: "organizer",
     image_url: "https://example.com/tshirt.png",
   },
   {
@@ -43,6 +45,8 @@ const mockProducts: Product[] = [
     slug: "pixel-lanyard",
     description: "Retro pixel arcade lanyard.",
     price: 25000,
+    coin_price: 30,
+    source_type: "organizer",
     image_url: null,
   },
 ]
@@ -60,8 +64,9 @@ describe("MerchandisePage (/merchandise)", () => {
       forward: jest.fn(),
       refresh: jest.fn(),
       prefetch: jest.fn(),
+      bfcacheId: '',
     })
-    mockedUseSearchParams.mockReturnValue(new URLSearchParams() as any)
+    mockedUseSearchParams.mockReturnValue(new URLSearchParams() as unknown as ReturnType<typeof useSearchParams>)
     mockedUseAuth.mockReturnValue({
       user: { id: 1, name: "Player One", email: "player@test.com" },
       token: "valid-token",
@@ -123,7 +128,7 @@ describe("MerchandisePage (/merchandise)", () => {
     expect(
       screen.getByAltText("Cyber T-Shirt merchandise"),
     ).toBeInTheDocument()
-    expect(screen.getByText("Pixel Lanyard")).toBeInTheDocument()
+    expect(screen.getAllByText("Pixel Lanyard").length).toBeGreaterThan(0)
     expect(
       screen.getByRole("button", { name: "Pesan Cyber T-Shirt" }),
     ).toBeInTheDocument()
@@ -140,28 +145,28 @@ describe("MerchandisePage (/merchandise)", () => {
     ).toBeInTheDocument()
   })
 
-  it("opens Order modal with the selected product when authenticated user clicks order button", async () => {
+  it("opens Merchandise detail modal with the selected product when user clicks detail button", async () => {
     mockedFetchProducts.mockResolvedValueOnce(mockProducts)
     const user = userEvent.setup()
 
     const Component = await MerchandisePage()
     render(Component)
 
-    const orderButton = screen.getByRole("button", {
+    const detailButton = screen.getByRole("button", {
       name: "Pesan Cyber T-Shirt",
     })
-    await user.click(orderButton)
+    await user.click(detailButton)
 
     expect(
       screen.getByRole("heading", { level: 2, name: "Cyber T-Shirt" }),
     ).toBeInTheDocument()
-    expect(screen.getByText("Price : Rp 85.000")).toBeInTheDocument()
     expect(
       screen.getByText("Official cyberpunk t-shirt."),
     ).toBeInTheDocument()
+    expect(screen.getByText("★ Made by Committee")).toBeInTheDocument()
   })
 
-  it("redirects guest to login with redirect param when order button is clicked", async () => {
+  it("allows guests to view merchandise details without redirecting to login", async () => {
     mockedUseAuth.mockReturnValueOnce({
       user: null,
       token: null,
@@ -178,16 +183,14 @@ describe("MerchandisePage (/merchandise)", () => {
     const Component = await MerchandisePage()
     render(Component)
 
-    const orderButton = screen.getByRole("button", {
+    const detailButton = screen.getByRole("button", {
       name: "Pesan Cyber T-Shirt",
     })
-    await user.click(orderButton)
+    await user.click(detailButton)
 
-    expect(mockPush).toHaveBeenCalledWith(
-      expect.stringContaining("/login?redirect="),
-    )
-    expect(mockPush).toHaveBeenCalledWith(
-      expect.stringContaining("productId=prod-1"),
-    )
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Cyber T-Shirt" }),
+    ).toBeInTheDocument()
+    expect(mockPush).not.toHaveBeenCalled()
   })
 })

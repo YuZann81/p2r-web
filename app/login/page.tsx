@@ -71,13 +71,6 @@ function LoginForm() {
     }
   };
 
-  const registerQuery = new URLSearchParams();
-  if (redirectUrl !== "/") registerQuery.set("redirect", redirectUrl);
-  if (action) registerQuery.set("action", action);
-  if (productId) registerQuery.set("productId", productId);
-  if (slug) registerQuery.set("slug", slug);
-  const registerHref = `/register${registerQuery.toString() ? `?${registerQuery.toString()}` : ""}`;
-
   return (
     <div className="w-full max-w-md rounded-3xl border border-white/20 bg-black/40 p-8 shadow-2xl backdrop-blur-md sm:p-10">
       <div className="mb-8 text-center">
@@ -85,7 +78,7 @@ function LoginForm() {
           {action === "vote"
             ? "Otentikasi Voting Karya"
             : action === "order"
-              ? "Otentikasi Pemesanan"
+              ? "Otentikasi Penukaran Merchandise"
               : "Cyber Arcade Access"}
         </span>
         <h1 className="mt-3 font-display text-3xl text-arcade-yellow [text-shadow:2px_2px_0_var(--arcade-ink)] sm:text-4xl">
@@ -95,8 +88,8 @@ function LoginForm() {
           {action === "vote"
             ? "Masuk untuk memberikan vote pada karya inovasi favoritmu."
             : action === "order"
-              ? "Masuk untuk melanjutkan pemesanan merchandise pilihanmu."
-              : "Masuk untuk mengakses fitur voting dan pemesanan merchandise."}
+              ? "Masuk untuk menukarkan merchandise pilihanmu di booth panitia."
+              : "Masuk untuk mengakses fitur voting karya dan penukaran merchandise."}
         </p>
       </div>
 
@@ -162,10 +155,10 @@ function LoginForm() {
       <div className="mt-8 text-center text-xs font-semibold text-white/70 sm:text-sm">
         Belum punya akun?{" "}
         <Link
-          href={registerHref}
+          href="/register"
           className="font-display tracking-wider text-arcade-yellow underline transition-opacity hover:opacity-80"
         >
-          Daftar Sekarang
+          Daftarkan diri ke Panitia
         </Link>
       </div>
     </div>

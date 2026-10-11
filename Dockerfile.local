@@ -1,0 +1,54 @@
+# Local development image.
+#
+# p2r-web does NOT set output: 'standalone' in next.config.mjs (only p2r-panel
+# does), and next.config.mjs must not be changed just to suit a local image.
+# This image therefore runs the ordinary `next start` server against a
+# production dependency install.
+#
+# NEXT_PUBLIC_* values are inlined at BUILD time by Next.js, so they arrive as
+# build args rather than runtime environment variables.
+FROM node:22-alpine AS deps
+WORKDIR /app
+# pnpm aborts with ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY when it wants to
+# reconcile an existing modules directory without a TTY. CI=true makes that
+# reconciliation non-interactive.
+ENV CI=true
+# pnpm-workspace.yaml carries the allowBuilds allowlist. Without it pnpm 11
+# aborts the install with ERR_PNPM_IGNORED_BUILDS.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN corepack enable && pnpm install --frozen-lockfile
+
+FROM node:22-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+ARG NEXT_PUBLIC_P2R_API_BASE_URL
+ARG NEXT_PUBLIC_P2R_PANEL_URL
+ENV NEXT_PUBLIC_P2R_API_BASE_URL=$NEXT_PUBLIC_P2R_API_BASE_URL
+ENV NEXT_PUBLIC_P2R_PANEL_URL=$NEXT_PUBLIC_P2R_PANEL_URL
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN corepack enable && pnpm build
+
+FROM node:22-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
+
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+# Reuse the dependency tree from the builder rather than running a second
+# install: `pnpm install --prod --frozen-lockfile` fails against this lockfile.
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/next.config.mjs ./next.config.mjs
+
+USER nextjs
+EXPOSE 3000
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+CMD ["npx", "next", "start", "-H", "0.0.0.0", "-p", "3000"]

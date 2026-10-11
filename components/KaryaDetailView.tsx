@@ -36,6 +36,12 @@ const CATEGORY_LABELS: Record<string, string> = {
   digital_art: "Digital Art",
 };
 
+function isValidRuntimeUrl(url: string | null | undefined): boolean {
+  if (!url || typeof url !== "string") return false;
+  const trimmed = url.trim();
+  return trimmed.startsWith("http://") || trimmed.startsWith("https://");
+}
+
 export default function KaryaDetailView({
   karya,
   backHref,
@@ -152,16 +158,31 @@ export default function KaryaDetailView({
 
               {/* Action Buttons */}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                {karya.live_url && (
+                {karya.category === "game" ? (
+                  isValidRuntimeUrl(karya.live_url) ? (
+                    <a
+                      href={karya.live_url!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center bg-arcade-yellow px-6 py-3 text-center font-display text-base font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
+                    >
+                      Mainkan / Buka Live Demo →
+                    </a>
+                  ) : (
+                    <div className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-black/40 px-6 py-3 font-display text-sm text-white/50">
+                      Runtime Game Belum Tersedia
+                    </div>
+                  )
+                ) : karya.live_url ? (
                   <a
                     href={karya.live_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center bg-arcade-yellow px-6 py-3 text-center font-display text-base font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
                   >
-                    Mainkan / Buka Live Demo →
+                    Buka Live Demo →
                   </a>
-                )}
+                ) : null}
 
                 {karya.repo_url && (
                   <a

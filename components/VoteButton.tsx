@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { voteKarya, unvoteKarya } from "@/lib/api/karya";
@@ -35,23 +35,7 @@ export default function VoteButton({
     message: string;
   } | null>(null);
 
-  // Auto-resume vote intent after authentication redirect
-  useEffect(() => {
-    const action = searchParams?.get ? searchParams.get("action") : null;
-    const targetSlug = searchParams?.get ? searchParams.get("slug") : null;
-
-    if (
-      action === "vote" &&
-      targetSlug === slug &&
-      isAuthenticated &&
-      !isVoted &&
-      !isLoading
-    ) {
-      handleVote();
-    }
-  }, [searchParams, isAuthenticated, slug]);
-
-  const handleVote = async () => {
+  const handleVote = useCallback(async () => {
     if (!isAuthenticated) {
       const currentPath =
         typeof window !== "undefined" ? window.location.pathname : `/karya/${slug}`;
@@ -80,7 +64,7 @@ export default function VoteButton({
             type: "success",
             message: "⭐ Vote kamu berhasil dicatat! Terima kasih telah mendukung karya ini.",
           });
-        } catch (err) {
+        } catch {
           // If already voted on backend or duplicate
           setIsVoted(true);
           setFeedback({
@@ -110,7 +94,27 @@ export default function VoteButton({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isAuthenticated, isLoading, isVoted, router, slug, token, votesCount]);
+
+  // Auto-resume vote intent after authentication redirect. The resume must run
+  // as a side effect of the redirect landing on this page, so the resulting
+  // state updates are intentionally driven from this effect.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    const action = searchParams?.get ? searchParams.get("action") : null;
+    const targetSlug = searchParams?.get ? searchParams.get("slug") : null;
+
+    if (
+      action === "vote" &&
+      targetSlug === slug &&
+      isAuthenticated &&
+      !isVoted &&
+      !isLoading
+    ) {
+      handleVote();
+    }
+  }, [searchParams, isAuthenticated, slug, handleVote, isLoading, isVoted]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return (
     <div className={`flex flex-col gap-2 ${className}`}>

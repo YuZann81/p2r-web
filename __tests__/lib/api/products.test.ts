@@ -17,14 +17,15 @@ describe("fetchProducts", () => {
     jest.restoreAllMocks()
   })
 
-  it("calls apiGet with /products endpoint and returns product list", async () => {
+  it("calls apiGet with /merchandises endpoint and returns product list", async () => {
     const mockProducts = [
       {
         id: "prod-1",
         name: "Cyber T-Shirt",
         slug: "cyber-t-shirt",
         description: "Official arcade t-shirt",
-        price: 85000,
+        coin_price: 85000,
+        source_type: "organizer",
         image_url: "https://example.com/shirt.png",
       },
     ]
@@ -37,8 +38,10 @@ describe("fetchProducts", () => {
 
     const result = await fetchProducts()
 
-    expect(mockedApiGet).toHaveBeenCalledWith("/products")
-    expect(result).toEqual(mockProducts)
+    expect(mockedApiGet).toHaveBeenCalledWith("/merchandises")
+    expect(result[0]?.name).toBe("Cyber T-Shirt")
+    expect(result[0]?.coin_price).toBe(85000)
+    expect(result[0]?.source_type).toBe("organizer")
   })
 
   it("returns empty array when API throws an error", async () => {
@@ -46,7 +49,7 @@ describe("fetchProducts", () => {
 
     const result = await fetchProducts()
 
-    expect(mockedApiGet).toHaveBeenCalledWith("/products")
+    expect(mockedApiGet).toHaveBeenCalledWith("/merchandises")
     expect(result).toEqual([])
   })
 

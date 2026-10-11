@@ -6,11 +6,9 @@ import ArcadeLogo from "@/components/ArcadeLogo";
 import NavLink from "@/components/NavLink";
 import { NAV_LINKS } from "@/lib/content";
 import { useAuth } from "@/lib/auth/auth-context";
-import { useCart } from "@/lib/cart/cart-context";
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
-  const { totalItems } = useCart();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Close mobile drawer when pressing Escape
@@ -51,35 +49,8 @@ export default function Navbar() {
           ))}
         </ul>
 
-        {/* Right: Actions (Cart, Auth, Mobile Hamburger) */}
+        {/* Right: Actions (Auth, Mobile Hamburger) */}
         <div className="flex items-center gap-3 sm:gap-4">
-          {/* Cart Icon & Live Badge */}
-          <Link
-            href="/checkout"
-            aria-label={`Keranjang Belanja (${totalItems} item)`}
-            className="relative flex items-center justify-center rounded-xl border border-white/20 bg-black/40 p-2.5 text-white transition-colors hover:border-arcade-yellow hover:text-arcade-yellow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-              />
-            </svg>
-            {totalItems > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-arcade-yellow font-display text-xs font-bold text-arcade-ink shadow-sm animate-pulse">
-                {totalItems}
-              </span>
-            )}
-          </Link>
-
           {/* Desktop Auth State */}
           <div className="hidden sm:flex sm:items-center sm:gap-3">
             {isAuthenticated ? (
