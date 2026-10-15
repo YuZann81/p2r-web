@@ -25,12 +25,12 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      # Matches the version pinned in package.json `packageManager`
-      # (pnpm@11.21.0). The lockfile is lockfileVersion 9.0.
+      # No `version:` input on purpose. package.json's `packageManager` field
+      # (pnpm@11.21.0+sha512...) is the single source of truth for the pnpm
+      # version. Declaring the version here as well makes action-setup fail the
+      # job with "Multiple versions of pnpm specified".
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 11.21.0
 
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
