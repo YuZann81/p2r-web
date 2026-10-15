@@ -1,0 +1,56 @@
+name: CI - p2r-web
+
+# Continuous integration only. This repository previously had no workflow at
+# all, so nothing gated a change to it before it reached a release.
+on:
+  pull_request:
+    branches: [ develop ]
+  push:
+    branches: [ develop ]
+
+concurrency:
+  group: p2r-web-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: Lint, Test & Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      # Matches the version pinned in package.json `packageManager`
+      # (pnpm@11.21.0). The lockfile is lockfileVersion 9.0.
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.21.0
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Linter (ESLint)
+        run: pnpm lint
+
+      - name: Run Test Suite (Jest)
+        run: pnpm test
+
+      # NEXT_PUBLIC_* values are inlined into the client bundle at build time and
+      # are therefore public. This build runs with no server-side secret present.
+      - name: Build Next.js Application
+        env:
+          NEXT_PUBLIC_P2R_API_BASE_URL: ${{ vars.NEXT_PUBLIC_P2R_API_BASE_URL || 'http://127.0.0.1:8090/p2r/v1' }}
+          NEXT_PUBLIC_P2R_PANEL_URL: ${{ vars.NEXT_PUBLIC_P2R_PANEL_URL || 'http://127.0.0.1:3001' }}
+        run: pnpm build
