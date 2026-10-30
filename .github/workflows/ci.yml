@@ -52,12 +52,40 @@ jobs:
         run: pnpm test
 
       # NEXT_PUBLIC_* values are inlined into the client bundle at build time and
-      # are therefore public. This build must exercise the same production
-      # values as deploy.yml so CI catches a broken public origin before a
-      # release does. There is no loopback fallback: a browser cannot resolve
-      # one, and the approved origin is the only public target.
+      # are therefore public. PRs targeting main exercise the approved production
+      # origin; PRs targeting develop leave NEXT_PUBLIC_* unset because staging
+      # has no public hostname yet (avoiding both production leakage and browser
+      # loopback misrouting).
       - name: Build Next.js Application
         env:
-          NEXT_PUBLIC_P2R_API_BASE_URL: https://pameran.devsaka.id/api
-          NEXT_PUBLIC_P2R_PANEL_URL: https://pameran.devsaka.id/panel
+          NEXT_PUBLIC_P2R_API_BASE_URL: ${{ github.base_ref == 'main' && 'https://pameran.devsaka.id/api' || '' }}
+          NEXT_PUBLIC_P2R_PANEL_URL: ${{ github.base_ref == 'main' && 'https://pameran.devsaka.id/panel' || '' }}
         run: pnpm build
+
+      - name: Verify Standalone Runtime Artifact
+        run: bash scripts/package-standalone.sh p2r-web
+
+      - name: Verify Browser Bundle and Environment Isolation
+        env:
+          NEXT_PUBLIC_P2R_API_BASE_URL: ${{ github.base_ref == 'main' && 'https://pameran.devsaka.id/api' || '' }}
+          NEXT_PUBLIC_P2R_PANEL_URL: ${{ github.base_ref == 'main' && 'https://pameran.devsaka.id/panel' || '' }}
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_BASE_REF:-}" = "main" ]; then
+            test -n "$NEXT_PUBLIC_P2R_API_BASE_URL"
+            test -n "$NEXT_PUBLIC_P2R_PANEL_URL"
+            grep -rqF "$NEXT_PUBLIC_P2R_API_BASE_URL" .next/standalone/.next/static
+            if grep -rqF "127.0.0.1" .next/standalone/.next/static; then
+              echo "::error::A loopback address was inlined into the production browser bundle."
+              exit 1
+            fi
+          else
+            if grep -rqF "pameran.devsaka.id" .next/standalone; then
+              echo "::error::Production hostname pameran.devsaka.id leaked into the staging artifact."
+              exit 1
+            fi
+            if grep -rqF "127.0.0.1" .next/standalone/.next/static; then
+              echo "::error::A loopback address was inlined into the staging browser bundle."
+              exit 1
+            fi
+          fi

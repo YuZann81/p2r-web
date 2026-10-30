@@ -4,7 +4,7 @@
 // Distinct from every other process on the host:
 //   * name  -> p2r-web-staging (never reloads p2r-web, p2r-api-staging or
 //              p2r-panel-staging)
-//   * port  -> 127.0.0.1:3005 (staging only, loopback only; 3003 is the Panel)
+//   * port  -> 127.0.0.1:3004 (staging only, loopback only; 3003 is the Panel)
 //   * node  -> pinned upstream v24 runtime under shared/web/runtime
 //   * root  -> /var/www/staging/pixel2reality
 //   * logs  -> staging logs dir
@@ -42,7 +42,7 @@ module.exports = {
         // Loopback only: no public staging routing exists yet, and Caddy is not
         // touched in this phase.
         HOSTNAME: "127.0.0.1",
-        PORT: "3005",
+        PORT: "3004",
         // Staging API on the same host. The /p2r/v1 prefix is part of the API
         // contract and is appended by the application, not by a proxy.
         P2R_API_BASE_URL: "http://127.0.0.1:8091/p2r/v1",

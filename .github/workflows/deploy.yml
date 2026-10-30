@@ -20,7 +20,7 @@
 #   push develop -> ci -> Deploy to Staging      (staging root, p2r-web-staging)
 #   pull request -> ci.yml only, never this file
 #
-# Staging is loopback-only (127.0.0.1:3005) with its own Node 24 runtime under
+# Staging is loopback-only (127.0.0.1:3004) with its own Node 24 runtime under
 # shared/web/runtime and its own PM2 identity. Nothing in this file may touch
 # /var/www/production from the staging job.
 #
@@ -47,13 +47,11 @@
 #
 # BUILD-TIME PUBLIC VALUES
 #   NEXT_PUBLIC_* is inlined into the browser bundle at build time and is
-#   PUBLIC by definition. `main` builds the approved production endpoints
-#   below; `develop` builds the staging origin, because staging is loopback-only
-#   and a staging artifact must never carry a production API origin. They are
-#   literal rather than a fallback chain, so a stale repository variable cannot
-#   silently reintroduce a retired host. The `Verify Browser Bundle` step fails
-#   the build if the expected public API URL is missing, or if a loopback
-#   address leaks into a production bundle.
+#   PUBLIC by definition. `main` builds the approved production endpoints;
+#   `develop` leaves NEXT_PUBLIC_* unset because staging has no public routing
+#   yet — inlining `127.0.0.1` into browser code would address the visitor's own
+#   device, and inlining `pameran.devsaka.id` would point staging at production.
+#   Bundle verification enforces both invariants before upload.
 #
 # RUNTIME SERVER-SIDE VALUE
 #   P2R_API_BASE_URL is deliberately NOT set here. It is a runtime, server-only
@@ -141,57 +139,41 @@ jobs:
 
       - name: Build Next.js Standalone
         env:
-          # Branch-dependent on purpose: these two values are inlined into the
-          # browser bundle and must describe the origin this artifact is
-          # deployed to. Production values on main, staging loopback on develop.
-          NEXT_PUBLIC_P2R_API_BASE_URL: ${{ github.ref == 'refs/heads/main' && 'https://pameran.devsaka.id/api' || 'http://127.0.0.1:8091/p2r/v1' }}
-          NEXT_PUBLIC_P2R_PANEL_URL: ${{ github.ref == 'refs/heads/main' && 'https://pameran.devsaka.id/panel' || 'http://127.0.0.1:3003/panel' }}
+          # Branch-dependent on purpose: production origin on main, unset on
+          # develop (no public staging hostname exists yet; server-side API
+          # requests resolve P2R_API_BASE_URL at runtime via PM2).
+          NEXT_PUBLIC_P2R_API_BASE_URL: ${{ github.ref == 'refs/heads/main' && 'https://pameran.devsaka.id/api' || '' }}
+          NEXT_PUBLIC_P2R_PANEL_URL: ${{ github.ref == 'refs/heads/main' && 'https://pameran.devsaka.id/panel' || '' }}
         run: pnpm build
-
-      # Verification of the generated artifact, not just the source config.
-      # A browser cannot resolve a loopback or container address, and a build
-      # that silently lost its public API origin would only fail at request
-      # time in a visitor's browser.
-      - name: Verify Browser Bundle
-        env:
-          NEXT_PUBLIC_P2R_API_BASE_URL: ${{ github.ref == 'refs/heads/main' && 'https://pameran.devsaka.id/api' || 'http://127.0.0.1:8091/p2r/v1' }}
-          NEXT_PUBLIC_P2R_PANEL_URL: ${{ github.ref == 'refs/heads/main' && 'https://pameran.devsaka.id/panel' || 'http://127.0.0.1:3003/panel' }}
-        run: |
-          test -n "$NEXT_PUBLIC_P2R_API_BASE_URL"
-          test -n "$NEXT_PUBLIC_P2R_PANEL_URL"
-          grep -rqF "$NEXT_PUBLIC_P2R_API_BASE_URL" .next/static
-          # A production bundle must contain no loopback address at all. The
-          # staging bundle deliberately does: staging has no public routing and
-          # is served on loopback only.
-          if [ "$GITHUB_REF" = "refs/heads/main" ] && grep -rqF "127.0.0.1" .next/static; then
-            echo "::error::A loopback address was inlined into the browser bundle."
-            exit 1
-          fi
 
       - name: Assemble Standalone Runtime Artifact
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+        run: bash scripts/package-standalone.sh p2r-web
+
+      - name: Verify Browser Bundle and Environment Isolation
+        env:
+          NEXT_PUBLIC_P2R_API_BASE_URL: ${{ github.ref == 'refs/heads/main' && 'https://pameran.devsaka.id/api' || '' }}
+          NEXT_PUBLIC_P2R_PANEL_URL: ${{ github.ref == 'refs/heads/main' && 'https://pameran.devsaka.id/panel' || '' }}
         run: |
           set -euo pipefail
-          S=.next/standalone
-          test -f "$S/server.js"
-          test -f "$S/package.json"
-          test -f .next/BUILD_ID
-          mkdir -p "$S/.next"
-          cp -r .next/static "$S/.next/"
-          cp -r public "$S/"
-          # Structural verification of the exact tree that is about to be
-          # archived, so a layout change fails here instead of on the server.
-          for required in server.js package.json .next/BUILD_ID .next/static public; do
-            test -e "$S/$required" || { echo "::error::artifact is missing $required"; exit 1; }
-          done
-          mkdir -p dist
-          tar -czf dist/p2r-web-${{ github.sha }}.tar.gz -C "$S" .
-          # The gate refuses to activate an artifact whose bytes were never
-          # checksummed. The digest is computed from the exact archive just
-          # produced, written as a sidecar, and transferred alongside it.
-          cd dist
-          sha256sum "p2r-web-${{ github.sha }}.tar.gz" > "p2r-web-${{ github.sha }}.tar.gz.sha256"
-          cat "p2r-web-${{ github.sha }}.tar.gz.sha256"
+          if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            test -n "$NEXT_PUBLIC_P2R_API_BASE_URL"
+            test -n "$NEXT_PUBLIC_P2R_PANEL_URL"
+            grep -rqF "$NEXT_PUBLIC_P2R_API_BASE_URL" .next/standalone/.next/static
+            if grep -rqF "127.0.0.1" .next/standalone/.next/static; then
+              echo "::error::A loopback address was inlined into the browser bundle."
+              exit 1
+            fi
+          else
+            if grep -rqF "pameran.devsaka.id" .next/standalone; then
+              echo "::error::Production hostname pameran.devsaka.id leaked into the staging artifact."
+              exit 1
+            fi
+            if grep -rqF "127.0.0.1" .next/standalone/.next/static; then
+              echo "::error::A loopback address was inlined into the staging browser bundle."
+              exit 1
+            fi
+          fi
 
       - name: Upload Artifact
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
@@ -292,13 +274,25 @@ jobs:
             exit 1
           fi
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           # Fail fast and legibly if the stored secret is not a usable OpenSSH
-          # private key, and prove which key it is without ever printing it:
-          # a public fingerprint is not secret.
-          ssh-keygen -y -f ~/.ssh/deploy_key > ~/.ssh/deploy_key.pub 2>/dev/null \
-            || { echo "::error::STAGING_DEPLOY_SSH_PRIVATE_KEY is not a valid OpenSSH private key."; exit 1; }
+          # private key. Only structural flags and OpenSSH's static error string
+          # are reported — key material is never printed.
+          if ! keygen_err="$(ssh-keygen -y -P "" -f ~/.ssh/deploy_key > ~/.ssh/deploy_key.pub 2>&1)"; then
+            line_count="$(grep -cve '^[[:space:]]*$' ~/.ssh/deploy_key || true)"
+            has_openssh_begin="no"
+            has_openssh_end="no"
+            flattened_one_line="no"
+            is_public_key="no"
+            grep -q '^-----BEGIN OPENSSH PRIVATE KEY-----$' ~/.ssh/deploy_key && has_openssh_begin="yes"
+            grep -q '^-----END OPENSSH PRIVATE KEY-----$' ~/.ssh/deploy_key && has_openssh_end="yes"
+            grep -q '^-----BEGIN OPENSSH PRIVATE KEY----- .* -----END OPENSSH PRIVATE KEY-----$' ~/.ssh/deploy_key && flattened_one_line="yes"
+            grep -Eq '^(ssh-(ed25519|rsa)|ecdsa-sha2-)' ~/.ssh/deploy_key && is_public_key="yes"
+            reason="$(printf '%s\n' "$keygen_err" | sed -n 's/^Load key "[^"]*": //p' | head -n 1)"
+            echo "::error::STAGING_DEPLOY_SSH_PRIVATE_KEY is not a valid OpenSSH private key (reason=${reason:-unrecognized}, non_empty_lines=${line_count}, openssh_begin=${has_openssh_begin}, openssh_end=${has_openssh_end}, flattened_one_line=${flattened_one_line}, looks_like_public_key=${is_public_key})."
+            exit 1
+          fi
           echo "staging deploy key fingerprint: $(ssh-keygen -lf ~/.ssh/deploy_key.pub | awk '{print $2}')"
           # Same verified Sumapod host key the Panel staging job pins
           # (SHA256:f6llydG9A3LTYEaTEGjbThiGfjSd+M9W5O6ZQlsu7ME), for this alias

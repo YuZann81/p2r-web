@@ -21,7 +21,7 @@ readonly STAGING_ROOT=/var/www/staging/pixel2reality
 readonly PRODUCTION_ROOT=/var/www/production/pixel2reality
 readonly APP=web
 readonly PM2_NAME=p2r-web-staging
-readonly PORT=3005
+readonly PORT=3004
 readonly HEALTH_URL="http://127.0.0.1:${PORT}/"
 readonly RELEASES="$STAGING_ROOT/apps/$APP/releases"
 readonly CURRENT="$STAGING_ROOT/apps/$APP/current"
@@ -68,9 +68,10 @@ actual="$(sha256sum "$tarball" | awk '{print $1}')"
 log "checksum verified: $actual"
 
 # ------------------------------------------------------------------ port guard
-if ss -ltn 2>/dev/null | grep -q "127.0.0.1:${PORT}\b"; then
+if [[ -n "$(ss -ltnH "sport = :${PORT}" 2>/dev/null || true)" ]]; then
   owner_pid="$(pm2 pid "$PM2_NAME" 2>/dev/null | tr -d '[:space:]' || true)"
-  [[ -n "$owner_pid" ]] || fail "port ${PORT} is held by another listener — refusing to start"
+  [[ -n "$owner_pid" && "$owner_pid" != "0" ]] \
+    || fail "port ${PORT} is held by another listener — refusing to start"
   log "port ${PORT} is held by $PM2_NAME (pid $owner_pid)"
 fi
 
