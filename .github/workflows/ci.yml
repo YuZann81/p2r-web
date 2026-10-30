@@ -1,12 +1,11 @@
 name: CI - p2r-web
 
-# Continuous integration only. This repository previously had no workflow at
-# all, so nothing gated a change to it before it reached a release.
+# Pull requests only. A push to develop or main is validated by deploy.yml,
+# whose ci job runs the same gates before deploying, so listing pushes here
+# would run the whole pipeline twice for one commit.
 on:
   pull_request:
-    branches: [ develop ]
-  push:
-    branches: [ develop ]
+    branches: [ develop, main ]
 
 concurrency:
   group: p2r-web-ci-${{ github.ref }}
@@ -35,11 +34,16 @@ jobs:
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          # Single source of truth, shared with deploy.yml and the staging
+          # runtime installer.
+          node-version-file: .node-version
           cache: 'pnpm'
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Run TypeScript Typecheck
+        run: pnpm typecheck
 
       - name: Run Linter (ESLint)
         run: pnpm lint
@@ -48,9 +52,12 @@ jobs:
         run: pnpm test
 
       # NEXT_PUBLIC_* values are inlined into the client bundle at build time and
-      # are therefore public. This build runs with no server-side secret present.
+      # are therefore public. This build must exercise the same production
+      # values as deploy.yml so CI catches a broken public origin before a
+      # release does. There is no loopback fallback: a browser cannot resolve
+      # one, and the approved origin is the only public target.
       - name: Build Next.js Application
         env:
-          NEXT_PUBLIC_P2R_API_BASE_URL: ${{ vars.NEXT_PUBLIC_P2R_API_BASE_URL || 'http://127.0.0.1:8090/p2r/v1' }}
-          NEXT_PUBLIC_P2R_PANEL_URL: ${{ vars.NEXT_PUBLIC_P2R_PANEL_URL || 'http://127.0.0.1:3001' }}
+          NEXT_PUBLIC_P2R_API_BASE_URL: https://pameran.devsaka.id/api
+          NEXT_PUBLIC_P2R_PANEL_URL: https://pameran.devsaka.id/panel
         run: pnpm build

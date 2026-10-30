@@ -1,0 +1,335 @@
+# =============================================================================
+# CI/CD Pipeline - p2r-web
+#
+# Authoritative target architecture:
+#   Public web   : https://pameran.devsaka.id/
+#   Admin panel  : https://pameran.devsaka.id/panel
+#   Public API   : https://pameran.devsaka.id/api
+#                  (Caddy rewrites /api/* -> Laravel /p2r/v1/*)
+#
+# Production runtime: Caddy + PM2 + FrankenPHP. No Docker.
+# GitHub Actions builds the standalone artifact here and transfers only the
+# artifact; the Sumapod server runs it and never builds the application.
+#
+# One workflow, three jobs (ci, deploy to production, deploy-staging), matching
+# the proven p2r-panel shape: the same artifact shape, the same SHA-256 sidecar,
+# the same gate invocation. The artifact is built once per commit and reused by
+# whichever deploy job the branch qualifies for.
+#
+#   push main    -> ci -> Deploy to Production   (production root, p2r-web)
+#   push develop -> ci -> Deploy to Staging      (staging root, p2r-web-staging)
+#   pull request -> ci.yml only, never this file
+#
+# Staging is loopback-only (127.0.0.1:3005) with its own Node 24 runtime under
+# shared/web/runtime and its own PM2 identity. Nothing in this file may touch
+# /var/www/production from the staging job.
+#
+# DELIBERATE DIFFERENCES from p2r-panel, and why:
+#
+#   1. NO `workflow_dispatch`. It is self-service: whoever can dispatch ships.
+#      Panel retains it for emergency releases; for Web, a release must go
+#      through a merged, reviewed pull request like any other change.
+#
+#   2. NO `version:` input on pnpm/action-setup. p2r-web's package.json declares
+#      `packageManager`, which pnpm/action-setup treats as the single source of
+#      truth. Declaring `version:` as well fails the job with
+#      "Multiple versions of pnpm specified". ci.yml already works this way;
+#      this file must match it exactly.
+#
+#   3. The Jest suite runs here, not only in ci.yml. ci.yml triggers on
+#      `develop` and `main`; this workflow triggers on `main`. Without the test
+#      step a direct push to main would reach production with no tests run.
+#
+#   4. The expected SHA-256 is passed explicitly as the gate's 4th argument in
+#      addition to the sidecar. The sidecar travels through /tmp on the target
+#      host; the explicit digest comes from the CI-side artifact, so both would
+#      have to be tampered with for a bad archive to activate.
+#
+# BUILD-TIME PUBLIC VALUES
+#   NEXT_PUBLIC_* is inlined into the browser bundle at build time and is
+#   PUBLIC by definition. `main` builds the approved production endpoints
+#   below; `develop` builds the staging origin, because staging is loopback-only
+#   and a staging artifact must never carry a production API origin. They are
+#   literal rather than a fallback chain, so a stale repository variable cannot
+#   silently reintroduce a retired host. The `Verify Browser Bundle` step fails
+#   the build if the expected public API URL is missing, or if a loopback
+#   address leaks into a production bundle.
+#
+# RUNTIME SERVER-SIDE VALUE
+#   P2R_API_BASE_URL is deliberately NOT set here. It is a runtime, server-only
+#   variable read by lib/api/config.ts; setting it at build time would place an
+#   internal address where the browser bundle could see it. It belongs in the
+#   env block of the staging PM2 definition:
+#       P2R_API_BASE_URL=http://127.0.0.1:8091/p2r/v1
+#
+# NOT set here, deliberately:
+#   - No basePath. p2r-web is served from the origin root (`/`).
+#   - No Reverb variables. Reverb is retired; no P2R service references it.
+# =============================================================================
+name: CI/CD Pipeline - p2r-web
+
+on:
+  # `main` deploys production, `develop` deploys staging. Pull requests are
+  # handled by ci.yml only, so a PR never runs this pipeline.
+  push:
+    branches: [ main, develop ]
+
+# Least privilege. Checkout needs contents:read; upload/download-artifact use the
+# separate ACTIONS_RUNTIME_TOKEN and are unaffected by this scope.
+permissions:
+  contents: read
+
+concurrency:
+  group: p2r-web-${{ github.ref }}
+  cancel-in-progress: false
+
+# No workflow-level env: the public origins differ by branch, so they are set on
+# the two steps that must agree (build and bundle verification) and nowhere
+# else.
+
+jobs:
+  ci:
+    name: Test & Build Standalone Artifact
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      # No `version:` input. package.json `packageManager` is the single source
+      # of truth; adding one here fails the job. Must match ci.yml exactly.
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          # Same .node-version the staging runtime installer pins.
+          node-version-file: .node-version
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run TypeScript Typecheck
+        run: pnpm typecheck
+
+      - name: Run Linter (ESLint)
+        run: pnpm lint
+
+      - name: Run Test Suite (Jest)
+        run: pnpm test
+
+      # The production build prerenders pages that read the public API. If the
+      # API is down, Next.js can still finish the build with fallback pages, so
+      # a successful build does not prove the generated artifact is usable.
+      # Gate the main-branch build on the real API's health response; PR builds
+      # and the staging build stay independent (a GitHub runner cannot reach the
+      # staging loopback API, and the deploy job's health gate verifies it).
+      - name: Verify Production API Health
+        if: github.ref == 'refs/heads/main'
+        env:
+          NEXT_PUBLIC_P2R_API_BASE_URL: https://pameran.devsaka.id/api
+        run: |
+          set -euo pipefail
+          body="$(curl --fail --silent --show-error \
+            --retry 5 --retry-all-errors --retry-delay 3 --max-time 15 \
+            "$NEXT_PUBLIC_P2R_API_BASE_URL/health")"
+          printf '%s\n' "$body"
+          printf '%s' "$body" | grep -Eq '"status"[[:space:]]*:[[:space:]]*"ok"'
+          printf '%s' "$body" | grep -Eq '"database"[[:space:]]*:[[:space:]]*"connected"'
+
+      - name: Build Next.js Standalone
+        env:
+          # Branch-dependent on purpose: these two values are inlined into the
+          # browser bundle and must describe the origin this artifact is
+          # deployed to. Production values on main, staging loopback on develop.
+          NEXT_PUBLIC_P2R_API_BASE_URL: ${{ github.ref == 'refs/heads/main' && 'https://pameran.devsaka.id/api' || 'http://127.0.0.1:8091/p2r/v1' }}
+          NEXT_PUBLIC_P2R_PANEL_URL: ${{ github.ref == 'refs/heads/main' && 'https://pameran.devsaka.id/panel' || 'http://127.0.0.1:3003/panel' }}
+        run: pnpm build
+
+      # Verification of the generated artifact, not just the source config.
+      # A browser cannot resolve a loopback or container address, and a build
+      # that silently lost its public API origin would only fail at request
+      # time in a visitor's browser.
+      - name: Verify Browser Bundle
+        env:
+          NEXT_PUBLIC_P2R_API_BASE_URL: ${{ github.ref == 'refs/heads/main' && 'https://pameran.devsaka.id/api' || 'http://127.0.0.1:8091/p2r/v1' }}
+          NEXT_PUBLIC_P2R_PANEL_URL: ${{ github.ref == 'refs/heads/main' && 'https://pameran.devsaka.id/panel' || 'http://127.0.0.1:3003/panel' }}
+        run: |
+          test -n "$NEXT_PUBLIC_P2R_API_BASE_URL"
+          test -n "$NEXT_PUBLIC_P2R_PANEL_URL"
+          grep -rqF "$NEXT_PUBLIC_P2R_API_BASE_URL" .next/static
+          # A production bundle must contain no loopback address at all. The
+          # staging bundle deliberately does: staging has no public routing and
+          # is served on loopback only.
+          if [ "$GITHUB_REF" = "refs/heads/main" ] && grep -rqF "127.0.0.1" .next/static; then
+            echo "::error::A loopback address was inlined into the browser bundle."
+            exit 1
+          fi
+
+      - name: Assemble Standalone Runtime Artifact
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+        run: |
+          set -euo pipefail
+          S=.next/standalone
+          test -f "$S/server.js"
+          test -f "$S/package.json"
+          test -f .next/BUILD_ID
+          mkdir -p "$S/.next"
+          cp -r .next/static "$S/.next/"
+          cp -r public "$S/"
+          # Structural verification of the exact tree that is about to be
+          # archived, so a layout change fails here instead of on the server.
+          for required in server.js package.json .next/BUILD_ID .next/static public; do
+            test -e "$S/$required" || { echo "::error::artifact is missing $required"; exit 1; }
+          done
+          mkdir -p dist
+          tar -czf dist/p2r-web-${{ github.sha }}.tar.gz -C "$S" .
+          # The gate refuses to activate an artifact whose bytes were never
+          # checksummed. The digest is computed from the exact archive just
+          # produced, written as a sidecar, and transferred alongside it.
+          cd dist
+          sha256sum "p2r-web-${{ github.sha }}.tar.gz" > "p2r-web-${{ github.sha }}.tar.gz.sha256"
+          cat "p2r-web-${{ github.sha }}.tar.gz.sha256"
+
+      - name: Upload Artifact
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+        uses: actions/upload-artifact@v4
+        with:
+          name: p2r-web-artifact
+          path: |
+            dist/p2r-web-${{ github.sha }}.tar.gz
+            dist/p2r-web-${{ github.sha }}.tar.gz.sha256
+          retention-days: 3
+
+  deploy:
+    name: Deploy to Production
+    needs: [ ci ]
+    if: github.ref == 'refs/heads/main' && !failure() && !cancelled()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Built Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: p2r-web-artifact
+          path: dist
+
+      - name: Verify Downloaded Artifact
+        run: |
+          cd dist
+          # Fail here, in CI, before anything is sent to the server, if the
+          # downloaded bytes do not match the digest produced at build time.
+          sha256sum -c "p2r-web-${{ github.sha }}.tar.gz.sha256"
+
+      - name: Setup SSH Authentication
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          cat >> ~/.ssh/config <<EOF
+          Host production
+            HostName ${{ secrets.DEPLOY_HOST }}
+            Port ${{ secrets.DEPLOY_PORT || '9090' }}
+            User ${{ secrets.DEPLOY_USER || 'rpl' }}
+            IdentityFile ~/.ssh/deploy_key
+            StrictHostKeyChecking accept-new
+          EOF
+
+      - name: Transfer Artifact to Target Server
+        run: |
+          scp "dist/p2r-web-${{ github.sha }}.tar.gz" \
+              "dist/p2r-web-${{ github.sha }}.tar.gz.sha256" \
+              production:/tmp/
+
+      - name: Activate Release on Server
+        run: |
+          SHA=$(cut -d' ' -f1 "dist/p2r-web-${{ github.sha }}.tar.gz.sha256")
+          test -n "$SHA"
+          # Target is p2r-web and nothing else. The gate validates the app name
+          # against its registry and rejects anything that is not a member.
+          ssh production "/var/www/production/pixel2reality/scripts/deploy-release.sh activate p2r-web /tmp/p2r-web-${{ github.sha }}.tar.gz ${{ github.sha }} ${SHA}"
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: [ ci ]
+    if: github.ref == 'refs/heads/develop' && !failure() && !cancelled()
+    runs-on: ubuntu-latest
+    steps:
+      # The staging job runs files from this repository (the Node installer, the
+      # activation script and the PM2 definition); the downloaded artifact
+      # contains none of them.
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Download Built Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: p2r-web-artifact
+          path: dist
+
+      - name: Verify Downloaded Artifact
+        run: |
+          cd dist
+          # Fail here, in CI, before anything is sent to the server, if the
+          # downloaded bytes do not match the digest produced at build time.
+          sha256sum -c "p2r-web-${{ github.sha }}.tar.gz.sha256"
+
+      - name: Setup SSH Authentication
+        env:
+          # Dedicated staging credential: the production key is never used here
+          # and this key is not used for production.
+          SSH_PRIVATE_KEY: ${{ secrets.STAGING_DEPLOY_SSH_PRIVATE_KEY }}
+          DEPLOY_HOST: ${{ secrets.STAGING_DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.STAGING_DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.STAGING_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          if [ -z "$DEPLOY_HOST" ] || [ -z "$DEPLOY_PORT" ] || [ -z "$DEPLOY_USER" ] || [ -z "$SSH_PRIVATE_KEY" ]; then
+            echo "::error::Missing required staging secret: STAGING_DEPLOY_HOST, STAGING_DEPLOY_PORT, STAGING_DEPLOY_USER and STAGING_DEPLOY_SSH_PRIVATE_KEY must all be set."
+            exit 1
+          fi
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # Same verified Sumapod host key the Panel staging job pins
+          # (SHA256:f6llydG9A3LTYEaTEGjbThiGfjSd+M9W5O6ZQlsu7ME), for this alias
+          # only. An unknown host is refused, never trusted.
+          printf 'sumapod-staging ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILx66W50yrkys9CBwbTdKJq6QYkZGdFCq2a/Y5BuOM3i\n' > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          cat >> ~/.ssh/config <<EOF
+          Host sumapod-staging
+            HostName $DEPLOY_HOST
+            Port $DEPLOY_PORT
+            User $DEPLOY_USER
+            IdentityFile ~/.ssh/deploy_key
+            HostKeyAlias sumapod-staging
+            UserKnownHostsFile ~/.ssh/known_hosts
+            StrictHostKeyChecking=yes
+          EOF
+
+      - name: Install Staging Node Runtime
+        run: |
+          set -euo pipefail
+          # Idempotent and checksum-verified; installs Node 24.22.0 under
+          # shared/web/runtime without touching the host or Panel runtime.
+          ssh sumapod-staging "bash -s" < deploy/install-staging-runtime.sh
+
+      - name: Transfer Artifact and Staging Runtime Config
+        run: |
+          set -euo pipefail
+          scp "dist/p2r-web-${{ github.sha }}.tar.gz" sumapod-staging:/tmp/
+          # Versioned here, installed into the STAGING config dir only.
+          scp deploy/ecosystem.staging.config.js \
+              sumapod-staging:/var/www/staging/pixel2reality/config/ecosystem.web.config.js
+
+      - name: Activate Staging Release
+        run: |
+          set -euo pipefail
+          DIGEST="$(awk '{print $1}' "dist/p2r-web-${{ github.sha }}.tar.gz.sha256")"
+          test "${#DIGEST}" -eq 64
+          ssh sumapod-staging \
+            "P2R_ROOT=/var/www/staging/pixel2reality bash -s -- /tmp/p2r-web-${{ github.sha }}.tar.gz ${{ github.sha }} $DIGEST" \
+            < deploy/deploy-staging.sh
