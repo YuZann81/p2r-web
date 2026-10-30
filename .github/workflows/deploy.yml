@@ -294,6 +294,12 @@ jobs:
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+          # Fail fast and legibly if the stored secret is not a usable OpenSSH
+          # private key, and prove which key it is without ever printing it:
+          # a public fingerprint is not secret.
+          ssh-keygen -y -f ~/.ssh/deploy_key > ~/.ssh/deploy_key.pub 2>/dev/null \
+            || { echo "::error::STAGING_DEPLOY_SSH_PRIVATE_KEY is not a valid OpenSSH private key."; exit 1; }
+          echo "staging deploy key fingerprint: $(ssh-keygen -lf ~/.ssh/deploy_key.pub | awk '{print $2}')"
           # Same verified Sumapod host key the Panel staging job pins
           # (SHA256:f6llydG9A3LTYEaTEGjbThiGfjSd+M9W5O6ZQlsu7ME), for this alias
           # only. An unknown host is refused, never trusted.
