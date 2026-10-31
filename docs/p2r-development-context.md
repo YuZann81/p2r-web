@@ -79,7 +79,7 @@ Detail kondisi repositori `/home/zann/p2r-web` saat ini:
   │   └── utils.ts         # Utility class merging (clsx + tw-merge)
   └── public/              # Aset statis & logo investor (Agate, Aice, Indomie, Kabayan)
   ```
-- **API Client**: Terpusat di `lib/api/client.ts` (`apiGet<T>`) dengan caching `next: { revalidate: 60 }` dan konfigurasi environment `NEXT_PUBLIC_P2R_API_BASE_URL` di `lib/api/config.ts`.
+- **API Client**: Terpusat di `lib/api/client.ts` (`apiGet<T>`) dengan caching `next: { revalidate: 60 }`. `lib/api/config.ts` memisahkan konfigurasi browser (`NEXT_PUBLIC_P2R_API_BASE_URL`, build-time, publik) dari konfigurasi server (`P2R_API_BASE_URL`, runtime, internal).
 - **Testing**: Jest 30 + React Testing Library (`jest.config.ts`, `jest.setup.ts`). 6 dari 7 test suites lulus (36 passing assertions).
 
 ---
@@ -197,7 +197,7 @@ Modul logika yang sudah matang di [`p2r-testbed`](file:///home/zann/pixel2realit
 
 ## 9. Backend REST API Endpoints
 
-Backend `p2r-api` berjalan di `http://127.0.0.1:8090/p2r/v1` (atau tunnel `https://api.razzan.site/p2r/v1`). Seluruh response menggunakan envelope standar `{ success: boolean, message: string, data: T }`.
+Backend `p2r-api` berjalan di `http://127.0.0.1:8090/p2r/v1` (internal, server-side). Browser mengakses API publik melalui `https://pameran.devsaka.id/api`, yang di-reverse-proxy Caddy ke `/p2r/v1`. Seluruh response menggunakan envelope standar `{ success: boolean, message: string, data: T }`.
 
 ### Public Endpoints
 | Domain | Method & Path | Keterangan & Payload |
@@ -284,7 +284,7 @@ Setiap agent developer wajib mematuhi aturan kerja berikut:
 | **`p2r-testbed` sebagai Referensi Logika** | CONFIRMED | Menghindari duplikasi riset logika Cart, Chat, dan Feeds yang sudah berjalan di testbed. |
 | **Server Components + Static Fallbacks** | CONFIRMED | Data fetching server-side memberikan performa tinggi, sementara fallback data statis menjamin website tetap menyala saat koneksi backend pameran terputus. |
 | **One-Page Preview + Dedicated Sub-pages** | CONFIRMED | Homepage tetap ringan dan fokus pada storytelling, sedangkan katalog lengkap diakses melalui dedicated route. |
-| **Domain Base URL Environment** | CONFIRMED | Dikonfigurasi dinamis melalui `NEXT_PUBLIC_P2R_API_BASE_URL` (default: `https://api.razzan.site/p2r/v1`). |
+| **Domain Base URL Environment** | CONFIRMED | Origin resmi `https://pameran.devsaka.id`. Browser memakai `NEXT_PUBLIC_P2R_API_BASE_URL=https://pameran.devsaka.id/api` (build-time), server memakai `P2R_API_BASE_URL` runtime internal. Tidak ada fallback domain lama. |
 
 ---
 *Dokumen ini dibuat otomatis sebagai referensi pengembang. Perubahan pada aturan desain atau arsitektur harus diperbarui di dokumen ini.*

@@ -36,9 +36,11 @@ describe("LoginPage (/login)", () => {
       forward: jest.fn(),
       refresh: jest.fn(),
       prefetch: jest.fn(),
-      bfcacheId: '',
+      bfcacheId: "",
     });
-    mockedUseSearchParams.mockReturnValue(new URLSearchParams() as unknown as ReturnType<typeof useSearchParams>);
+    mockedUseSearchParams.mockReturnValue(
+      new URLSearchParams() as unknown as ReturnType<typeof useSearchParams>,
+    );
   });
 
   it("renders login form and links", () => {
@@ -64,7 +66,9 @@ describe("LoginPage (/login)", () => {
       action: "order",
       productId: "prod-1",
     });
-    mockedUseSearchParams.mockReturnValue(searchParams as unknown as ReturnType<typeof useSearchParams>);
+    mockedUseSearchParams.mockReturnValue(
+      searchParams as unknown as ReturnType<typeof useSearchParams>,
+    );
 
     mockedLoginUser.mockResolvedValueOnce({
       success: true,
@@ -97,6 +101,42 @@ describe("LoginPage (/login)", () => {
       expect(mockPush).toHaveBeenCalledWith(
         "/merchandise?action=order&productId=prod-1",
       );
+    });
+  });
+
+  it("blocks external or protocol-relative redirect URLs by falling back to '/'", async () => {
+    const searchParams = new URLSearchParams({
+      redirect: "//evil.example/phish",
+    });
+    mockedUseSearchParams.mockReturnValue(
+      searchParams as unknown as ReturnType<typeof useSearchParams>,
+    );
+
+    mockedLoginUser.mockResolvedValueOnce({
+      success: true,
+      message: "Login successful",
+      data: {
+        token: "sample-token",
+        user: { id: 1, name: "Player One", email: "player@test.com" },
+      },
+    });
+
+    render(
+      <AuthProvider>
+        <LoginPage />
+      </AuthProvider>,
+    );
+
+    fireEvent.change(screen.getByLabelText(/^email$/i), {
+      target: { value: "player@test.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/^kata sandi$/i), {
+      target: { value: "password123" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /masuk ke akun/i }));
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith("/");
     });
   });
 

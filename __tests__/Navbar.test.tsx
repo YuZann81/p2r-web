@@ -1,7 +1,17 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import Navbar from "@/components/Navbar";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import React from "react";
+
+jest.mock("@/lib/api/auth", () => ({
+  getCurrentUser: jest.fn().mockResolvedValue({
+    success: true,
+    data: { id: 1, name: "PlayerOne", email: "p1@test.com" },
+  }),
+  loginUser: jest.fn(),
+  registerUser: jest.fn(),
+  logoutUser: jest.fn(),
+}));
 
 describe("Navbar Component", () => {
   beforeEach(() => {
@@ -24,7 +34,7 @@ describe("Navbar Component", () => {
     expect(screen.getByRole("link", { name: "Masuk" })).toBeInTheDocument();
   });
 
-  it("renders login button for guests and user session for authenticated user", () => {
+  it("renders login button for guests and user session for authenticated user", async () => {
     // 1. Guest state
     const { unmount } = render(
       <AuthProvider>
@@ -48,8 +58,10 @@ describe("Navbar Component", () => {
       </AuthProvider>,
     );
 
-    expect(screen.getByText("Hai, PlayerOne")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Keluar" })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Hai, PlayerOne")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Keluar" })).toBeInTheDocument();
+    });
   });
 
   it("toggles mobile drawer on hamburger click and closes on link click", () => {

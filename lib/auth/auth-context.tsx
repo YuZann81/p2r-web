@@ -7,6 +7,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import { ApiError } from "@/lib/api/client";
 import {
   getCurrentUser,
   loginUser,
@@ -66,8 +67,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               localStorage.setItem(USER_KEY, JSON.stringify(res.data));
             }
           })
-          .catch(() => {
-            // Token expired or invalid
+          .catch((err) => {
+            if (err instanceof ApiError && err.status === 401) {
+              setToken(null);
+              setUser(null);
+              try {
+                localStorage.removeItem(TOKEN_KEY);
+                localStorage.removeItem(USER_KEY);
+              } catch {}
+            }
           })
           .finally(() => {
             setIsLoading(false);

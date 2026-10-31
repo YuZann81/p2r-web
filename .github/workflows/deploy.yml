@@ -207,24 +207,37 @@ jobs:
       - name: Setup SSH Authentication
         env:
           SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         run: |
+          set -euo pipefail
+          if [ -z "$DEPLOY_HOST" ] || [ -z "$DEPLOY_PORT" ] || [ -z "$DEPLOY_USER" ] || [ -z "$SSH_PRIVATE_KEY" ]; then
+            echo "::error::Missing required deployment secret: DEPLOY_HOST, DEPLOY_PORT, DEPLOY_USER and DEPLOY_SSH_PRIVATE_KEY must all be set."
+            exit 1
+          fi
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+          # Verified Sumapod host key (SHA256:f6llydG9A3LTYEaTEGjbThiGfjSd+M9W5O6ZQlsu7ME).
+          printf 'sumapod ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILx66W50yrkys9CBwbTdKJq6QYkZGdFCq2a/Y5BuOM3i\n' > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
           cat >> ~/.ssh/config <<EOF
-          Host production
-            HostName ${{ secrets.DEPLOY_HOST }}
-            Port ${{ secrets.DEPLOY_PORT || '9090' }}
-            User ${{ secrets.DEPLOY_USER || 'rpl' }}
+          Host sumapod
+            HostName $DEPLOY_HOST
+            Port $DEPLOY_PORT
+            User $DEPLOY_USER
             IdentityFile ~/.ssh/deploy_key
-            StrictHostKeyChecking accept-new
+            HostKeyAlias sumapod
+            UserKnownHostsFile ~/.ssh/known_hosts
+            StrictHostKeyChecking=yes
           EOF
 
       - name: Transfer Artifact to Target Server
         run: |
           scp "dist/p2r-web-${{ github.sha }}.tar.gz" \
               "dist/p2r-web-${{ github.sha }}.tar.gz.sha256" \
-              production:/tmp/
+              sumapod:/tmp/
 
       - name: Activate Release on Server
         run: |
@@ -232,7 +245,7 @@ jobs:
           test -n "$SHA"
           # Target is p2r-web and nothing else. The gate validates the app name
           # against its registry and rejects anything that is not a member.
-          ssh production "/var/www/production/pixel2reality/scripts/deploy-release.sh activate p2r-web /tmp/p2r-web-${{ github.sha }}.tar.gz ${{ github.sha }} ${SHA}"
+          ssh sumapod "/var/www/production/pixel2reality/scripts/deploy-release.sh activate p2r-web /tmp/p2r-web-${{ github.sha }}.tar.gz ${{ github.sha }} ${SHA}"
 
   deploy-staging:
     name: Deploy to Staging
