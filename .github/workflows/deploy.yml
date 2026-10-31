@@ -5,7 +5,7 @@
 #   Public web   : https://pameran.devsaka.id/
 #   Admin panel  : https://pameran.devsaka.id/panel
 #   Public API   : https://pameran.devsaka.id/api
-#                  (Caddy rewrites /api/* -> Laravel /p2r/v1/*)
+#                  (Caddy rewrites /api/* -> Laravel /api/v1/*)
 #
 # Production runtime: Caddy + PM2 + FrankenPHP. No Docker.
 # GitHub Actions builds the standalone artifact here and transfers only the
@@ -58,7 +58,7 @@
 #   variable read by lib/api/config.ts; setting it at build time would place an
 #   internal address where the browser bundle could see it. It belongs in the
 #   env block of the staging PM2 definition:
-#       P2R_API_BASE_URL=http://127.0.0.1:8091/p2r/v1
+#       P2R_API_BASE_URL=http://127.0.0.1:8091/api/v1
 #
 # NOT set here, deliberately:
 #   - No basePath. p2r-web is served from the origin root (`/`).

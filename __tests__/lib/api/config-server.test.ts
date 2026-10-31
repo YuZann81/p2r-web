@@ -14,9 +14,9 @@ describe("Server-side API resolution (SSR / Node environment)", () => {
   });
 
   it("resolves runtime P2R_API_BASE_URL when present", async () => {
-    process.env.P2R_API_BASE_URL = "http://127.0.0.1:8090/p2r/v1";
+    process.env.P2R_API_BASE_URL = "http://127.0.0.1:8090/api/v1";
     const { getApiBaseUrl } = await import("@/lib/api/config");
-    expect(getApiBaseUrl()).toBe("http://127.0.0.1:8090/p2r/v1");
+    expect(getApiBaseUrl()).toBe("http://127.0.0.1:8090/api/v1");
   });
 
   it("throws explicit error when P2R_API_BASE_URL is missing during SSR", async () => {

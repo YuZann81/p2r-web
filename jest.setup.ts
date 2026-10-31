@@ -11,6 +11,6 @@ import "@testing-library/jest-dom";
 // resolve to a real service even if a stray request escaped the fetch mock.
 // This is NOT a production fallback: real values are injected at build time by
 // CI and by Docker Compose.
-process.env.NEXT_PUBLIC_P2R_API_BASE_URL ??= "http://api.test.invalid/p2r/v1";
+process.env.NEXT_PUBLIC_P2R_API_BASE_URL ??= "http://api.test.invalid/api/v1";
 
-process.env.P2R_API_BASE_URL ??= "http://api.test.invalid/p2r/v1";
+process.env.P2R_API_BASE_URL ??= "http://api.test.invalid/api/v1";
