@@ -43,9 +43,9 @@ module.exports = {
         // touched in this phase.
         HOSTNAME: "127.0.0.1",
         PORT: "3004",
-        // Staging API on the same host. The /p2r/v1 prefix is part of the API
+        // Staging API on the same host. The /api/v1 prefix is part of the API
         // contract and is appended by the application, not by a proxy.
-        P2R_API_BASE_URL: "http://127.0.0.1:8091/p2r/v1",
+        P2R_API_BASE_URL: "http://127.0.0.1:8091/api/v1",
       },
     },
   ],

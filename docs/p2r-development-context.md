@@ -12,7 +12,7 @@ Dokumen ini berfungsi sebagai **Handoff Context** resmi untuk developer / AI age
   1. **`p2r-web`** (`/home/zann/p2r-web`): **Frontend Production Utama** untuk pengunjung publik pameran. Menampilkan landing page, showcase karya, katalog merchandise & checkout, leaderboard, dan live chat.
   2. **`p2r-panel`** (`/home/zann/pixel2reality/p2r-panel`): **Admin Control Center** (Port 3002) untuk panitia pameran (verifikasi pembayaran, manajemen pesanan, CRUD produk & karya, kurasi feeds, moderasi live chat CS, dan manajemen pengguna).
   3. **`p2r-testbed`** (`/home/zann/pixel2reality/p2r-testbed`): **Client Reference / Testbed** (Port 3001) yang berisi implementasi logika cart, chat playground, dan API helper yang sudah teruji.
-  4. **`p2r-api`** (`/home/zann/pixel2reality/p2r-api`): **Backend REST API** berbasis Laravel 13 (Port 8090, API prefix `/p2r/v1`) yang melayani database PostgreSQL, Redis cache, dan real-time WebSockets Reverb (Port 8080).
+  4. **`p2r-api`** (`/home/zann/pixel2reality/p2r-api`): **Backend REST API** berbasis Laravel 13 (Port 8090, API prefix `/api/v1`) yang melayani database PostgreSQL, Redis cache, dan real-time WebSockets Reverb (Port 8080).
 
 ---
 
@@ -35,7 +35,7 @@ Hubungan antar aplikasi dalam ekosistem Pixel To Reality:
    ┌───────────────────────────────────┐    ┌────────────────────────┐
    │        p2r-api (BACKEND)          │    │ Laravel Reverb (WS)    │
    │  Laravel 13 · PHP 8.3+ · Port 8090│◄───┤ Port 8080              │
-   │  Base URL: /p2r/v1                │    └────────────────────────┘
+   │  Base URL: /api/v1                │    └────────────────────────┘
    └──────────────▲────────────────────┘
                   │ (BFF Proxy & Token Auth)
    ┌──────────────┴────────────────────┐
@@ -91,7 +91,7 @@ Fitur yang sudah diimplementasikan di `p2r-web`:
 2. **Dynamic Arcade Logo**: Rendering teks melengkung matematis pada komponen [`ArcadeLogo.tsx`](file:///home/zann/p2r-web/components/ArcadeLogo.tsx).
 3. **Hero Section + Interactive CTA**: Headline besar bergaya arcade, deskripsi, dan tombol CTA 3D pixel shadow di [`Hero.tsx`](file:///home/zann/p2r-web/components/Hero.tsx) & [`ExploreButton.tsx`](file:///home/zann/p2r-web/components/ExploreButton.tsx).
 4. **About RPL Section**: Pengenalan jurusan dengan running ticker banner [`Marquee.tsx`](file:///home/zann/p2r-web/components/Marquee.tsx), pembatas bergerigi [`PixelDivider.tsx`](file:///home/zann/p2r-web/components/PixelDivider.tsx), dan [`RplEmblem.tsx`](file:///home/zann/p2r-web/components/RplEmblem.tsx).
-5. **Live Game Showcase**: Komponen async server [`Games.tsx`](file:///home/zann/p2r-web/components/Games.tsx) yang mengambil data dari API `GET /p2r/v1/karyas?category=game` via [`getGames.ts`](file:///home/zann/p2r-web/lib/games/getGames.ts) dengan graceful fallback ke data statis.
+5. **Live Game Showcase**: Komponen async server [`Games.tsx`](file:///home/zann/p2r-web/components/Games.tsx) yang mengambil data dari API `GET /api/v1/karyas?category=game` via [`getGames.ts`](file:///home/zann/p2r-web/lib/games/getGames.ts) dengan graceful fallback ke data statis.
 6. **Accessible Game Card**: Card interaktif zigzag dengan artwork miring 3D, deskripsi, dan keyboard accessibility (`Enter`/`Space`) di [`GameCard.tsx`](file:///home/zann/p2r-web/components/GameCard.tsx).
 7. **Merchandise Section UI**: Grid display produk dengan generator border spiral SVG di [`MerchandiseCard.tsx`](file:///home/zann/p2r-web/components/MerchandiseCard.tsx).
 8. **Modal Order Form (UI)**: Dialog form pemesanan merchandise (Nama, Jurusan, Kelas, No. HP) di [`Order.tsx`](file:///home/zann/p2r-web/components/Order.tsx).
@@ -103,11 +103,11 @@ Fitur yang sudah diimplementasikan di `p2r-web`:
 ## 5. Missing / Partial Features (Perlu Dilanjutkan)
 
 1. **Merchandise API Integration (PARTIAL)**:
-   - Saat ini grid di [`MerchandiseSection.tsx`](file:///home/zann/p2r-web/components/MerchandiseSection.tsx) masih menggunakan perulangan array hardcoded `[3, 4, 5]`. Perlu dihubungkan ke `GET /p2r/v1/products`.
+   - Saat ini grid di [`MerchandiseSection.tsx`](file:///home/zann/p2r-web/components/MerchandiseSection.tsx) masih menggunakan perulangan array hardcoded `[3, 4, 5]`. Perlu dihubungkan ke `GET /api/v1/products`.
 2. **End-to-End Order & Checkout (PARTIAL / MOCK)**:
    - Form di [`Order.tsx`](file:///home/zann/p2r-web/components/Order.tsx) baru menampilkan `alert()` saat submit. Belum terhubung ke endpoint `/checkout`, `/payment`, dan upload bukti transfer.
 3. **Live Chat WebSockets (PARTIAL / MOCK)**:
-   - Dialog [`ChatAdmin.tsx`](file:///home/zann/p2r-web/components/ChatAdmin.tsx) masih berisi balon chat statis. Perlu integrasi ke `POST /p2r/v1/chat/start`, `POST /p2r/v1/chat/send`, dan listener Laravel Echo (Reverb).
+   - Dialog [`ChatAdmin.tsx`](file:///home/zann/p2r-web/components/ChatAdmin.tsx) masih berisi balon chat statis. Perlu integrasi ke `POST /api/v1/chat/start`, `POST /api/v1/chat/send`, dan listener Laravel Echo (Reverb).
 4. **Multi-Category Karya Showcase (TODO)**:
    - Saat ini baru memfilter kategori `game`. Kategori `website`, `software`, `hardware_robotics`, dan `digital_art` belum ditampilkan.
 5. **Public Voting Interaktif (TODO)**:
@@ -197,7 +197,7 @@ Modul logika yang sudah matang di [`p2r-testbed`](file:///home/zann/pixel2realit
 
 ## 9. Backend REST API Endpoints
 
-Backend `p2r-api` berjalan di `http://127.0.0.1:8090/p2r/v1` (internal, server-side). Browser mengakses API publik melalui `https://pameran.devsaka.id/api`, yang di-reverse-proxy Caddy ke `/p2r/v1`. Seluruh response menggunakan envelope standar `{ success: boolean, message: string, data: T }`.
+Backend `p2r-api` berjalan di `http://127.0.0.1:8090/api/v1` (internal, server-side). Browser mengakses API publik melalui `https://pameran.devsaka.id/api`, yang di-reverse-proxy Caddy ke `/api/v1`. Seluruh response menggunakan envelope standar `{ success: boolean, message: string, data: T }`.
 
 ### Public Endpoints
 | Domain | Method & Path | Keterangan & Payload |
@@ -237,7 +237,7 @@ Urutan prioritas pengerjaan untuk menyelesaikan website hingga tahap production:
    - Tambahkan CTA *"Lihat Semua"* di setiap section preview homepage.
    - Siapkan struktur target route (`/games`, `/karya`, `/merchandise`, `/leaderboard`, `/info-terkini`).
 3. **Phase 3: Merchandise API Integration**
-   - Buat `lib/api/products.ts` untuk memanggil `GET /p2r/v1/products`.
+   - Buat `lib/api/products.ts` untuk memanggil `GET /api/v1/products`.
    - Hubungkan `MerchandiseSection.tsx` agar merender produk asli dari database dengan fallback statis.
 4. **Phase 4: End-to-End Order & Checkout Integration**
    - Integrasikan form `Order.tsx` dengan alur checkout guest dan upload bukti pembayaran.
@@ -246,7 +246,7 @@ Urutan prioritas pengerjaan untuk menyelesaikan website hingga tahap production:
    - Integrasikan `ChatAdmin.tsx` dengan API chat backend dan listener WebSocket Laravel Reverb (`laravel-echo`).
 6. **Phase 6: Multi-Category Karya Showcase & Voting**
    - Implementasikan halaman/section karya untuk menampilkan kategori Web, IoT, dan Digital Art.
-   - Pasang tombol interaktif voting karya yang memicu `POST /p2r/v1/karyas/{slug}/vote`.
+   - Pasang tombol interaktif voting karya yang memicu `POST /api/v1/karyas/{slug}/vote`.
 7. **Phase 7: Feeds / Info Terkini & Leaderboard**
    - Buat komponen/halaman Feeds sosial media dan Leaderboard arcade.
 8. **Phase 8: Final QA & Build Verification**
