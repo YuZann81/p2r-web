@@ -3,85 +3,94 @@
  *
  * This module is reached from BOTH the browser and the Node server:
  *
- *  - Browser: six `use client` components (FeedsStream, KaryaDirectory,
+ *  - Browser: client components (FeedsStream, KaryaDirectory,
  *    MerchandiseCatalog, MerchandiseDetailModal, MerchandiseSection,
- *    VoteButton) pull it in through `lib/api/client.ts`.
- *  - Server: 33 server-side modules use the same path for server components,
- *    ISR regeneration and route handlers.
+ *    VoteButton, LoginPage, AuthProvider) pull it in through `lib/api/client.ts`.
+ *    In the browser, requests default to the same-origin relative path `/api`
+ *    (routed by reverse proxy / Caddy to Laravel `/p2r/v1/*`). This allows
+ *    the exact same build artifact to run across validation hosts and production
+ *    without baking an environment-specific origin into the client bundle.
  *
- * The two sides legitimately need different values, so both are configured
- * explicitly and neither is guessed:
- *
- *  - NEXT_PUBLIC_P2R_API_BASE_URL (BUILD time, browser). Inlined into the
- *    client bundle, so it must be an absolute URL the browser can resolve.
- *  - P2R_API_BASE_URL (RUNTIME, server only). Deliberately NOT prefixed with
- *    NEXT_PUBLIC_, so Next.js leaves it as a runtime lookup and it can never
- *    reach the bundle. It may point at an internal address.
- *
- * There is intentionally NO default host. A silent fallback to localhost, a
- * container name, or a retired domain silently ships a broken bundle: the
- * page builds fine and fails only at request time. Failing loudly at first
- * use is the intended behaviour.
- *
- * NEXT_PUBLIC_* is only inlined when referenced statically, so both reads
- * below are deliberately written as full static property accesses.
+ *  - Server: server components, ISR regeneration, and route handlers.
+ *    On the server, requests resolve `process.env.P2R_API_BASE_URL` at runtime.
+ *    This must be an explicit absolute URL (e.g. `http://127.0.0.1:8090/p2r/v1`).
+ *    It is never exposed to browser bundles, never guessed, and never falls back
+ *    to a browser URL.
  */
 
 const PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_P2R_API_BASE_URL?.trim();
-const SERVER_API_BASE_URL = process.env.P2R_API_BASE_URL?.trim();
+
+const DEFAULT_BROWSER_API_PATH = "/api";
 
 /**
- * Validates a configured base URL and strips any trailing slash.
+ * Validates a configured server-side base URL and strips any trailing slash.
  *
- * Returns undefined when nothing is configured, so the caller can report one
- * clear error instead of failing with an opaque parse error.
- *
- * @throws if a value is present but is not an absolute http(s) URL.
+ * @throws if a value is missing or is not an absolute http(s) URL.
  */
-function normalizeBaseUrl(name: string, value: string | undefined): string | undefined {
-  if (!value) return undefined;
+function normalizeServerApiUrl(value: string | undefined): string {
+  if (!value || value === "") {
+    throw new Error(
+      "[p2r-api] Server-side API requests require P2R_API_BASE_URL in the runtime environment. " +
+        'Set P2R_API_BASE_URL to an absolute URL (e.g. "http://127.0.0.1:8090/p2r/v1").',
+    );
+  }
 
   let parsed: URL;
-
   try {
     parsed = new URL(value);
   } catch {
     throw new Error(
-      `[p2r-api] ${name} is set but is not an absolute URL. ` +
-        'Use a full origin including the scheme, e.g. "https://example.com/p2r/v1".',
+      "[p2r-api] P2R_API_BASE_URL is set but is not an absolute URL. " +
+        'Use a full origin including the scheme, e.g. "http://127.0.0.1:8090/p2r/v1".',
     );
   }
 
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
     throw new Error(
-      `[p2r-api] ${name} must use http: or https:, received "${parsed.protocol}".`,
+      `[p2r-api] P2R_API_BASE_URL must use http: or https:, received "${parsed.protocol}".`,
     );
   }
 
   return value.replace(/\/+$/, "");
 }
 
-export function getApiBaseUrl(): string {
-  const browserSide = normalizeBaseUrl(
-    "NEXT_PUBLIC_P2R_API_BASE_URL",
-    PUBLIC_API_BASE_URL,
-  );
-  const serverSide = normalizeBaseUrl("P2R_API_BASE_URL", SERVER_API_BASE_URL);
-
-  // On the server the internal address is preferred because it never leaves
-  // the private network. In the browser the build-time public value is the only
-  // one that exists.
-  const resolved =
-    typeof window === "undefined" ? (serverSide ?? browserSide) : browserSide;
-
-  if (!resolved) {
-    throw new Error(
-      "[p2r-api] No API base URL is configured, so no host will be assumed. " +
-        "Set NEXT_PUBLIC_P2R_API_BASE_URL at BUILD time for browser requests, " +
-        "and P2R_API_BASE_URL at RUNTIME to let server-side requests use an " +
-        "internal address. See .env.example.",
-    );
+/**
+ * Resolves the browser-side API base.
+ *
+ * Defaults to the same-origin relative path `/api`.
+ * If an explicit override is supplied via NEXT_PUBLIC_P2R_API_BASE_URL:
+ *  - If it is a relative path (e.g. `/api`), strips trailing slashes and returns it.
+ *  - If it is an absolute URL (e.g. in test or dev harness), validates scheme and returns it.
+ */
+function resolveBrowserApiBase(value: string | undefined): string {
+  if (!value || value === "") {
+    return DEFAULT_BROWSER_API_PATH;
   }
 
-  return resolved;
+  if (value.startsWith("/")) {
+    return value.replace(/\/+$/, "") || DEFAULT_BROWSER_API_PATH;
+  }
+
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      throw new Error(`invalid protocol ${parsed.protocol}`);
+    }
+    return value.replace(/\/+$/, "");
+  } catch {
+    throw new Error(
+      `[p2r-api] NEXT_PUBLIC_P2R_API_BASE_URL must be a relative path (e.g. "/api") or an absolute http(s) URL, received "${value}".`,
+    );
+  }
+}
+
+export function getApiBaseUrl(): string {
+  // Never access window at module initialization or during SSR.
+  if (typeof window === "undefined") {
+    // Read at runtime dynamically on the server
+    const serverUrl = process.env.P2R_API_BASE_URL?.trim();
+    return normalizeServerApiUrl(serverUrl);
+  }
+
+  return resolveBrowserApiBase(PUBLIC_API_BASE_URL);
 }

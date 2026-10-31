@@ -21,7 +21,21 @@ function buildApiUrl(
 ): string {
   const base = getApiBaseUrl().replace(/\/+$/, "");
   const cleanPath = path.replace(/^\/+/, "");
-  const url = new URL(`${base}/${cleanPath}`);
+
+  let url: URL;
+  const isAbsolute = /^https?:\/\//i.test(base);
+
+  if (isAbsolute) {
+    url = new URL(`${base}/${cleanPath}`);
+  } else {
+    // Relative path for same-origin browser requests (e.g. /api)
+    const origin =
+      typeof window !== "undefined" && window.location?.origin
+        ? window.location.origin
+        : "http://localhost";
+    const combinedPath = `/${base}/${cleanPath}`.replace(/\/+/g, "/");
+    url = new URL(combinedPath, origin);
+  }
 
   if (searchParams) {
     for (const [key, value] of Object.entries(searchParams)) {
@@ -31,7 +45,7 @@ function buildApiUrl(
     }
   }
 
-  return url.toString();
+  return isAbsolute ? url.toString() : `${url.pathname}${url.search}`;
 }
 
 function buildHeaders(
