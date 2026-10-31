@@ -1,0 +1,113 @@
+name: CI - p2r-web
+
+# Continuous integration and build-only release artifact production.
+# No deployment, no server contact, no environment-specific hostnames baked in.
+on:
+  pull_request:
+    branches: [ develop, main ]
+  workflow_dispatch:
+    inputs:
+      target_ref:
+        description: 'Exact 40-character RC commit SHA to validate and package (build-only)'
+        required: true
+        type: string
+
+concurrency:
+  group: p2r-web-ci-${{ inputs.target_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: Lint, Test & Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.target_ref || '' }}
+          fetch-depth: ${{ inputs.target_ref && 0 || 1 }}
+
+      - name: Resolve Exact Source Commit
+        id: source
+        env:
+          TARGET_REF: ${{ inputs.target_ref || '' }}
+        run: |
+          set -euo pipefail
+          ACTUAL_SHA="$(git rev-parse HEAD)"
+          if [ -n "$TARGET_REF" ]; then
+            if ! printf '%s' "$TARGET_REF" | grep -Eq '^[0-9a-f]{40}$'; then
+              echo "::error::target_ref must be a full 40-character commit SHA (got: $TARGET_REF)"
+              exit 1
+            fi
+            if [ "$ACTUAL_SHA" != "$TARGET_REF" ]; then
+              echo "::error::Checked out HEAD ($ACTUAL_SHA) does not match target_ref ($TARGET_REF)"
+              exit 1
+            fi
+          fi
+          echo "sha=$ACTUAL_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run TypeScript Typecheck
+        run: pnpm typecheck
+
+      - name: Run Linter (ESLint)
+        run: pnpm lint
+
+      - name: Run Test Suite (Jest)
+        run: pnpm test
+
+      # Browser API calls use the same-origin `/api` path so the exact same
+      # artifact works on temporary validation hosts and on production
+      # (https://pameran.devsaka.id) without rebuilding. Server-side SSR/ISR
+      # resolves P2R_API_BASE_URL strictly at runtime.
+      - name: Build Next.js Application
+        env:
+          NEXT_PUBLIC_P2R_API_BASE_URL: /api
+        run: pnpm build
+
+      - name: Verify Standalone Runtime Artifact
+        env:
+          GITHUB_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          set -euo pipefail
+          bash scripts/package-standalone.sh p2r-web
+          ( cd dist && sha256sum -c "p2r-web-${GITHUB_SHA}.tar.gz.sha256" )
+
+      - name: Verify Environment-Neutral Browser Bundle
+        run: |
+          set -euo pipefail
+          if grep -rqF "pameran.devsaka.id" .next/standalone; then
+            echo "::error::Environment-specific hostname pameran.devsaka.id was hardcoded into the standalone artifact."
+            exit 1
+          fi
+          if grep -rqF "127.0.0.1" .next/standalone/.next/static; then
+            echo "::error::A loopback address was inlined into the browser bundle."
+            exit 1
+          fi
+
+      - name: Upload Release Artifact
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: p2r-web-artifact
+          path: |
+            dist/p2r-web-${{ steps.source.outputs.sha }}.tar.gz
+            dist/p2r-web-${{ steps.source.outputs.sha }}.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 3
