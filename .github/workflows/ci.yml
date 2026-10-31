@@ -89,11 +89,11 @@ jobs:
 
       - name: Verify Standalone Runtime Artifact
         env:
-          GITHUB_SHA: ${{ steps.source.outputs.sha }}
+          RELEASE_SHA: ${{ steps.source.outputs.sha }}
         run: |
           set -euo pipefail
-          bash scripts/package-standalone.sh p2r-web
-          ( cd dist && sha256sum -c "p2r-web-${GITHUB_SHA}.tar.gz.sha256" )
+          bash scripts/package-standalone.sh p2r-web "${{ steps.source.outputs.sha }}"
+          ( cd dist && sha256sum -c "p2r-web-${RELEASE_SHA}.tar.gz.sha256" )
 
       - name: Verify Environment-Neutral Browser Bundle
         run: |
