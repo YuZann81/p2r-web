@@ -1,15 +1,20 @@
 name: CI - p2r-web
 
-# Pull requests only. A push to develop or main is validated by deploy.yml,
-# whose ci job runs the same gates before deploying, so listing pushes here
-# would run the whole pipeline twice for one commit.
+# Continuous integration and build-only release artifact production.
+# No deployment, no server contact, no environment-specific hostnames baked in.
 on:
   pull_request:
     branches: [ develop, main ]
+  workflow_dispatch:
+    inputs:
+      target_ref:
+        description: 'Exact 40-character RC commit SHA to validate and package (build-only)'
+        required: true
+        type: string
 
 concurrency:
-  group: p2r-web-ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: p2r-web-ci-${{ inputs.target_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -23,19 +28,41 @@ jobs:
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.target_ref || '' }}
+          fetch-depth: ${{ inputs.target_ref && 0 || 1 }}
 
-      # No `version:` input on purpose. package.json's `packageManager` field
-      # (pnpm@11.21.0+sha512...) is the single source of truth for the pnpm
-      # version. Declaring the version here as well makes action-setup fail the
-      # job with "Multiple versions of pnpm specified".
+      - name: Resolve Exact Source Commit
+        id: source
+        env:
+          TARGET_REF: ${{ inputs.target_ref || '' }}
+        run: |
+          set -euo pipefail
+          ACTUAL_SHA="$(git rev-parse HEAD)"
+          if [ -n "$TARGET_REF" ]; then
+            if ! printf '%s' "$TARGET_REF" | grep -Eq '^[0-9a-f]{40}$'; then
+              echo "::error::target_ref must be a full 40-character commit SHA (got: $TARGET_REF)"
+              exit 1
+            fi
+            # Verify target_ref exists in develop history
+            git fetch origin develop
+            if ! git merge-base --is-ancestor "$TARGET_REF" origin/develop; then
+              echo "::error::target_ref ($TARGET_REF) is not an ancestor of origin/develop"
+              exit 1
+            fi
+            if [ "$ACTUAL_SHA" != "$TARGET_REF" ]; then
+              echo "::error::Checked out HEAD ($ACTUAL_SHA) does not match target_ref ($TARGET_REF)"
+              exit 1
+            fi
+          fi
+          echo "sha=$ACTUAL_SHA" >> "$GITHUB_OUTPUT"
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
-          # Single source of truth, shared with deploy.yml and the staging
-          # runtime installer.
           node-version-file: .node-version
           cache: 'pnpm'
 
@@ -51,41 +78,67 @@ jobs:
       - name: Run Test Suite (Jest)
         run: pnpm test
 
-      # NEXT_PUBLIC_* values are inlined into the client bundle at build time and
-      # are therefore public. PRs targeting main exercise the approved production
-      # origin; PRs targeting develop leave NEXT_PUBLIC_* unset because staging
-      # has no public hostname yet (avoiding both production leakage and browser
-      # loopback misrouting).
+      # Browser API calls use the same-origin `/api` path so the exact same
+      # artifact works on temporary validation hosts and on production
+      # (https://pameran.devsaka.id) without rebuilding. Server-side SSR/ISR
+      # resolves P2R_API_BASE_URL strictly at runtime via PM2.
       - name: Build Next.js Application
         env:
-          NEXT_PUBLIC_P2R_API_BASE_URL: ${{ github.base_ref == 'main' && 'https://pameran.devsaka.id/api' || '' }}
-          NEXT_PUBLIC_P2R_PANEL_URL: ${{ github.base_ref == 'main' && 'https://pameran.devsaka.id/panel' || '' }}
+          NEXT_PUBLIC_P2R_API_BASE_URL: /api
         run: pnpm build
 
       - name: Verify Standalone Runtime Artifact
-        run: bash scripts/package-standalone.sh p2r-web
-
-      - name: Verify Browser Bundle and Environment Isolation
         env:
-          NEXT_PUBLIC_P2R_API_BASE_URL: ${{ github.base_ref == 'main' && 'https://pameran.devsaka.id/api' || '' }}
-          NEXT_PUBLIC_P2R_PANEL_URL: ${{ github.base_ref == 'main' && 'https://pameran.devsaka.id/panel' || '' }}
+          GITHUB_SHA: ${{ steps.source.outputs.sha }}
         run: |
           set -euo pipefail
-          if [ "${GITHUB_BASE_REF:-}" = "main" ]; then
-            test -n "$NEXT_PUBLIC_P2R_API_BASE_URL"
-            test -n "$NEXT_PUBLIC_P2R_PANEL_URL"
-            grep -rqF "$NEXT_PUBLIC_P2R_API_BASE_URL" .next/standalone/.next/static
-            if grep -rqF "127.0.0.1" .next/standalone/.next/static; then
-              echo "::error::A loopback address was inlined into the production browser bundle."
-              exit 1
-            fi
-          else
-            if grep -rqF "pameran.devsaka.id" .next/standalone; then
-              echo "::error::Production hostname pameran.devsaka.id leaked into the staging artifact."
-              exit 1
-            fi
-            if grep -rqF "127.0.0.1" .next/standalone/.next/static; then
-              echo "::error::A loopback address was inlined into the staging browser bundle."
-              exit 1
-            fi
+          bash scripts/package-standalone.sh p2r-web
+          ( cd dist && sha256sum -c "p2r-web-${GITHUB_SHA}.tar.gz.sha256" )
+
+      - name: Verify Environment-Neutral Browser Bundle
+        run: |
+          set -euo pipefail
+          if grep -rqF "127.0.0.1" .next/standalone/.next/static; then
+            echo "::error::A loopback address was inlined into the browser bundle."
+            exit 1
           fi
+          if grep -rqF "https://pameran.devsaka.id/api" .next/standalone/.next/static; then
+            echo "::error::Absolute API origin https://pameran.devsaka.id/api was hardcoded into the browser bundle."
+            exit 1
+          fi
+
+      - name: Generate Release Manifest
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          RELEASE_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          set -euo pipefail
+          ARCHIVE="p2r-web-${RELEASE_SHA}.tar.gz"
+          SIDECAR="dist/${ARCHIVE}.sha256"
+          DIGEST="$(awk '{print $1}' "$SIDECAR")"
+          SIZE="$(wc -c < "dist/${ARCHIVE}" | tr -d ' ')"
+          cat <<EOF > dist/release-manifest.json
+          {
+            "repository": "YuZann81/p2r-web",
+            "source_commit": "${RELEASE_SHA}",
+            "workflow_run_id": "${GITHUB_RUN_ID}",
+            "artifact_name": "p2r-web-release-${RELEASE_SHA}",
+            "archive_file": "${ARCHIVE}",
+            "sha256": "${DIGEST}",
+            "size_in_bytes": ${SIZE},
+            "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+          cat dist/release-manifest.json
+
+      - name: Upload Release Artifact
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: p2r-web-release-${{ steps.source.outputs.sha }}
+          path: |
+            dist/p2r-web-${{ steps.source.outputs.sha }}.tar.gz
+            dist/p2r-web-${{ steps.source.outputs.sha }}.tar.gz.sha256
+            dist/release-manifest.json
+          if-no-files-found: error
+          retention-days: 90

@@ -12,3 +12,5 @@ import "@testing-library/jest-dom";
 // This is NOT a production fallback: real values are injected at build time by
 // CI and by Docker Compose.
 process.env.NEXT_PUBLIC_P2R_API_BASE_URL ??= "http://api.test.invalid/p2r/v1";
+
+process.env.P2R_API_BASE_URL ??= "http://api.test.invalid/p2r/v1";
