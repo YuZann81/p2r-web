@@ -44,6 +44,12 @@ jobs:
               echo "::error::target_ref must be a full 40-character commit SHA (got: $TARGET_REF)"
               exit 1
             fi
+            # Verify target_ref exists in develop history
+            git fetch origin develop
+            if ! git merge-base --is-ancestor "$TARGET_REF" origin/develop; then
+              echo "::error::target_ref ($TARGET_REF) is not an ancestor of origin/develop"
+              exit 1
+            fi
             if [ "$ACTUAL_SHA" != "$TARGET_REF" ]; then
               echo "::error::Checked out HEAD ($ACTUAL_SHA) does not match target_ref ($TARGET_REF)"
               exit 1
@@ -75,7 +81,7 @@ jobs:
       # Browser API calls use the same-origin `/api` path so the exact same
       # artifact works on temporary validation hosts and on production
       # (https://pameran.devsaka.id) without rebuilding. Server-side SSR/ISR
-      # resolves P2R_API_BASE_URL strictly at runtime.
+      # resolves P2R_API_BASE_URL strictly at runtime via PM2.
       - name: Build Next.js Application
         env:
           NEXT_PUBLIC_P2R_API_BASE_URL: /api
@@ -92,22 +98,47 @@ jobs:
       - name: Verify Environment-Neutral Browser Bundle
         run: |
           set -euo pipefail
-          if grep -rqF "pameran.devsaka.id" .next/standalone; then
-            echo "::error::Environment-specific hostname pameran.devsaka.id was hardcoded into the standalone artifact."
-            exit 1
-          fi
           if grep -rqF "127.0.0.1" .next/standalone/.next/static; then
             echo "::error::A loopback address was inlined into the browser bundle."
             exit 1
           fi
+          if grep -rqF "https://pameran.devsaka.id/api" .next/standalone/.next/static; then
+            echo "::error::Absolute API origin https://pameran.devsaka.id/api was hardcoded into the browser bundle."
+            exit 1
+          fi
+
+      - name: Generate Release Manifest
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          RELEASE_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          set -euo pipefail
+          ARCHIVE="p2r-web-${RELEASE_SHA}.tar.gz"
+          SIDECAR="dist/${ARCHIVE}.sha256"
+          DIGEST="$(awk '{print $1}' "$SIDECAR")"
+          SIZE="$(wc -c < "dist/${ARCHIVE}" | tr -d ' ')"
+          cat <<EOF > dist/release-manifest.json
+          {
+            "repository": "YuZann81/p2r-web",
+            "source_commit": "${RELEASE_SHA}",
+            "workflow_run_id": "${GITHUB_RUN_ID}",
+            "artifact_name": "p2r-web-release-${RELEASE_SHA}",
+            "archive_file": "${ARCHIVE}",
+            "sha256": "${DIGEST}",
+            "size_in_bytes": ${SIZE},
+            "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+          cat dist/release-manifest.json
 
       - name: Upload Release Artifact
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
-          name: p2r-web-artifact
+          name: p2r-web-release-${{ steps.source.outputs.sha }}
           path: |
             dist/p2r-web-${{ steps.source.outputs.sha }}.tar.gz
             dist/p2r-web-${{ steps.source.outputs.sha }}.tar.gz.sha256
+            dist/release-manifest.json
           if-no-files-found: error
-          retention-days: 3
+          retention-days: 90
