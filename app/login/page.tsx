@@ -1,16 +1,29 @@
 "use client";
 
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
+
+function sanitizeRedirectPath(raw: string | null): string {
+  if (!raw) return "/";
+  const trimmed = raw.trim();
+  if (
+    trimmed.startsWith("/") &&
+    !trimmed.startsWith("//") &&
+    !trimmed.startsWith("/\\")
+  ) {
+    return trimmed;
+  }
+  return "/";
+}
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login, isAuthenticated } = useAuth();
 
-  const redirectUrl = searchParams.get("redirect") || "/";
+  const redirectUrl = sanitizeRedirectPath(searchParams.get("redirect"));
   const action = searchParams.get("action");
   const productId = searchParams.get("productId");
   const slug = searchParams.get("slug");
@@ -21,7 +34,7 @@ function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Compute final destination after login
-  const getDestinationUrl = () => {
+  const getDestinationUrl = useCallback(() => {
     const params = new URLSearchParams();
     if (action) params.set("action", action);
     if (productId) params.set("productId", productId);
@@ -33,14 +46,14 @@ function LoginForm() {
       return `${redirectUrl}${separator}${queryString}`;
     }
     return redirectUrl;
-  };
+  }, [action, productId, redirectUrl, slug]);
 
   // If already authenticated, redirect immediately
-  React.useEffect(() => {
+  useEffect(() => {
     if (isAuthenticated) {
       router.replace(getDestinationUrl());
     }
-  }, [isAuthenticated, router]);
+  }, [getDestinationUrl, isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

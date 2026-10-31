@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import Link from "next/link";
 import GameArtwork from "@/components/GameArtwork";
 import VoteButton from "@/components/VoteButton";
@@ -149,11 +149,13 @@ export default function KaryaDetailView({
 
               {/* Voting Button */}
               <div className="border-t border-white/10 pt-4">
-                <VoteButton
-                  slug={karya.slug}
-                  initialVotesCount={karya.votes_count || 0}
-                  initialIsVoted={karya.is_voted_by_me}
-                />
+                <Suspense fallback={null}>
+                  <VoteButton
+                    slug={karya.slug}
+                    initialVotesCount={karya.votes_count || 0}
+                    initialIsVoted={karya.is_voted_by_me}
+                  />
+                </Suspense>
               </div>
 
               {/* Action Buttons */}

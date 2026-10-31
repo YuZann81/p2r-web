@@ -1,8 +1,19 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import VoteButton from "@/components/VoteButton";
 import { AuthProvider } from "@/lib/auth/auth-context";
+import { ApiError } from "@/lib/api/client";
 import { voteKarya, unvoteKarya } from "@/lib/api/karya";
 import { useRouter, useSearchParams } from "next/navigation";
+
+jest.mock("@/lib/api/auth", () => ({
+  getCurrentUser: jest.fn().mockResolvedValue({
+    success: true,
+    data: { id: 1, name: "Gamer 1", email: "gamer1@test.com" },
+  }),
+  loginUser: jest.fn(),
+  registerUser: jest.fn(),
+  logoutUser: jest.fn(),
+}));
 
 jest.mock("@/lib/api/karya", () => ({
   voteKarya: jest.fn(),
@@ -34,9 +45,11 @@ describe("VoteButton", () => {
       forward: jest.fn(),
       refresh: jest.fn(),
       prefetch: jest.fn(),
-      bfcacheId: '',
+      bfcacheId: "",
     });
-    mockedUseSearchParams.mockReturnValue(new URLSearchParams() as unknown as ReturnType<typeof useSearchParams>);
+    mockedUseSearchParams.mockReturnValue(
+      new URLSearchParams() as unknown as ReturnType<typeof useSearchParams>,
+    );
   });
 
   it("renders with initial vote count and redirects guest to login on click", () => {
@@ -70,7 +83,7 @@ describe("VoteButton", () => {
     mockedVoteKarya.mockResolvedValueOnce({
       success: true,
       message: "Vote recorded",
-      data: { votes_count: 11, is_voted_by_me: true },
+      data: { votes_count: 11, voted: true },
     });
 
     render(
@@ -91,6 +104,60 @@ describe("VoteButton", () => {
     });
   });
 
+  it("reconciles state on 409 Conflict when user already voted", async () => {
+    localStorage.setItem("p2r_auth_token", "valid-user-token");
+    localStorage.setItem(
+      "p2r_auth_user",
+      JSON.stringify({ id: 1, name: "Gamer 1" }),
+    );
+
+    mockedVoteKarya.mockRejectedValueOnce(
+      new ApiError("Already voted.", { status: 409 }),
+    );
+
+    render(
+      <AuthProvider>
+        <VoteButton slug="cyber-runner" initialVotesCount={10} />
+      </AuthProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /beri vote/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/voted \(10\)/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/kamu telah memberikan vote untuk karya ini/i),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("does NOT falsify voted state when backend or network fails with 500", async () => {
+    localStorage.setItem("p2r_auth_token", "valid-user-token");
+    localStorage.setItem(
+      "p2r_auth_user",
+      JSON.stringify({ id: 1, name: "Gamer 1" }),
+    );
+
+    mockedVoteKarya.mockRejectedValueOnce(
+      new ApiError("Internal Server Error", { status: 500 }),
+    );
+
+    render(
+      <AuthProvider>
+        <VoteButton slug="cyber-runner" initialVotesCount={10} />
+      </AuthProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /beri vote/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/beri vote \(10\)/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/gagal memproses vote\. silakan coba lagi\./i),
+      ).toBeInTheDocument();
+    });
+  });
+
   it("cancels vote (unvotes) when an already voted button is clicked", async () => {
     localStorage.setItem("p2r_auth_token", "valid-user-token");
     localStorage.setItem(
@@ -101,7 +168,7 @@ describe("VoteButton", () => {
     mockedUnvoteKarya.mockResolvedValueOnce({
       success: true,
       message: "Vote removed",
-      data: { votes_count: 10, is_voted_by_me: false },
+      data: { votes_count: 10, voted: false },
     });
 
     render(

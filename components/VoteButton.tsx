@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
+import { ApiError } from "@/lib/api/client";
 import { voteKarya, unvoteKarya } from "@/lib/api/karya";
 
 type VoteButtonProps = {
@@ -64,13 +65,24 @@ export default function VoteButton({
             type: "success",
             message: "⭐ Vote kamu berhasil dicatat! Terima kasih telah mendukung karya ini.",
           });
-        } catch {
-          // If already voted on backend or duplicate
-          setIsVoted(true);
-          setFeedback({
-            type: "info",
-            message: "Kamu telah memberikan vote untuk karya ini.",
-          });
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 409) {
+            setIsVoted(true);
+            setFeedback({
+              type: "info",
+              message: "Kamu telah memberikan vote untuk karya ini.",
+            });
+          } else if (err instanceof ApiError && err.status === 401) {
+            setFeedback({
+              type: "error",
+              message: "Sesi masuk berakhir. Silakan masuk kembali.",
+            });
+          } else {
+            setFeedback({
+              type: "error",
+              message: "Gagal memproses vote. Silakan coba lagi.",
+            });
+          }
         }
       } else {
         // Cancel Vote (Unvote)
@@ -86,9 +98,24 @@ export default function VoteButton({
             type: "info",
             message: "Vote kamu telah dibatalkan.",
           });
-        } catch {
-          setIsVoted(false);
-          setVotesCount((c) => Math.max(0, c - 1));
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 409) {
+            setIsVoted(false);
+            setFeedback({
+              type: "info",
+              message: "Vote kamu sudah dibatalkan sebelumnya.",
+            });
+          } else if (err instanceof ApiError && err.status === 401) {
+            setFeedback({
+              type: "error",
+              message: "Sesi masuk berakhir. Silakan masuk kembali.",
+            });
+          } else {
+            setFeedback({
+              type: "error",
+              message: "Gagal membatalkan vote. Silakan coba lagi.",
+            });
+          }
         }
       }
     } finally {

@@ -6,7 +6,8 @@ export type { KaryaDetail, KaryaListParams, KaryaCategory } from "@/lib/api/type
 
 export type VoteResult = {
   votes_count: number
-  is_voted_by_me: boolean | string
+  voted?: boolean
+  is_voted_by_me?: boolean | string
 }
 
 export async function fetchKaryaSlugs(

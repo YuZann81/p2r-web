@@ -1,0 +1,138 @@
+name: Verify Staging SSH Identity
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      STAGING_DEPLOY_SSH_PRIVATE_KEY:
+        required: true
+      STAGING_DEPLOY_HOST:
+        required: true
+      STAGING_DEPLOY_PORT:
+        required: true
+      STAGING_DEPLOY_USER:
+        required: true
+
+permissions: {}
+
+jobs:
+  verify-staging-ssh:
+    name: Verify Canonical Staging SSH Identity
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Verify Fingerprints and Authenticate Over SSH
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.STAGING_DEPLOY_SSH_PRIVATE_KEY }}
+          STAGING_HOST: ${{ secrets.STAGING_DEPLOY_HOST }}
+          STAGING_PORT: ${{ secrets.STAGING_DEPLOY_PORT }}
+          STAGING_USER: ${{ secrets.STAGING_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          set +x
+          umask 077
+
+          readonly EXPECTED_HOST="43.173.41.187"
+          readonly EXPECTED_PORT="22"
+          readonly EXPECTED_USER="ubuntu"
+          readonly EXPECTED_KEY_FP="SHA256:KW//6EZhQQT7b6Pk8MeQ0wUi/lWqTsR+xLxioabM1d8"
+          readonly EXPECTED_HOST_FP="SHA256:f6llydG9A3LTYEaTEGjbThiGfjSd+M9W5O6ZQlsu7ME"
+          readonly HOST_KEY_ALIAS="sumapod-staging"
+
+          tmp_dir="$(mktemp -d)"
+          chmod 700 "$tmp_dir"
+          key_file="$tmp_dir/staging_key"
+          pub_file="$tmp_dir/staging_key.pub"
+          scan_file="$tmp_dir/scanned_host_key.pub"
+          known_hosts_file="$tmp_dir/known_hosts"
+
+          cleanup() {
+            rm -f "$key_file" "$pub_file" "$scan_file" "$known_hosts_file"
+            rm -rf "$tmp_dir"
+          }
+          trap cleanup EXIT
+
+          missing=0
+          [[ -n "${SSH_PRIVATE_KEY:-}" ]] || { echo "::error::STAGING_DEPLOY_SSH_PRIVATE_KEY is empty."; missing=1; }
+          [[ -n "${STAGING_HOST:-}" ]]    || { echo "::error::STAGING_DEPLOY_HOST is empty."; missing=1; }
+          [[ -n "${STAGING_PORT:-}" ]]    || { echo "::error::STAGING_DEPLOY_PORT is empty."; missing=1; }
+          [[ -n "${STAGING_USER:-}" ]]    || { echo "::error::STAGING_DEPLOY_USER is empty."; missing=1; }
+          if [[ "$missing" -ne 0 ]]; then
+            exit 1
+          fi
+
+          if [[ "$STAGING_HOST" != "$EXPECTED_HOST" ]]; then
+            echo "::error::STAGING_DEPLOY_HOST does not match the pinned staging host."
+            exit 1
+          fi
+          if [[ "$STAGING_PORT" != "$EXPECTED_PORT" ]]; then
+            echo "::error::STAGING_DEPLOY_PORT does not match the pinned staging port."
+            exit 1
+          fi
+          if [[ "$STAGING_USER" != "$EXPECTED_USER" ]]; then
+            echo "::error::STAGING_DEPLOY_USER does not match the pinned staging user."
+            exit 1
+          fi
+
+          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > "$key_file"
+          chmod 600 "$key_file"
+          unset SSH_PRIVATE_KEY
+
+          if ! ssh-keygen -y -P "" -f "$key_file" > "$pub_file" 2>/dev/null; then
+            echo "::error::Failed to derive public key from STAGING_DEPLOY_SSH_PRIVATE_KEY."
+            exit 1
+          fi
+
+          actual_key_fp="$(ssh-keygen -lf "$pub_file" -E sha256 | awk '{print $2}')"
+          if [[ "$actual_key_fp" != "$EXPECTED_KEY_FP" ]]; then
+            echo "::error::SSH key fingerprint mismatch: got ${actual_key_fp:-none}, expected ${EXPECTED_KEY_FP}."
+            exit 1
+          fi
+
+          if ! timeout --kill-after=5 15 ssh-keyscan -T 10 -p "$EXPECTED_PORT" -t ed25519 "$EXPECTED_HOST" > "$scan_file" 2>/dev/null; then
+            echo "::error::Failed to scan remote Ed25519 host key."
+            exit 1
+          fi
+          if [[ ! -s "$scan_file" ]] || [[ "$(wc -l < "$scan_file" | tr -d '[:space:]')" != "1" ]]; then
+            echo "::error::Unexpected Ed25519 host-key scan output line count."
+            exit 1
+          fi
+
+          actual_host_fp="$(ssh-keygen -lf "$scan_file" -E sha256 | awk '{print $2}')"
+          if [[ "$actual_host_fp" != "$EXPECTED_HOST_FP" ]]; then
+            echo "::error::Host key fingerprint mismatch: got ${actual_host_fp:-none}, expected ${EXPECTED_HOST_FP}."
+            exit 1
+          fi
+
+          host_key_material="$(awk '$2 == "ssh-ed25519" && NF >= 3 { print $2, $3 }' "$scan_file")"
+          if [[ -z "$host_key_material" ]]; then
+            echo "::error::Scanned host key is not a valid ssh-ed25519 entry."
+            exit 1
+          fi
+          printf '%s %s\n' "$HOST_KEY_ALIAS" "$host_key_material" > "$known_hosts_file"
+          chmod 600 "$known_hosts_file"
+
+          timeout --kill-after=5 20 ssh \
+            -F /dev/null \
+            -i "$key_file" \
+            -p "$EXPECTED_PORT" \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o IdentitiesOnly=yes \
+            -o PreferredAuthentications=publickey \
+            -o PasswordAuthentication=no \
+            -o KbdInteractiveAuthentication=no \
+            -o HostKeyAlias="$HOST_KEY_ALIAS" \
+            -o UserKnownHostsFile="$known_hosts_file" \
+            -o GlobalKnownHostsFile=/dev/null \
+            -o ConnectTimeout=10 \
+            -o ServerAliveInterval=5 \
+            -o ServerAliveCountMax=2 \
+            "${EXPECTED_USER}@${EXPECTED_HOST}" \
+            true
+
+          echo "repository=${GITHUB_REPOSITORY}"
+          echo "key_fingerprint=${actual_key_fp}"
+          echo "host_fingerprint=${actual_host_fp}"
+          echo "ssh_authentication=verified"
