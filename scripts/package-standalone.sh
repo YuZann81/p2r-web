@@ -20,7 +20,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 
 app="${1:-p2r-web}"
-sha="${GITHUB_SHA:-$(git rev-parse --short HEAD)}"
+sha="${2:-${RELEASE_SHA:-$(git rev-parse HEAD)}}"
 standalone=".next/standalone"
 
 fail() {
