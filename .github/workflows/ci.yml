@@ -1,19 +1,25 @@
 name: CI - p2r-web
 
-# Continuous integration and build-only release artifact production.
-# No deployment, no server contact, no environment-specific hostnames baked in.
+# Continuous integration and release-artifact creation only. This workflow never
+# deploys, never reaches the production server, and never holds production
+# credentials. Automated CD is intentionally blocked in deploy.yml until a
+# Docker Compose activation mechanism is verified against the current
+# p2r-production runtime.
 on:
   pull_request:
     branches: [ develop, main ]
+  push:
+    branches: [ develop, main ]
+  # A feature branch can produce a validated release artifact by running this
+  # workflow manually from that branch. It uploads the artifact but does not
+  # deploy or contact any host.
   workflow_dispatch:
-    inputs:
-      target_ref:
-        description: 'Exact 40-character RC commit SHA to validate and package (build-only)'
-        required: true
-        type: string
 
 concurrency:
-  group: p2r-web-ci-${{ inputs.target_ref || github.ref }}
+  # A release build (push or manual dispatch) must finish: a newer run queues
+  # behind it instead of cancelling an in-flight artifact. Only a superseded
+  # pull-request validation is cancellable.
+  group: p2r-web-ci-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
@@ -21,48 +27,35 @@ permissions:
 
 jobs:
   ci:
-    name: Lint, Test & Build
+    name: Lint, Test, Build & Upload Artifact
     runs-on: ubuntu-latest
     timeout-minutes: 20
+
+    env:
+      # Single source of truth for the build target. It is derived from the same
+      # event/ref conditions that select the production URLs: a main push and a
+      # manual dispatch from main are production; a feature-branch dispatch is
+      # non-production; a PR targeting main builds production URLs for
+      # validation only and never uploads a release artifact.
+      P2R_WEB_PRODUCTION_BUILD: ${{ (github.ref == 'refs/heads/main' || github.base_ref == 'main') && 'true' || 'false' }}
+      P2R_WEB_API_BASE_URL: https://pameran.devsaka.id/api
+      P2R_WEB_PANEL_URL: https://pameran.devsaka.id/panel
 
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.target_ref || '' }}
-          fetch-depth: ${{ inputs.target_ref && 0 || 1 }}
 
-      - name: Resolve Exact Source Commit
-        id: source
-        env:
-          TARGET_REF: ${{ inputs.target_ref || '' }}
-        run: |
-          set -euo pipefail
-          ACTUAL_SHA="$(git rev-parse HEAD)"
-          if [ -n "$TARGET_REF" ]; then
-            if ! printf '%s' "$TARGET_REF" | grep -Eq '^[0-9a-f]{40}$'; then
-              echo "::error::target_ref must be a full 40-character commit SHA (got: $TARGET_REF)"
-              exit 1
-            fi
-            # Verify target_ref exists in develop history
-            git fetch origin develop
-            if ! git merge-base --is-ancestor "$TARGET_REF" origin/develop; then
-              echo "::error::target_ref ($TARGET_REF) is not an ancestor of origin/develop"
-              exit 1
-            fi
-            if [ "$ACTUAL_SHA" != "$TARGET_REF" ]; then
-              echo "::error::Checked out HEAD ($ACTUAL_SHA) does not match target_ref ($TARGET_REF)"
-              exit 1
-            fi
-          fi
-          echo "sha=$ACTUAL_SHA" >> "$GITHUB_OUTPUT"
-
+      # No `version:` input on purpose. package.json's `packageManager` field
+      # (pnpm@11.21.0+sha512...) is the single source of truth for the pnpm
+      # version. Declaring the version here as well makes action-setup fail the
+      # job with "Multiple versions of pnpm specified".
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
+          # Single source of truth for the Node version used by CI.
           node-version-file: .node-version
           cache: 'pnpm'
 
@@ -78,67 +71,126 @@ jobs:
       - name: Run Test Suite (Jest)
         run: pnpm test
 
-      # Browser API calls use the same-origin `/api` path so the exact same
-      # artifact works on temporary validation hosts and on production
-      # (https://pameran.devsaka.id) without rebuilding. Server-side SSR/ISR
-      # resolves P2R_API_BASE_URL strictly at runtime via PM2.
+      # Read-only production gate. Only a push to main or a manual dispatch from
+      # main produces a production Web artifact; feature-branch dispatches and
+      # PR validation must never depend on the live API. The endpoint is the
+      # current runbook baseline (/api/v1/health), not the obsolete /api/health.
+      - name: Verify Production API Health
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        env:
+          HEALTH_URL: https://pameran.devsaka.id/api/v1/health
+        run: |
+          set -euo pipefail
+          http_status="$(curl \
+            --silent --show-error \
+            --connect-timeout 10 \
+            --max-time 20 \
+            --retry 2 --retry-delay 5 --retry-connrefused \
+            --output /dev/null \
+            --write-out '%{http_code}' \
+            "$HEALTH_URL")" || {
+              echo "::error::Production API health probe failed: no response from $HEALTH_URL within the bounded timeout."
+              exit 1
+            }
+          if [ "$http_status" != "200" ]; then
+            echo "::error::Production API health check failed: $HEALTH_URL returned HTTP $http_status (expected 200)."
+            exit 1
+          fi
+          echo "Production API health OK: HTTP $http_status from $HEALTH_URL"
+
+      # NEXT_PUBLIC_* values are inlined into the client bundle at build time and
+      # are therefore public. The single job-level P2R_WEB_PRODUCTION_BUILD value
+      # selects the approved production origin. A develop/feature build leaves
+      # NEXT_PUBLIC_* unset because staging has no public hostname yet, avoiding
+      # both production leakage and browser loopback misrouting.
       - name: Build Next.js Application
-        env:
-          NEXT_PUBLIC_P2R_API_BASE_URL: /api
-        run: pnpm build
-
-      - name: Verify Standalone Runtime Artifact
-        env:
-          RELEASE_SHA: ${{ steps.source.outputs.sha }}
         run: |
           set -euo pipefail
-          bash scripts/package-standalone.sh p2r-web "${{ steps.source.outputs.sha }}"
-          ( cd dist && sha256sum -c "p2r-web-${RELEASE_SHA}.tar.gz.sha256" )
+          if [ "$P2R_WEB_PRODUCTION_BUILD" = "true" ]; then
+            export NEXT_PUBLIC_P2R_API_BASE_URL="$P2R_WEB_API_BASE_URL"
+            export NEXT_PUBLIC_P2R_PANEL_URL="$P2R_WEB_PANEL_URL"
+          fi
+          pnpm build
 
-      - name: Verify Environment-Neutral Browser Bundle
+      - name: Assemble and Verify Standalone Artifact
+        run: bash scripts/package-standalone.sh p2r-web
+
+      - name: Verify Browser Bundle and Environment Isolation
         run: |
           set -euo pipefail
-          if grep -rqF "127.0.0.1" .next/standalone/.next/static; then
-            echo "::error::A loopback address was inlined into the browser bundle."
+          if [ "$P2R_WEB_PRODUCTION_BUILD" = "true" ]; then
+            test -n "$P2R_WEB_API_BASE_URL"
+            test -n "$P2R_WEB_PANEL_URL"
+            grep -rqF "$P2R_WEB_API_BASE_URL" .next/standalone/.next/static
+            if grep -rqF "127.0.0.1" .next/standalone/.next/static; then
+              echo "::error::A loopback address was inlined into the production browser bundle."
+              exit 1
+            fi
+          else
+            if grep -rqF "pameran.devsaka.id" .next/standalone; then
+              echo "::error::Production hostname pameran.devsaka.id leaked into the non-production artifact."
+              exit 1
+            fi
+            if grep -rqF "127.0.0.1" .next/standalone/.next/static; then
+              echo "::error::A loopback address was inlined into the non-production browser bundle."
+              exit 1
+            fi
+          fi
+
+      # The upload is skipped for pull requests: a PR artifact would be named
+      # after the synthetic merge commit, not the branch commit. A feature
+      # branch runs this workflow manually to produce a non-production artifact.
+      # The manifest records the build mode derived from the build condition, so
+      # a feature-branch artifact can never be mistaken for a release candidate.
+      - name: Write and Verify Release Manifest
+        if: github.event_name != 'pull_request'
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum -c "p2r-web-${GITHUB_SHA}.tar.gz.sha256"
+          digest="$(awk '{print $1}' "p2r-web-${GITHUB_SHA}.tar.gz.sha256")"
+          test "${#digest}" -eq 64
+          if [ "$P2R_WEB_PRODUCTION_BUILD" = "true" ]; then
+            build_mode="production"
+          else
+            build_mode="non-production"
+          fi
+          if [ "$GITHUB_REF" = "refs/heads/main" ] && [ "$build_mode" != "production" ]; then
+            echo "::error::A main-branch Web release must use production build mode."
             exit 1
           fi
-          if grep -rqF "https://pameran.devsaka.id/api" .next/standalone/.next/static; then
-            echo "::error::Absolute API origin https://pameran.devsaka.id/api was hardcoded into the browser bundle."
-            exit 1
-          fi
-
-      - name: Generate Release Manifest
-        if: github.event_name == 'workflow_dispatch'
-        env:
-          RELEASE_SHA: ${{ steps.source.outputs.sha }}
-        run: |
-          set -euo pipefail
-          ARCHIVE="p2r-web-${RELEASE_SHA}.tar.gz"
-          SIDECAR="dist/${ARCHIVE}.sha256"
-          DIGEST="$(awk '{print $1}' "$SIDECAR")"
-          SIZE="$(wc -c < "dist/${ARCHIVE}" | tr -d ' ')"
-          cat <<EOF > dist/release-manifest.json
-          {
-            "repository": "YuZann81/p2r-web",
-            "source_commit": "${RELEASE_SHA}",
-            "workflow_run_id": "${GITHUB_RUN_ID}",
-            "artifact_name": "p2r-web-release-${RELEASE_SHA}",
-            "archive_file": "${ARCHIVE}",
-            "sha256": "${DIGEST}",
-            "size_in_bytes": ${SIZE},
-            "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          }
-          EOF
-          cat dist/release-manifest.json
+          jq -n \
+            --arg service "p2r-web" \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg source_commit "$GITHUB_SHA" \
+            --arg source_ref "$GITHUB_REF" \
+            --arg build_mode "$build_mode" \
+            --arg event_name "$GITHUB_EVENT_NAME" \
+            --arg workflow "$GITHUB_WORKFLOW" \
+            --arg workflow_run_id "$GITHUB_RUN_ID" \
+            --arg workflow_run_attempt "$GITHUB_RUN_ATTEMPT" \
+            --arg archive_file "p2r-web-${GITHUB_SHA}.tar.gz" \
+            --arg sha256 "$digest" \
+            --arg created_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '{schema: 1, service: $service, repository: $repository, source_commit: $source_commit, source_ref: $source_ref, build_mode: $build_mode, event_name: $event_name, workflow: $workflow, workflow_run_id: $workflow_run_id, workflow_run_attempt: $workflow_run_attempt, archive_file: $archive_file, sha256: $sha256, created_at: $created_at}' \
+            > "p2r-web-${GITHUB_SHA}.manifest.json"
+          jq -e \
+            --arg sha "$GITHUB_SHA" \
+            --arg file "p2r-web-${GITHUB_SHA}.tar.gz" \
+            --arg digest "$digest" \
+            --arg build_mode "$build_mode" \
+            '.schema == 1 and .service == "p2r-web" and .source_commit == $sha and .archive_file == $file and .sha256 == $digest and .build_mode == $build_mode' \
+            "p2r-web-${GITHUB_SHA}.manifest.json" >/dev/null
+          cat "p2r-web-${GITHUB_SHA}.manifest.json"
 
       - name: Upload Release Artifact
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          name: p2r-web-release-${{ steps.source.outputs.sha }}
+          name: p2r-web-${{ github.sha }}
           path: |
-            dist/p2r-web-${{ steps.source.outputs.sha }}.tar.gz
-            dist/p2r-web-${{ steps.source.outputs.sha }}.tar.gz.sha256
-            dist/release-manifest.json
+            dist/p2r-web-${{ github.sha }}.tar.gz
+            dist/p2r-web-${{ github.sha }}.tar.gz.sha256
+            dist/p2r-web-${{ github.sha }}.manifest.json
           if-no-files-found: error
-          retention-days: 90
+          retention-days: 30
