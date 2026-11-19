@@ -14,17 +14,8 @@ type CategoryItem = {
   href: string;
 };
 
+// Section Karya: Khusus karya non-game (Web, Software, IoT, Digital Art)
 const CATEGORIES: CategoryItem[] = [
-  {
-    id: "game",
-    label: "GAME ARCADE",
-    title: "Cyber Arcade Games",
-    tag: "INTERACTIVE ENTERTAINMENT",
-    color: "#FFD447",
-    description: "Koleksi game retro pixel art, 2D/3D platformer seru, endless cyberpunk runner, dan game web canvas buatan siswa.",
-    techs: ["Phaser.js", "Unity", "Godot", "WebAudio"],
-    href: "/karya?category=game",
-  },
   {
     id: "website",
     label: "WEB INNOVATION",
@@ -67,13 +58,12 @@ const CATEGORIES: CategoryItem[] = [
   },
 ];
 
-// Tilt coordinates for each category (every 72° in 360° circle)
+// Tilt coordinates for each of the 4 non-game categories
 const CATEGORY_TILTS = [
-  { x: 0, y: -18 },   // 0: Game Arcade (Top)
-  { x: 17, y: -6 },   // 1: Web Innovation (Top-Right)
-  { x: 11, y: 15 },   // 2: Software (Bottom-Right)
-  { x: -11, y: 15 },  // 3: IoT & Hardware (Bottom-Left)
-  { x: -17, y: -6 },  // 4: Digital Art (Top-Left)
+  { x: 0, y: -18 },   // 0: Web Innovation (Top)
+  { x: 18, y: 0 },    // 1: Software (Right)
+  { x: 0, y: 18 },    // 2: IoT & Hardware (Bottom)
+  { x: -18, y: 0 },   // 3: Digital Art (Left)
 ];
 
 export default function ArcadeCabinetSection() {
@@ -149,19 +139,18 @@ export default function ArcadeCabinetSection() {
 
     setJoystickPos({ x, y });
 
-    // Determine 5-way radial sector (Every 72° in 360° circle)
-    // Sector 0 is centered at 0° (Top / 12:00)
+    // 4 cardinal directions: Up (0), Right (1), Down (2), Left (3)
     if (dist >= TRIGGER_THRESHOLD) {
-      let angleDeg = Math.atan2(dx, -dy) * (180 / Math.PI);
-      if (angleDeg < 0) angleDeg += 360;
+      let sectorIdx: number;
+      if (Math.abs(dy) >= Math.abs(dx)) {
+        sectorIdx = dy < 0 ? 0 : 2; // Up: Web Innovation (0), Down: IoT & Hardware (2)
+      } else {
+        sectorIdx = dx > 0 ? 1 : 3; // Right: Software (1), Left: Digital Art (3)
+      }
 
-      const sectorIdx = Math.floor(((angleDeg + 36) % 360) / 72);
-
-      if (sectorIdx >= 0 && sectorIdx < CATEGORIES.length) {
-        if (sectorIdx !== lastTriggeredSectorRef.current) {
-          lastTriggeredSectorRef.current = sectorIdx;
-          setSelectedIdx(sectorIdx);
-        }
+      if (sectorIdx !== lastTriggeredSectorRef.current) {
+        lastTriggeredSectorRef.current = sectorIdx;
+        setSelectedIdx(sectorIdx);
       }
     } else if (dist < TRIGGER_THRESHOLD / 2) {
       lastTriggeredSectorRef.current = null;
@@ -172,17 +161,17 @@ export default function ArcadeCabinetSection() {
   const handleJoystickKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowUp") {
       e.preventDefault();
-      handleSelectCategory(0);
+      handleSelectCategory(0); // Web Innovation
     } else if (e.key === "ArrowRight") {
       e.preventDefault();
-      handleSelectCategory((selectedIdx + 1) % CATEGORIES.length);
+      handleSelectCategory(1); // Software
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      handleSelectCategory(2);
+      handleSelectCategory(2); // IoT & Hardware
     } else if (e.key === "ArrowLeft") {
       e.preventDefault();
-      handleSelectCategory((selectedIdx - 1 + CATEGORIES.length) % CATEGORIES.length);
-    } else if (["1", "2", "3", "4", "5"].includes(e.key)) {
+      handleSelectCategory(3); // Digital Art
+    } else if (["1", "2", "3", "4"].includes(e.key)) {
       e.preventDefault();
       handleSelectCategory(parseInt(e.key, 10) - 1);
     }
@@ -216,7 +205,7 @@ export default function ArcadeCabinetSection() {
             KARYA PAMERAN RPL
           </h2>
           <p className="mt-3 max-w-2xl mx-auto font-body text-base text-[#FFF5E9]/85 sm:text-lg">
-            Pilih kategori karya untuk menjelajahi ragam inovasi teknologi buatan siswa Rekayasa Perangkat Lunak.
+            Pilih kategori karya untuk menjelajahi ragam inovasi website modern, software aplikasi, sistem IoT, dan digital art buatan siswa Rekayasa Perangkat Lunak.
           </p>
         </div>
 
@@ -272,7 +261,7 @@ export default function ArcadeCabinetSection() {
                 <span className="text-[#02FD0C]">SYSTEM ONLINE</span>
               </div>
               <div className="text-[#68D5E8] tracking-wider">
-                5 KATEGORI KARYA &bull; REKAYASA PERANGKAT LUNAK
+                4 KATEGORI KARYA &bull; REKAYASA PERANGKAT LUNAK
               </div>
             </div>
 
@@ -340,7 +329,7 @@ export default function ArcadeCabinetSection() {
                       {activeCategory.tag}
                     </span>
                     <span className="font-display text-[10px] text-[#FFF5E9]/70 tracking-wider">
-                      STAGE 0{selectedIdx + 1} / 05
+                      STAGE 0{selectedIdx + 1} / 04
                     </span>
                   </div>
 
@@ -374,7 +363,7 @@ export default function ArcadeCabinetSection() {
                   </div>
                 </div>
 
-                {/* Primary Action Button (Play / Demo) */}
+                {/* Primary Action Button (Demo / Link) */}
                 <div className="mt-7 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-2 text-xs font-display text-[#FFF5E9]/70">
                     <span className="text-[#02FD0C]">●</span> READY FOR DEMO
@@ -406,7 +395,7 @@ export default function ArcadeCabinetSection() {
                 role="slider"
                 aria-label="Arcade Joystick Pengontrol Kategori"
                 aria-valuemin={0}
-                aria-valuemax={4}
+                aria-valuemax={3}
                 aria-valuenow={selectedIdx}
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}

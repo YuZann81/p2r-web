@@ -8,7 +8,7 @@ import { getAllKaryas } from "@/lib/karya/getKaryas";
 export const metadata: Metadata = {
   title: "Direktori Karya & Pameran Inovasi — Pixels to Reality",
   description:
-    "Eksplorasi seluruh karya inovasi digital, game arcade, software, website, IoT, dan digital art buatan siswa RPL di Pixel To Reality.",
+    "Eksplorasi seluruh karya inovasi website modern, aplikasi software, sistem IoT, dan digital art buatan siswa RPL di Pixel To Reality.",
 };
 
 export default async function KaryaPage() {
@@ -37,7 +37,7 @@ export default async function KaryaPage() {
               SEMUA KARYA
             </h1>
             <p className="mx-auto mt-3 max-w-2xl font-body text-base text-[#FFF5E9]/85 sm:text-lg">
-              Direktori lengkap seluruh karya pameran inovasi teknologi, website, software, IoT, dan game arcade buatan siswa RPL.
+              Direktori lengkap seluruh karya pameran inovasi teknologi, website modern, software aplikasi, IoT, dan digital art buatan siswa RPL.
             </p>
           </header>
 
