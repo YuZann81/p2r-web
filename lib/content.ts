@@ -102,6 +102,16 @@ export const GAMES: readonly Game[] = [
     logo: "/images/game-2-logo.png",
     logoAlt: "Byte Defender logo",
   },
+  {
+    id: "game-3",
+    name: "Neon Highway",
+    description:
+      "Game balap arkade futuristik berkecepatan tinggi melintasi jalanan metropolis bercahaya neon.",
+    image: "/images/game-3.png",
+    imageAlt: "Neon Highway game artwork",
+    logo: "/images/game-3-logo.png",
+    logoAlt: "Neon Highway logo",
+  },
 ] as const;
 
 export type LeaderboardEntry = {
