@@ -177,13 +177,8 @@ export default function ArcadeCabinetSection() {
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
         {/* Section Heading */}
         <div className="mb-10 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#FFD447]/30 bg-[#FFD447]/10 px-4 py-1.5 font-display text-xs tracking-widest uppercase text-[#FFD447]">
-            <span>🕹️</span>
-            <span>PAMERAN INTERAKTIF</span>
-            <span>🕹️</span>
-          </div>
           <h2
-            className="mt-3 font-display text-4xl tracking-wider text-[#FFD447] sm:text-5xl md:text-6xl select-none"
+            className="font-display text-4xl tracking-wider text-[#FFD447] sm:text-5xl md:text-6xl select-none"
             style={{
               textShadow: "3px 3px 0px #C37D29, 6px 6px 0px #0E0A1A",
             }}

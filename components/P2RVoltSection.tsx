@@ -21,12 +21,7 @@ export default function P2RVoltSection() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         {/* Section Header */}
         <div className="mb-12 flex flex-col items-center text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#FFD447]/30 bg-[#FFD447]/10 px-4 py-1 font-display text-xs tracking-widest uppercase text-[#FFD447]">
-            <span>&lt;&lt;&lt;</span>
-            <span>INFORMASI PAMERAN</span>
-            <span>&gt;&gt;&gt;</span>
-          </div>
-          <h2 className="mt-3 font-display text-4xl tracking-wider text-[#FFD447] sm:text-5xl md:text-6xl drop-shadow-[3px_3px_0_#0E0A1A]">
+          <h2 className="font-display text-4xl tracking-wider text-[#FFD447] sm:text-5xl md:text-6xl drop-shadow-[3px_3px_0_#0E0A1A]">
             P2R VOLT 1
           </h2>
           <p className="mt-3 max-w-2xl font-body text-base text-[#FFF5E9]/80 sm:text-lg">
