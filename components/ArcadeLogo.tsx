@@ -1,28 +1,20 @@
-const WORDMARK = "PIXELS TO REALITY";
+import Link from "next/link";
 
 export default function ArcadeLogo() {
-  const chars = WORDMARK.split("");
-  const lastIndex = chars.length - 1;
-
   return (
-    <span
-      aria-label={WORDMARK}
-      className="flex select-none items-end font-display text-2xl leading-none text-arcade-yellow sm:text-3xl lg:text-4xl"
-      style={{ textShadow: "3px 4px 0 var(--arcade-ink)" }}
+    <Link
+      href="/"
+      className="group flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-[#FFD447] rounded-lg transition-transform hover:scale-[1.02]"
+      aria-label="Pixel To Reality Home"
     >
-      {chars.map((char, index) => {
-        const arc = -Math.sin((index / lastIndex) * Math.PI) * 16;
-        return (
-          <span
-            key={`${char}-${index}`}
-            aria-hidden="true"
-            className="inline-block"
-            style={{ transform: `translateY(${arc}px)` }}
-          >
-            {char === " " ? "\u00A0" : char}
-          </span>
-        );
-      })}
-    </span>
+      <div className="flex flex-col items-start">
+        <span className="font-display text-2xl sm:text-3xl tracking-wide text-[#FFD447] drop-shadow-[2px_2px_0_#0E0A1A] group-hover:text-[#68D5E8] transition-colors leading-none">
+          PIXEL TO REALITY
+        </span>
+        <span className="font-body text-[10px] tracking-wider text-[#9470E8] font-semibold uppercase mt-0.5">
+          RPL Cyber Exhibition
+        </span>
+      </div>
+    </Link>
   );
 }

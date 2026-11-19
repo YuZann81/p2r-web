@@ -129,22 +129,22 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
       role="dialog"
       aria-modal="true"
       aria-label="Live Chat Admin CS"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 font-body"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 font-body"
     >
-      <div className="relative w-full max-w-xl bg-[#5b2be6]/95 backdrop-blur-2xl border border-white/20 rounded-3xl overflow-hidden shadow-2xl flex flex-col h-[560px]">
+      <div className="relative w-full max-w-xl bg-[#171224] border-2 border-[#39265E] rounded-3xl overflow-hidden shadow-[8px_8px_0_#0E0A1A] flex flex-col h-[560px]">
         {/* Header */}
-        <div className="bg-white/95 px-6 py-4 flex justify-between items-center border-b border-black/10">
+        <div className="bg-[#211B35] px-6 py-4 flex justify-between items-center border-b border-[#39265E]">
           <div className="flex items-center gap-3">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-arcade-violet text-arcade-yellow font-display font-bold text-lg">
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-[#FFD447] text-[#0E0A1A] font-display font-bold text-lg">
               CS
-              <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 ring-2 ring-white" />
+              <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-[#7AC70C] ring-2 ring-[#211B35]" />
             </div>
             <div>
-              <h3 className="text-arcade-ink font-display font-bold text-lg leading-tight">
+              <h3 className="text-[#FFD447] font-display font-bold text-lg leading-tight">
                 Admin Support P2R
               </h3>
-              <p className="text-xs font-semibold text-arcade-ink/70">
-                Customer Service &amp; Pameran
+              <p className="text-xs text-[#FFF5E9]/75">
+                Customer Service &amp; Pameran RPL
               </p>
             </div>
           </div>
@@ -152,17 +152,17 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
             type="button"
             onClick={onClose}
             aria-label="Tutup live chat"
-            className="text-arcade-ink/80 hover:text-red-600 transition-colors p-1.5 rounded-lg hover:bg-black/5 cursor-pointer font-mono font-bold text-lg"
+            className="text-[#FFF5E9]/70 hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-white/10 cursor-pointer font-display font-bold text-lg"
           >
             ✕
           </button>
         </div>
 
         {/* Message Container */}
-        <div className="flex-1 p-5 overflow-y-auto flex flex-col gap-3.5 bg-black/15">
+        <div className="flex-1 p-5 overflow-y-auto flex flex-col gap-3.5 bg-[#0E0A1A]/50">
           {isLoading ? (
             <div className="flex h-full items-center justify-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-3 border-arcade-yellow border-t-transparent" />
+              <div className="h-8 w-8 animate-spin rounded-full border-3 border-[#FFD447] border-t-transparent" />
             </div>
           ) : msgList.length > 0 ? (
             msgList.map((msg) => {
@@ -175,16 +175,16 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
                   }`}
                 >
                   <div
-                    className={`px-5 py-3 rounded-2xl text-sm leading-relaxed shadow-md ${
+                    className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
                       isUser
-                        ? "bg-arcade-yellow text-arcade-ink font-semibold rounded-br-xs"
-                        : "bg-arcade-purple/90 border border-white/10 text-white rounded-bl-xs"
+                        ? "bg-[#FFD447] text-[#0E0A1A] font-semibold rounded-br-xs"
+                        : "bg-[#39265E] border border-white/10 text-[#FFF5E9] rounded-bl-xs"
                     }`}
                   >
                     {msg.text}
                   </div>
-                  <span className="mt-1 font-display text-[10px] text-white/50 px-1">
-                    {msg.sender_name || (isUser ? "Kamu" : "Admin")} •{" "}
+                  <span className="mt-1 font-display text-[11px] text-[#FFF5E9]/50 px-1">
+                    {msg.sender_name || (isUser ? "Kamu" : "Admin")} &bull;{" "}
                     {new Date(msg.created_at).toLocaleTimeString("id-ID", {
                       hour: "2-digit",
                       minute: "2-digit",
@@ -194,15 +194,18 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
               );
             })
           ) : (
-            <div className="flex h-full flex-col items-center justify-center text-center text-white/70">
-              <p className="font-display text-sm">Belum ada riwayat pesan.</p>
+            <div className="flex h-full flex-col items-center justify-center text-center text-[#FFF5E9]/70">
+              <p className="font-display text-sm text-[#FFD447]">Belum ada riwayat pesan.</p>
+              <p className="font-body text-xs text-[#FFF5E9]/60 mt-1">
+                Kirim pertanyaan atau konfirmasi pesanan merchandise ke admin.
+              </p>
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
 
         {/* Footer / Input Area */}
-        <div className="p-4 border-t border-white/15 bg-black/30">
+        <div className="p-4 border-t border-[#39265E] bg-[#211B35]">
           {isAuthenticated ? (
             <form onSubmit={handleSend} className="flex items-center gap-2">
               <input
@@ -211,28 +214,28 @@ export default function ChatAdminModal({ onClose }: ChatAdminModalProps) {
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder="Tulis pesan ke Admin..."
                 disabled={isSending}
-                className="flex-1 bg-black/40 border border-white/30 rounded-full px-5 py-3 text-white text-sm outline-none focus:border-arcade-yellow focus:ring-1 focus:ring-arcade-yellow transition-all placeholder:text-white/40 disabled:opacity-50"
+                className="flex-1 bg-[#171224] border border-[#39265E] rounded-xl px-4 py-2.5 text-[#FFF5E9] text-sm outline-none focus:border-[#68D5E8] focus:ring-1 focus:ring-[#68D5E8] transition-all placeholder:text-white/40 disabled:opacity-50"
               />
               <button
                 type="submit"
                 disabled={isSending || !inputText.trim()}
                 aria-label="Kirim pesan"
-                className="h-11 px-5 bg-arcade-yellow hover:bg-yellow-300 text-arcade-ink font-display font-bold text-sm rounded-full flex items-center justify-center gap-1.5 shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                className="h-10 px-5 bg-[#FFD447] hover:bg-[#FFE500] text-[#0E0A1A] font-display font-bold text-sm rounded-xl flex items-center justify-center gap-1.5 shadow-[2px_2px_0_#B8960A] transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
               >
                 {isSending ? "..." : "Kirim"}
               </button>
             </form>
           ) : (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left bg-black/40 border border-arcade-yellow/40 rounded-2xl p-3">
-              <p className="text-xs font-semibold text-white/90">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left bg-[#171224] border border-[#FFD447]/40 rounded-xl p-3">
+              <p className="text-xs font-body text-[#FFF5E9]/90">
                 Masuk ke akun Anda untuk mengirim pesan ke Admin.
               </p>
               <button
                 type="button"
                 onClick={handleLoginRedirect}
-                className="inline-flex flex-shrink-0 items-center justify-center rounded-xl bg-arcade-yellow px-4 py-1.5 font-display text-xs font-bold text-arcade-ink shadow-[2px_2px_0_var(--arcade-yellow-shadow)] hover:-translate-y-0.5"
+                className="inline-flex flex-shrink-0 items-center justify-center rounded-xl bg-[#FFD447] px-4 py-1.5 font-display text-xs font-bold text-[#0E0A1A] shadow-[2px_2px_0_#B8960A] hover:-translate-y-0.5 cursor-pointer"
               >
-                Masuk Sekarang →
+                Masuk Sekarang
               </button>
             </div>
           )}

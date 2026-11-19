@@ -30,56 +30,66 @@ export default function KaryaDirectory({ initialKaryas }: KaryaDirectoryProps) {
 
   return (
     <div className="w-full">
-      {/* Category Tabs */}
-      <div
-        role="tablist"
-        aria-label="Filter Kategori Karya"
-        className="mb-10 flex flex-wrap items-center justify-center gap-2 sm:gap-3"
-      >
-        {CATEGORIES.map((cat) => {
-          const isActive = activeCategory === cat.id;
-          return (
-            <button
-              key={cat.id}
-              role="tab"
-              aria-selected={isActive}
-              type="button"
-              onClick={() => setActiveCategory(cat.id)}
-              className={`rounded-full px-5 py-2 font-display text-sm font-bold tracking-wider transition-all duration-150 sm:text-base outline-none cursor-pointer focus-visible:ring-4 focus-visible:ring-white ${
-                isActive
-                  ? "bg-arcade-yellow text-arcade-ink shadow-[3px_3px_0_var(--arcade-yellow-shadow)] -translate-y-0.5"
-                  : "bg-black/30 text-white/80 hover:bg-white/10 hover:text-white border border-white/20"
-              }`}
-            >
-              {cat.label}
-            </button>
-          );
-        })}
+      {/* Category Tabs - Clean Arcade Segmented Control */}
+      <div className="mb-10 flex justify-center">
+        <div
+          role="tablist"
+          aria-label="Filter Kategori Karya"
+          className="inline-flex flex-wrap items-center justify-center gap-1.5 rounded-2xl border-2 border-[#39265E] bg-[#171224] p-1.5 shadow-[4px_4px_0_#0E0A1A]"
+        >
+          {CATEGORIES.map((cat) => {
+            const isActive = activeCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                role="tab"
+                aria-selected={isActive}
+                type="button"
+                onClick={() => setActiveCategory(cat.id)}
+                className={`rounded-xl px-4 py-2 font-display text-sm tracking-wider transition-all duration-150 sm:text-base outline-none cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FFD447] ${
+                  isActive
+                    ? "bg-[#FFD447] text-[#0E0A1A] font-bold shadow-[2px_2px_0_#B8960A]"
+                    : "text-[#FFF5E9]/75 hover:bg-[#39265E]/60 hover:text-white"
+                }`}
+              >
+                {cat.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Grid or Empty State */}
       <section aria-label="Daftar Inovasi Karya" className="w-full">
         {filteredKaryas.length > 0 ? (
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredKaryas.map((karya) => (
               <KaryaCard key={karya.id || karya.slug} karya={karya} />
             ))}
           </div>
         ) : (
-          <div className="flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-arcade-yellow/40 bg-black/20 p-10 text-center backdrop-blur-xs md:p-16">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-arcade-yellow/20 text-arcade-yellow">
-              <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          <div className="flex w-full flex-col items-center justify-center rounded-3xl border-2 border-dashed border-[#FFD447]/30 bg-[#171224] p-10 text-center md:p-14 shadow-[4px_4px_0_#0E0A1A]">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFD447]/15 text-[#FFD447] border border-[#FFD447]/30">
+              <svg
+                className="h-7 w-7"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                />
               </svg>
             </div>
-            <span className="mb-3 inline-block rounded-full bg-arcade-yellow/20 px-4 py-1 font-display text-sm tracking-wide text-arcade-yellow">
-              {activeCategoryObj.label}
-            </span>
-            <h2 className="mb-3 font-display text-2xl font-bold text-arcade-yellow drop-shadow-sm md:text-3xl">
+            <h2 className="font-display text-2xl font-bold text-[#FFD447] sm:text-3xl">
               Karya Segera Hadir
             </h2>
-            <p className="max-w-md text-base font-medium leading-relaxed text-white/80">
-              Karya pameran untuk kategori {activeCategoryObj.label} sedang dipersiapkan oleh tim siswa RPL. Pantau terus linimasa pameran!
+            <p className="mt-2 max-w-md font-body text-sm text-[#FFF5E9]/80 sm:text-base">
+              Karya pameran untuk kategori {activeCategoryObj.label} sedang dalam tahap finalisasi oleh siswa RPL. Silakan periksa kategori lain!
             </p>
           </div>
         )}

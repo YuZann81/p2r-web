@@ -1,25 +1,30 @@
-import About from "@/components/About";
-import Footer from "@/components/Footer";
-import Games from "@/components/Games";
-import Hero from "@/components/Hero";
 import Navbar from "@/components/Navbar";
+import Hero from "@/components/Hero";
+import P2RVoltSection from "@/components/P2RVoltSection";
+import GameShowcase from "@/components/GameShowcase";
+import LeaderboardSection from "@/components/LeaderboardSection";
+import ArcadeCabinetSection from "@/components/ArcadeCabinetSection";
 import MerchandiseSection from "@/components/MerchandiseSection";
+import PartnersSection from "@/components/PartnersSection";
+import Footer from "@/components/Footer";
+import { getGames } from "@/lib/games/getGames";
 
-export default function Page() {
+export default async function Page() {
+  const games = await getGames();
+
   return (
-    <main
-      className="flex min-h-screen flex-col"
-      style={{
-        background:
-          "linear-gradient(160deg, var(--arcade-violet) 0%, var(--arcade-purple) 100%)",
-      }}
-    >
+    <div className="flex min-h-screen flex-col bg-[#211B35] text-[#FFF5E9]">
       <Navbar />
-      <Hero />
-      <About />
-      <Games />
-      <MerchandiseSection />
+      <main className="flex-1">
+        <Hero />
+        <P2RVoltSection />
+        <GameShowcase games={games} />
+        <LeaderboardSection />
+        <ArcadeCabinetSection />
+        <PartnersSection />
+        <MerchandiseSection />
+      </main>
       <Footer />
-    </main>
+    </div>
   );
 }

@@ -88,15 +88,15 @@ function RegisterForm() {
   const loginHref = `/login${loginQuery.toString() ? `?${loginQuery.toString()}` : ""}`;
 
   return (
-    <div className="w-full max-w-md rounded-3xl border border-white/20 bg-black/40 p-8 shadow-2xl backdrop-blur-md sm:p-10">
+    <div className="w-full max-w-md rounded-3xl border-2 border-[#39265E] bg-[#171224] p-8 shadow-[8px_8px_0_#0E0A1A] sm:p-10">
       <div className="mb-8 text-center">
-        <span className="inline-block rounded-full bg-arcade-yellow/20 px-4 py-1 font-display text-xs tracking-wider uppercase text-arcade-yellow">
+        <span className="inline-block rounded-lg bg-[#FFD447]/20 px-3.5 py-1 font-display text-xs tracking-wider uppercase text-[#FFD447]">
           Registrasi Akun Baru
         </span>
-        <h1 className="mt-3 font-display text-3xl text-arcade-yellow [text-shadow:2px_2px_0_var(--arcade-ink)] sm:text-4xl">
+        <h1 className="mt-3 font-display text-3xl text-[#FFD447] sm:text-4xl drop-shadow-[2px_2px_0_#0E0A1A]">
           DAFTAR AKUN
         </h1>
-        <p className="mt-2 text-xs font-semibold text-white/80 sm:text-sm">
+        <p className="mt-2 font-body text-xs text-[#FFF5E9]/80 sm:text-sm">
           Buat akun untuk memesan merchandise dan ikut voting karya pameran Pixel To Reality.
         </p>
       </div>
@@ -104,7 +104,7 @@ function RegisterForm() {
       {errorMessage && (
         <div
           role="alert"
-          className="mb-6 rounded-xl border border-red-500/50 bg-red-500/20 p-4 text-center text-sm font-semibold text-red-200 backdrop-blur-xs"
+          className="mb-6 rounded-xl border border-red-500/50 bg-red-500/20 p-4 text-center font-body text-sm text-red-200"
         >
           {errorMessage}
         </div>
@@ -114,7 +114,7 @@ function RegisterForm() {
         <div>
           <label
             htmlFor="name"
-            className="block font-display text-sm tracking-wider uppercase text-arcade-yellow"
+            className="block font-display text-sm tracking-wider uppercase text-[#FFD447]"
           >
             Nama Lengkap
           </label>
@@ -125,16 +125,16 @@ function RegisterForm() {
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Nama Lengkap"
+            placeholder="Nama lengkap kamu"
             disabled={isSubmitting}
-            className="mt-2 w-full rounded-xl border border-white/20 bg-black/50 px-4 py-3 text-white placeholder-white/40 outline-none transition-colors focus:border-arcade-yellow focus:ring-2 focus:ring-arcade-yellow/50 disabled:opacity-50"
+            className="mt-2 w-full rounded-xl border border-white/20 bg-[#211B35] px-4 py-3 font-body text-sm text-white placeholder-white/40 outline-none transition-colors focus:border-[#68D5E8] focus:ring-2 focus:ring-[#68D5E8]/30 disabled:opacity-50"
           />
         </div>
 
         <div>
           <label
             htmlFor="email"
-            className="block font-display text-sm tracking-wider uppercase text-arcade-yellow"
+            className="block font-display text-sm tracking-wider uppercase text-[#FFD447]"
           >
             Email
           </label>
@@ -147,14 +147,14 @@ function RegisterForm() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="nama@email.com"
             disabled={isSubmitting}
-            className="mt-2 w-full rounded-xl border border-white/20 bg-black/50 px-4 py-3 text-white placeholder-white/40 outline-none transition-colors focus:border-arcade-yellow focus:ring-2 focus:ring-arcade-yellow/50 disabled:opacity-50"
+            className="mt-2 w-full rounded-xl border border-white/20 bg-[#211B35] px-4 py-3 font-body text-sm text-white placeholder-white/40 outline-none transition-colors focus:border-[#68D5E8] focus:ring-2 focus:ring-[#68D5E8]/30 disabled:opacity-50"
           />
         </div>
 
         <div>
           <label
             htmlFor="password"
-            className="block font-display text-sm tracking-wider uppercase text-arcade-yellow"
+            className="block font-display text-sm tracking-wider uppercase text-[#FFD447]"
           >
             Kata Sandi
           </label>
@@ -167,26 +167,26 @@ function RegisterForm() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Minimal 6 karakter"
             disabled={isSubmitting}
-            className="mt-2 w-full rounded-xl border border-white/20 bg-black/50 px-4 py-3 text-white placeholder-white/40 outline-none transition-colors focus:border-arcade-yellow focus:ring-2 focus:ring-arcade-yellow/50 disabled:opacity-50"
+            className="mt-2 w-full rounded-xl border border-white/20 bg-[#211B35] px-4 py-3 font-body text-sm text-white placeholder-white/40 outline-none transition-colors focus:border-[#68D5E8] focus:ring-2 focus:ring-[#68D5E8]/30 disabled:opacity-50"
           />
         </div>
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="mt-4 inline-flex w-full items-center justify-center bg-arcade-yellow py-3.5 font-display text-lg font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
+          className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-[#FFD447] py-3.5 font-display text-lg font-bold text-[#0E0A1A] shadow-[4px_4px_0_#B8960A] transition-all hover:bg-[#FFE500] hover:shadow-[5px_5px_0_#B8960A] active:translate-y-0.5 active:shadow-[2px_2px_0_#B8960A] disabled:opacity-50 disabled:pointer-events-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
         >
-          {isSubmitting ? "Mendaftarkan..." : "Buat Akun Sekarang →"}
+          {isSubmitting ? "Mendaftarkan..." : "Buat Akun Sekarang"}
         </button>
       </form>
 
-      <div className="mt-8 text-center text-xs font-semibold text-white/70 sm:text-sm">
-        Sudah memiliki akun?{" "}
+      <div className="mt-8 text-center font-body text-xs text-[#FFF5E9]/70 sm:text-sm">
+        Sudah punya akun?{" "}
         <Link
           href={loginHref}
-          className="font-display tracking-wider text-arcade-yellow underline transition-opacity hover:opacity-80"
+          className="font-display tracking-wider text-[#68D5E8] underline hover:text-[#FFD447] transition-colors"
         >
-          Masuk di Sini
+          Masuk ke Akun
         </Link>
       </div>
     </div>
@@ -195,18 +195,12 @@ function RegisterForm() {
 
 export default function RegisterPage() {
   return (
-    <main
-      className="flex min-h-screen flex-col items-center justify-between px-6 py-12 md:px-12 md:py-16"
-      style={{
-        background:
-          "linear-gradient(160deg, var(--arcade-violet) 0%, var(--arcade-purple) 100%)",
-      }}
-    >
+    <main className="flex min-h-screen flex-col items-center justify-between bg-[#211B35] px-4 py-12 text-[#FFF5E9] sm:px-6 md:py-16">
       <div className="mx-auto flex w-full max-w-5xl flex-col items-center">
         <header className="mb-8 text-center">
           <Link
             href="/"
-            className="inline-block font-display text-sm uppercase tracking-wider text-arcade-yellow transition-opacity hover:opacity-80 md:text-base"
+            className="inline-flex items-center gap-1.5 font-display text-sm tracking-wider text-[#68D5E8] transition-colors hover:text-[#FFD447] md:text-base"
           >
             ← Kembali ke Beranda
           </Link>
@@ -214,7 +208,7 @@ export default function RegisterPage() {
 
         <Suspense
           fallback={
-            <div className="p-10 font-display text-lg text-arcade-yellow">
+            <div className="p-10 font-display text-lg text-[#FFD447]">
               Memuat form registrasi...
             </div>
           }
@@ -223,8 +217,8 @@ export default function RegisterPage() {
         </Suspense>
       </div>
 
-      <footer className="mt-16 text-center font-display text-xs text-white/50">
-        Pixel To Reality: The Cyber Arcade
+      <footer className="mt-16 text-center font-display text-xs text-[#FFF5E9]/50">
+        Pixel To Reality: The Cyber Arcade &bull; Rekayasa Perangkat Lunak
       </footer>
     </main>
   );

@@ -15,27 +15,27 @@ function formatSourceLabel(source?: string | null): {
   switch (normalized) {
     case "instagram":
       return {
-        label: "📸 Instagram",
+        label: "Instagram",
         badgeClass: "bg-pink-500/20 text-pink-300 border-pink-500/40",
       };
     case "announcement":
       return {
-        label: "📢 Pengumuman",
+        label: "Pengumuman",
         badgeClass: "bg-arcade-yellow/20 text-arcade-yellow border-arcade-yellow/40",
       };
     case "activity":
       return {
-        label: "🕹️ Aktivitas",
+        label: "Aktivitas",
         badgeClass: "bg-cyan-500/20 text-cyan-300 border-cyan-500/40",
       };
     case "news":
       return {
-        label: "📰 Berita",
+        label: "Berita",
         badgeClass: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
       };
     default:
       return {
-        label: "⚡ Info P2R",
+        label: "Info P2R",
         badgeClass: "bg-arcade-yellow/20 text-arcade-yellow border-arcade-yellow/40",
       };
   }

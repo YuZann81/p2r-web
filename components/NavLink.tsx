@@ -13,7 +13,7 @@ type NavLinkProps = {
 export default function NavLink({
   label,
   href,
-  className = "font-display text-base tracking-wider text-white transition-colors hover:text-arcade-yellow focus-visible:text-arcade-yellow focus-visible:outline-none",
+  className = "font-display text-base text-white transition-colors hover:text-[#FFD447] hover:underline underline-offset-4 focus-visible:text-[#FFD447] focus-visible:outline-none",
   onClick,
 }: NavLinkProps) {
   const targetHref = href.startsWith("#") ? `/${href}` : href;

@@ -485,36 +485,35 @@ function CheckoutContent() {
 
 export default function CheckoutPage() {
   return (
-    <main
-      className="flex min-h-screen flex-col items-center justify-between px-6 py-12 md:px-12 md:py-16"
-      style={{
-        background:
-          "linear-gradient(160deg, var(--arcade-violet) 0%, var(--arcade-purple) 100%)",
-      }}
-    >
+    <main className="flex min-h-screen flex-col items-center justify-between bg-[#211B35] px-4 py-12 text-[#FFF5E9] sm:px-6 md:py-16">
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center">
         <header className="mb-10 text-center">
           <Link
             href="/"
-            className="inline-block font-display text-sm uppercase tracking-wider text-arcade-yellow transition-opacity hover:opacity-80 md:text-base"
+            className="inline-flex items-center gap-1.5 font-display text-sm tracking-wider text-[#68D5E8] transition-colors hover:text-[#FFD447] md:text-base"
           >
             ← Kembali ke Beranda
           </Link>
-          <h1 className="mt-4 font-display text-4xl text-arcade-yellow [text-shadow:3px_3px_0_var(--arcade-ink)] sm:text-5xl md:text-6xl">
+          <h1
+            className="mt-3 font-display text-4xl text-[#FFD447] sm:text-5xl md:text-6xl select-none"
+            style={{
+              textShadow: "3px 3px 0px #C37D29, 6px 6px 0px #0E0A1A",
+            }}
+          >
             CHECKOUT PESANAN
           </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-base font-semibold leading-relaxed text-pretty text-white/90 sm:text-lg">
+          <p className="mx-auto mt-3 max-w-2xl font-body text-base text-[#FFF5E9]/85 sm:text-lg">
             Selesaikan pemesanan merchandise resmi pameran Pixel To Reality: The Cyber Arcade.
           </p>
         </header>
 
-        <Suspense fallback={<div className="p-10 font-display text-arcade-yellow">Memuat checkout...</div>}>
+        <Suspense fallback={<div className="p-10 font-display text-[#FFD447]">Memuat checkout...</div>}>
           <CheckoutContent />
         </Suspense>
       </div>
 
-      <footer className="mt-16 text-center font-display text-xs text-white/50">
-        Pixel To Reality: The Cyber Arcade
+      <footer className="mt-16 text-center font-display text-xs text-[#FFF5E9]/50">
+        Pixel To Reality: The Cyber Arcade &bull; Rekayasa Perangkat Lunak
       </footer>
     </main>
   );

@@ -16,7 +16,7 @@ export default function ExploreButton({ onExplore }: ExploreButtonProps) {
     <button
       type="button"
       onClick={handleClick}
-      className="inline-flex items-center justify-center bg-arcade-yellow px-8 py-3 text-lg font-bold text-arcade-ink shadow-[6px_6px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[3px_3px_0_var(--arcade-yellow-shadow)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
+      className="inline-flex items-center justify-center rounded-xl bg-[#FFD447] px-8 py-3.5 font-display text-xl font-bold text-[#0E0A1A] shadow-[4px_4px_0_#B8960A] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#B8960A] active:translate-y-0.5 active:shadow-[2px_2px_0_#B8960A] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#68D5E8] cursor-pointer"
     >
       {HERO_CONTENT.ctaLabel}
     </button>

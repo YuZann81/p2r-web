@@ -1,9 +1,10 @@
 export const NAV_LINKS = [
-  { label: "Information", href: "#about" },
+  { label: "Information", href: "#information" },
   { label: "Karya", href: "/karya" },
   { label: "Games", href: "/games" },
   { label: "Leaderboard", href: "/leaderboard" },
   { label: "Feeds", href: "/feeds" },
+  { label: "Merchandise", href: "/merchandise" },
 ] as const;
 
 export const BRAND_NAME = "Pixels to Reality";

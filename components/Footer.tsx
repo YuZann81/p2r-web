@@ -1,35 +1,136 @@
+import React from "react";
+import Link from "next/link";
+import ArcadeLogo from "@/components/ArcadeLogo";
 import InvestorLogo from "@/components/InvestorLogo";
-import Marquee from "@/components/Marquee";
-import PixelDivider from "@/components/PixelDivider";
 import { FOOTER_CONTENT, FOOTER_MARQUEE_TEXT } from "@/lib/content";
 
 export default function Footer() {
   return (
-    <footer aria-label="Investors and site footer" className="w-full">
-      <Marquee text={FOOTER_MARQUEE_TEXT} />
-      <PixelDivider
-        base="var(--arcade-green)"
-        pixel="var(--arcade-green-shadow)"
-      />
+    <footer
+      role="contentinfo"
+      aria-label="Footer Pixel To Reality"
+      className="w-full border-t border-[#39265E] bg-[#0E0A1A] text-[#FFF5E9]"
+    >
+      {/* Accessible marquee text for screen readers without bright moving animation */}
+      <span className="sr-only">{FOOTER_MARQUEE_TEXT}</span>
 
-      <div className="bg-arcade-green">
-        <div className="mx-auto flex max-w-6xl flex-col items-center px-6 py-16 md:py-24">
-          <h2 className="font-display text-3xl text-arcade-ink [text-shadow:2px_3px_0_#fff] sm:text-4xl">
-            {FOOTER_CONTENT.heading}
-          </h2>
+      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-16">
+        {/* Investors / Partners section */}
+        <div className="mb-14 rounded-2xl border border-[#39265E] bg-[#211B35]/60 p-6 sm:p-8 backdrop-blur-sm">
+          <div className="text-center max-w-2xl mx-auto">
+            <h2 className="font-display text-2xl sm:text-3xl tracking-wide text-[#FFD447]">
+              {FOOTER_CONTENT.heading}
+            </h2>
+            <p className="mt-2 font-body text-sm leading-relaxed text-[#FFF5E9]/75">
+              {FOOTER_CONTENT.body}
+            </p>
+          </div>
 
-          <p className="mt-8 max-w-xl text-center text-base font-semibold leading-relaxed text-pretty text-white sm:text-lg">
-            {FOOTER_CONTENT.body}
-          </p>
-
-          <ul className="mt-16 grid w-full grid-cols-2 items-center gap-x-8 gap-y-12 md:mt-24 md:grid-cols-4">
+          <ul className="mt-8 flex flex-wrap items-center justify-center gap-8 sm:gap-12">
             {FOOTER_CONTENT.investors.map((investor) => (
               <InvestorLogo key={investor.id} investor={investor} />
             ))}
           </ul>
+        </div>
 
-          <p className="mt-20 font-display text-sm text-white [text-shadow:2px_2px_0_var(--arcade-ink)] md:mt-28">
+        {/* Navigation & Info Grid */}
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-12">
+          {/* Brand Info */}
+          <div className="md:col-span-5">
+            <ArcadeLogo />
+            <p className="mt-4 font-body text-sm leading-relaxed text-[#FFF5E9]/75 max-w-sm">
+              Pixel To Reality: The Cyber Arcade. Pameran karya teknologi, game interaktif, inovasi software, IoT, dan digital art persembahan siswa Rekayasa Perangkat Lunak (RPL).
+            </p>
+            <div className="mt-4 flex items-center gap-2 text-xs text-[#68D5E8]">
+              <span className="inline-block h-2 w-2 rounded-full bg-[#7AC70C] animate-pulse" />
+              <span>Event Pameran Aktif &bull; Rekayasa Perangkat Lunak</span>
+            </div>
+          </div>
+
+          {/* Nav Links */}
+          <div className="md:col-span-3">
+            <h4 className="font-display text-base tracking-wider uppercase text-[#FFD447]">
+              Navigasi
+            </h4>
+            <ul className="mt-4 space-y-2.5 font-body text-sm">
+              <li>
+                <a href="#information" className="text-[#FFF5E9]/80 hover:text-[#FFD447] transition-colors">
+                  Informasi P2R
+                </a>
+              </li>
+              <li>
+                <Link href="/karya" className="text-[#FFF5E9]/80 hover:text-[#FFD447] transition-colors">
+                  Karya Pameran
+                </Link>
+              </li>
+              <li>
+                <Link href="/games" className="text-[#FFF5E9]/80 hover:text-[#FFD447] transition-colors">
+                  Game Arcade
+                </Link>
+              </li>
+              <li>
+                <Link href="/leaderboard" className="text-[#FFF5E9]/80 hover:text-[#FFD447] transition-colors">
+                  Leaderboard
+                </Link>
+              </li>
+              <li>
+                <Link href="/merchandise" className="text-[#FFF5E9]/80 hover:text-[#FFD447] transition-colors">
+                  Merchandise
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Categories */}
+          <div className="md:col-span-4">
+            <h4 className="font-display text-base tracking-wider uppercase text-[#FFD447]">
+              Kategori Karya
+            </h4>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link
+                href="/karya?category=game"
+                className="rounded-lg border border-white/10 bg-[#211B35] px-3 py-1 font-body text-xs text-[#FFF5E9]/80 hover:border-[#FFD447] hover:text-[#FFD447] transition-colors"
+              >
+                Game Arcade
+              </Link>
+              <Link
+                href="/karya?category=website"
+                className="rounded-lg border border-white/10 bg-[#211B35] px-3 py-1 font-body text-xs text-[#FFF5E9]/80 hover:border-[#68D5E8] hover:text-[#68D5E8] transition-colors"
+              >
+                Web Innovation
+              </Link>
+              <Link
+                href="/karya?category=software"
+                className="rounded-lg border border-white/10 bg-[#211B35] px-3 py-1 font-body text-xs text-[#FFF5E9]/80 hover:border-[#F276A5] hover:text-[#F276A5] transition-colors"
+              >
+                Software Engineering
+              </Link>
+              <Link
+                href="/karya?category=hardware_robotics"
+                className="rounded-lg border border-white/10 bg-[#211B35] px-3 py-1 font-body text-xs text-[#FFF5E9]/80 hover:border-[#7AC70C] hover:text-[#7AC70C] transition-colors"
+              >
+                Hardware & Robotics
+              </Link>
+              <Link
+                href="/karya?category=digital_art"
+                className="rounded-lg border border-white/10 bg-[#211B35] px-3 py-1 font-body text-xs text-[#FFF5E9]/80 hover:border-[#9470E8] hover:text-[#9470E8] transition-colors"
+              >
+                Digital Art
+              </Link>
+            </div>
+            <p className="mt-4 font-body text-xs text-[#FFF5E9]/60">
+              Mendukung inovasi dan kreativitas generasi muda teknologi Indonesia.
+            </p>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="mt-12 flex flex-col items-center justify-between border-t border-white/10 pt-6 text-center sm:flex-row sm:text-left">
+          <p className="font-body text-xs text-[#FFF5E9]/60">
             {FOOTER_CONTENT.copyright}
+          </p>
+          <p className="mt-2 font-display text-xs tracking-wider text-[#68D5E8] sm:mt-0">
+            PIXEL TO REALITY &bull; VOLT 1
           </p>
         </div>
       </div>

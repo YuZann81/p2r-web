@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import type { Product } from "@/lib/api/types/product";
-import { PixelImage, PixelButton } from "./MerchandiseCard";
 import { useAuth } from "@/lib/auth/auth-context";
 import { submitCheckout, type OrderResult } from "@/lib/api/checkout";
 import { useCart } from "@/lib/cart/cart-context";
@@ -64,49 +63,45 @@ export default function OrderModal({
     setErrorMessage(null);
 
     try {
-      const response = await submitCheckout(
-        {
-          customer_name: formData.fullName.trim(),
-          customer_phone: formData.phone.trim(),
-          customer_class: formData.className.trim() || undefined,
-          customer_major: formData.jurusan.trim() || undefined,
-          items: [
-            {
-              product_id: product.id,
-              quantity,
-            },
-          ],
-        },
-        token,
-      );
-
-      const orderData: OrderResult = response.data || {
-        id: "P2R-" + Date.now(),
-        customer_name: formData.fullName,
-        customer_phone: formData.phone,
-        status: "pending",
+      const orderData = {
+        fullName: formData.fullName.trim(),
+        phone: formData.phone.trim(),
+        className: formData.className.trim() || undefined,
+        jurusan: formData.jurusan.trim() || undefined,
+        items: [
+          {
+            product_id: product.id,
+            quantity,
+            price: Number(product.price) || 0,
+            product_name: product.name,
+          },
+        ],
       };
 
-      setOrderCompleted(orderData);
-      onSuccess?.(orderData);
+      const result = await submitCheckout(orderData, token);
+
+      if (result.success && result.order) {
+        setOrderCompleted(result.order);
+        onSuccess?.(result.order);
+      } else {
+        setErrorMessage(
+          result.message || "Gagal memproses pesanan. Silakan coba lagi.",
+        );
+      }
     } catch (err) {
-      // In case backend checkout is offline or simulated
-      const fallbackOrder: OrderResult = {
-        id: "P2R-" + Date.now(),
-        customer_name: formData.fullName,
-        customer_phone: formData.phone,
-        status: "pending",
-      };
-      setOrderCompleted(fallbackOrder);
-      onSuccess?.(fallbackOrder);
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : "Terjadi kesalahan saat memproses pesanan.",
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const productName = product?.name ?? "Official P2R Merchandise";
+  const productName = product?.name || "Official P2R Merchandise";
   const productDesc =
-    product?.description ??
+    product?.description ||
     "Merchandise eksklusif edisi resmi Pixel To Reality. Pesan sekarang dan dukung karya pameran Cyber Arcade.";
 
   const priceDisplay =
@@ -115,76 +110,85 @@ export default function OrderModal({
       : "Price : Info via Admin";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 font-sans">
-      <div className="relative w-full max-w-4xl bg-[#6712D1]/90 backdrop-blur-xl border border-white/20 rounded-[2rem] p-8 md:p-10 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 font-body">
+      <div className="relative w-full max-w-2xl bg-[#171224] border-2 border-[#39265E] rounded-3xl p-6 md:p-8 shadow-[8px_8px_0_#0E0A1A] max-h-[90vh] overflow-y-auto">
         <button
           type="button"
           onClick={onClose}
           aria-label="Tutup modal pemesanan"
-          className="absolute top-6 right-8 text-white hover:text-[#F4EA2A] font-bold text-xl font-mono cursor-pointer"
+          className="absolute top-6 right-6 text-[#FFF5E9]/70 hover:text-[#FFD447] font-display text-xl cursor-pointer"
         >
-          X
+          ✕
         </button>
 
         {orderCompleted ? (
           <div className="flex flex-col items-center justify-center text-center py-6">
-            <div className="w-16 h-16 mb-4 flex items-center justify-center rounded-full bg-arcade-yellow text-arcade-ink font-bold text-2xl">
+            <div className="w-16 h-16 mb-4 flex items-center justify-center rounded-2xl bg-[#7AC70C] text-white font-bold text-2xl shadow-md">
               ✓
             </div>
-            <h2 className="text-[#F4EA2A] text-3xl font-display font-bold mb-2 drop-shadow-md">
+            <h2 className="text-[#FFD447] text-3xl font-display font-bold mb-2">
               Pesanan Berhasil Dibuat!
             </h2>
-            <p className="text-white text-base max-w-md mb-6 leading-relaxed">
-              Terima kasih, <strong>{orderCompleted.customer_name}</strong>. Pesanan untuk <strong>{quantity}x {productName}</strong> telah tercatat di sistem Cyber Arcade.
+            <p className="text-[#FFF5E9]/85 text-base max-w-md mb-6 leading-relaxed">
+              Terima kasih, <strong>{orderCompleted.customer_name}</strong>. Pesanan untuk <strong>{quantity}x {productName}</strong> telah tercatat di sistem Pixel To Reality.
             </p>
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="bg-arcade-yellow px-8 py-3 font-display text-base font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] hover:-translate-y-0.5 active:translate-y-0.5"
-              >
-                Selesai
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl bg-[#FFD447] px-8 py-3 font-display text-base font-bold text-[#0E0A1A] shadow-[4px_4px_0_#B8960A] hover:-translate-y-0.5 cursor-pointer"
+            >
+              Selesai
+            </button>
           </div>
         ) : (
           <>
-            <div className="flex flex-col md:flex-row gap-8 mb-10">
-              <div className="w-full md:w-64 flex-shrink-0">
-                <PixelImage
-                  imageUrl={product?.image_url}
-                  altText={`${productName} merchandise`}
-                />
+            <div className="flex flex-col sm:flex-row gap-6 mb-8 items-center sm:items-start">
+              {/* Product Visual */}
+              <div className="w-36 h-36 flex-shrink-0 overflow-hidden rounded-2xl border-2 border-[#39265E] bg-[#211B35]">
+                {product?.image_url ? (
+                  <img
+                    src={product.image_url}
+                    alt={productName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center text-[#B7ABCE]">
+                    <span className="font-display text-xs text-[#FFD447]">MERCH</span>
+                  </div>
+                )}
               </div>
 
-              <div className="flex flex-col justify-center text-white">
-                <h2 className="text-[#F4EA2A] text-3xl md:text-4xl font-bold mb-4 drop-shadow-md font-pixel">
+              <div className="flex-1 text-center sm:text-left">
+                <span className="inline-block rounded-md bg-[#68D5E8]/20 px-2.5 py-0.5 font-display text-xs text-[#68D5E8] mb-1">
+                  OFFICIAL P2R
+                </span>
+                <h2 className="text-[#FFD447] text-2xl sm:text-3xl font-display font-bold drop-shadow-[1px_1px_0_#0E0A1A]">
                   {productName}
                 </h2>
-                <p className="text-white/90 text-sm md:text-base leading-relaxed mb-6 font-medium">
+                <p className="text-[#FFF5E9]/80 text-sm mt-1 line-clamp-2">
                   {productDesc}
                 </p>
-                <div className="flex flex-wrap items-center gap-4">
-                  <span className="inline-block border border-white/50 text-white px-5 py-2 rounded-full text-sm font-semibold tracking-wide">
+                <div className="mt-3 flex flex-wrap items-center justify-center sm:justify-start gap-4">
+                  <span className="font-display text-xl text-[#FFD447] font-bold">
                     {priceDisplay}
                   </span>
 
-                  {/* Quantity Controls */}
-                  <div className="flex items-center rounded-full border border-white/40 bg-black/30 px-3 py-1 text-sm font-bold">
+                  {/* Quantity selector */}
+                  <div className="flex items-center rounded-xl border border-white/20 bg-[#211B35] px-3 py-1 text-sm">
                     <button
                       type="button"
                       aria-label="Kurangi jumlah"
                       onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                      className="px-2 py-0.5 hover:text-arcade-yellow text-white"
+                      className="px-2 font-display text-lg hover:text-[#FFD447] text-white cursor-pointer"
                     >
                       -
                     </button>
-                    <span className="px-3 text-arcade-yellow">{quantity}</span>
+                    <span className="px-3 font-display text-base text-[#FFD447] font-bold">{quantity}</span>
                     <button
                       type="button"
                       aria-label="Tambah jumlah"
                       onClick={() => setQuantity((q) => q + 1)}
-                      className="px-2 py-0.5 hover:text-arcade-yellow text-white"
+                      className="px-2 font-display text-lg hover:text-[#FFD447] text-white cursor-pointer"
                     >
                       +
                     </button>
@@ -196,49 +200,73 @@ export default function OrderModal({
             {errorMessage && (
               <div
                 role="alert"
-                className="mb-6 rounded-xl border border-red-500/50 bg-red-500/20 p-4 text-center text-sm font-semibold text-red-200"
+                className="mb-6 rounded-xl border border-red-500/50 bg-red-500/20 p-3 text-center text-sm font-semibold text-red-200"
               >
                 {errorMessage}
               </div>
             )}
 
-            <form
-              onSubmit={handleSubmit}
-              className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6"
-            >
-              {[
-                { label: "Full Name", name: "fullName", type: "text", placeholder: "Enter your full name", required: true },
-                { label: "Jurusan", name: "jurusan", type: "text", placeholder: "Pilih jurusan anda", required: false },
-                { label: "Class", name: "className", type: "text", placeholder: "Enter your class", required: false },
-                { label: "Number Telp", name: "phone", type: "tel", placeholder: "Enter your number", required: true },
-              ].map((field) => (
-                <div key={field.name} className="flex flex-col gap-2">
-                  <label className="text-white text-sm font-bold tracking-wide">{field.label}</label>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <div>
+                <label className="block font-display text-xs uppercase tracking-wider text-[#FFD447] mb-1">
+                  Nama Lengkap Pemesan
+                </label>
+                <input
+                  type="text"
+                  name="fullName"
+                  required
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  placeholder="Masukkan nama lengkap Anda"
+                  className="w-full rounded-xl border border-[#39265E] bg-[#211B35] px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none focus:border-[#68D5E8]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-display text-xs uppercase tracking-wider text-[#FFD447] mb-1">
+                    Nomor WhatsApp / HP
+                  </label>
                   <input
-                    type={field.type}
-                    name={field.name}
-                    value={formData[field.name as keyof typeof formData]}
+                    type="tel"
+                    name="phone"
+                    required
+                    value={formData.phone}
                     onChange={handleChange}
-                    placeholder={field.placeholder}
-                    required={field.required}
-                    disabled={isSubmitting}
-                    className="w-full bg-transparent border border-white/40 rounded-full px-5 py-3 text-sm text-white outline-none focus:border-white focus:bg-white/5 transition-all placeholder:text-white/50 disabled:opacity-50"
+                    placeholder="08123456789"
+                    className="w-full rounded-xl border border-[#39265E] bg-[#211B35] px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none focus:border-[#68D5E8]"
                   />
                 </div>
-              ))}
 
-              <div className="mt-4 md:col-span-2 flex flex-col sm:flex-row gap-4 items-center">
-                <div className="w-full sm:w-auto min-w-[200px]">
-                  <PixelButton type="submit">
-                    {isSubmitting ? "Memproses..." : "Order Sekarang"}
-                  </PixelButton>
+                <div>
+                  <label className="block font-display text-xs uppercase tracking-wider text-[#FFD447] mb-1">
+                    Kelas &bull; Jurusan (Opsional)
+                  </label>
+                  <input
+                    type="text"
+                    name="className"
+                    value={formData.className}
+                    onChange={handleChange}
+                    placeholder="Contoh: XII RPL 1"
+                    className="w-full rounded-xl border border-[#39265E] bg-[#211B35] px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none focus:border-[#68D5E8]"
+                  />
                 </div>
+              </div>
+
+              <div className="mt-4 flex flex-col sm:flex-row gap-3">
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  className="w-full sm:w-auto rounded-full border-2 border-white/40 bg-black/40 px-6 py-3 font-display text-base font-bold text-white transition-colors hover:border-arcade-yellow hover:text-arcade-yellow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow"
+                  className="flex-1 rounded-xl border-2 border-[#68D5E8] bg-[#211B35] py-3 font-display text-base font-bold text-[#68D5E8] hover:bg-[#39265E] transition-all cursor-pointer"
                 >
                   + Tambah ke Keranjang
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 rounded-xl bg-[#FFD447] py-3 font-display text-base font-bold text-[#0E0A1A] shadow-[3px_3px_0_#B8960A] hover:-translate-y-0.5 active:translate-y-0.5 disabled:opacity-50 cursor-pointer"
+                >
+                  {isSubmitting ? "Memproses..." : "Pesan Langsung"}
                 </button>
               </div>
             </form>

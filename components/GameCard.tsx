@@ -36,7 +36,7 @@ export default function GameCard({
       aria-label={`Select game: ${game.name}`}
       onClick={handleSelect}
       onKeyDown={handleKeyDown}
-      className="group grid cursor-pointer grid-cols-1 items-center gap-10 rounded-lg p-4 outline-none transition-colors focus-visible:ring-4 focus-visible:ring-arcade-yellow/70 md:grid-cols-2 md:gap-16"
+      className="group grid cursor-pointer grid-cols-1 items-center gap-8 rounded-3xl border-2 border-[#39265E] bg-[#211B35] p-6 shadow-[6px_6px_0_#0E0A1A] transition-all hover:border-[#FFD447]/60 hover:shadow-[8px_8px_0_#0E0A1A] md:grid-cols-2 md:gap-14 md:p-8"
     >
       <div className={`flex justify-center ${reversed ? "md:order-2" : ""}`}>
         <GameArtwork
@@ -49,23 +49,26 @@ export default function GameCard({
       </div>
 
       <div className={reversed ? "md:order-1" : ""}>
-        <h3 className="font-display text-2xl text-arcade-yellow [text-shadow:2px_3px_0_var(--arcade-ink)] sm:text-3xl">
+        <div className="inline-block rounded-lg bg-[#68D5E8]/20 px-3 py-1 font-display text-xs text-[#68D5E8] mb-3">
+          ARCADE GAME
+        </div>
+        <h3 className="font-display text-3xl text-[#FFD447] sm:text-4xl drop-shadow-[2px_2px_0_#0E0A1A]">
           {game.name}
         </h3>
-        <p className="mt-5 max-w-md text-base font-semibold leading-relaxed text-pretty text-white sm:text-lg">
+        <p className="mt-4 max-w-md font-body text-base leading-relaxed text-[#FFF5E9]/85">
           {game.description}
         </p>
 
-        <div className="mt-6">
+        <div className="mt-6 flex flex-wrap gap-4">
           <Link
             href={href}
             onClick={(e) => {
               e.stopPropagation();
               handleSelect();
             }}
-            className="inline-flex items-center justify-center bg-arcade-yellow px-6 py-2.5 font-display text-base font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
+            className="inline-flex items-center justify-center rounded-xl bg-[#FFD447] px-6 py-2.5 font-display text-base font-bold text-[#0E0A1A] shadow-[3px_3px_0_#B8960A] transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0_#B8960A] active:translate-y-0.5 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           >
-            Lihat Detail Game →
+            Lihat Detail Game
           </Link>
         </div>
       </div>

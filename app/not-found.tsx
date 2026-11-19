@@ -3,33 +3,32 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <main
-      className="flex min-h-screen flex-col items-center justify-center px-6 py-16 text-center font-body"
-      style={{
-        background:
-          "linear-gradient(160deg, var(--arcade-violet) 0%, var(--arcade-purple) 100%)",
-      }}
-    >
-      <div className="mx-auto flex max-w-lg flex-col items-center rounded-3xl border-2 border-dashed border-arcade-yellow/40 bg-black/40 p-8 shadow-2xl backdrop-blur-md sm:p-12">
-        <span className="inline-block rounded-full bg-arcade-yellow/20 px-4 py-1 font-display text-xs font-bold tracking-wider uppercase text-arcade-yellow">
-          404 Error — Stage Not Found
+    <main className="flex min-h-screen flex-col items-center justify-center bg-[#211B35] px-6 py-16 text-center text-[#FFF5E9]">
+      <div className="mx-auto flex max-w-lg flex-col items-center rounded-3xl border-2 border-[#39265E] bg-[#171224] p-8 shadow-[8px_8px_0_#0E0A1A] sm:p-12">
+        <span className="inline-block rounded-lg bg-[#FFD447]/20 px-3.5 py-1 font-display text-xs tracking-wider uppercase text-[#FFD447]">
+          404 Error &bull; Stage Not Found
         </span>
-        <h1 className="mt-4 font-display text-6xl font-bold text-arcade-yellow [text-shadow:3px_3px_0_var(--arcade-ink)] sm:text-7xl">
+        <h1
+          className="mt-4 font-display text-5xl font-bold text-[#FFD447] sm:text-7xl select-none"
+          style={{
+            textShadow: "3px 3px 0px #C37D29, 6px 6px 0px #0E0A1A",
+          }}
+        >
           GAME OVER
         </h1>
-        <p className="mt-3 text-base font-semibold text-white/90 sm:text-lg">
-          Halaman yang Anda tuju tidak ditemukan atau telah berpindah dimensi.
+        <p className="mt-3 font-body text-base text-[#FFF5E9]/85 sm:text-lg">
+          Halaman yang Anda tuju tidak ditemukan atau telah berpindah dimensi pameran.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Link
             href="/"
-            className="inline-flex items-center justify-center bg-arcade-yellow px-6 py-3 font-display text-base font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] transition-transform hover:-translate-y-0.5 active:translate-y-0.5"
+            className="inline-flex items-center justify-center rounded-xl bg-[#FFD447] px-6 py-3 font-display text-base font-bold text-[#0E0A1A] shadow-[3px_3px_0_#B8960A] transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0_#B8960A] active:translate-y-0.5 active:shadow-none"
           >
-            Kembali ke Beranda →
+            Kembali ke Beranda
           </Link>
           <Link
             href="/games"
-            className="inline-flex items-center justify-center border border-white/30 bg-black/30 px-6 py-3 font-display text-base font-bold text-white transition-colors hover:bg-white/10"
+            className="inline-flex items-center justify-center rounded-xl border-2 border-[#39265E] bg-[#211B35] px-6 py-3 font-display text-base font-bold text-[#FFF5E9] transition-all hover:bg-[#39265E]"
           >
             Lihat Game Arcade
           </Link>
