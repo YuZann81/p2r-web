@@ -53,20 +53,20 @@ function GameArtwork({
 
 export default function GameShowcase({ games }: GameShowcaseProps) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [stepX, setStepX] = useState(300);
+  const [stepX, setStepX] = useState(350);
   const [isReady, setIsReady] = useState(false);
   const isAnimatingRef = useRef(false);
 
-  // Responsive stepX calculation
+  // Responsive stepX calculation - generous spacing to prevent overlap
   useEffect(() => {
     const updateStep = () => {
       const w = window.innerWidth;
       if (w < 640) {
-        setStepX(180);
-      } else if (w < 768) {
-        setStepX(240);
+        setStepX(210);
+      } else if (w < 1024) {
+        setStepX(280);
       } else {
-        setStepX(300);
+        setStepX(350);
       }
     };
 
@@ -96,7 +96,7 @@ export default function GameShowcase({ games }: GameShowcaseProps) {
     setActiveIndex((prev) => prev + 1);
     setTimeout(() => {
       isAnimatingRef.current = false;
-    }, 500);
+    }, 450);
   };
 
   const handlePrev = () => {
@@ -105,7 +105,7 @@ export default function GameShowcase({ games }: GameShowcaseProps) {
     setActiveIndex((prev) => prev - 1);
     setTimeout(() => {
       isAnimatingRef.current = false;
-    }, 500);
+    }, 450);
   };
 
   const onTouchStart = (e: React.TouchEvent) => {
@@ -174,22 +174,19 @@ export default function GameShowcase({ games }: GameShowcaseProps) {
           </div>
         </div>
 
-        {/* Carousel Showcase Stage with 3D Perspective */}
+        {/* Carousel Showcase Stage */}
         <div
           className="relative flex flex-col items-center w-full"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
         >
-          {/* 3D Track Container with Stage Depth */}
+          {/* Stage Container */}
           <div
             className="relative w-full max-w-5xl flex items-center justify-center overflow-hidden select-none"
             style={{
-              height: "560px",
-              minHeight: "560px",
-              perspective: "1200px",
-              perspectiveOrigin: "50% 50%",
-              transformStyle: "preserve-3d",
+              height: "540px",
+              minHeight: "540px",
             }}
           >
             {visibleIndices.map((v) => {
@@ -201,54 +198,30 @@ export default function GameShowcase({ games }: GameShowcaseProps) {
               const gameIndex = ((v % N) + N) % N;
               const game = games[gameIndex];
 
-              // 3D Depth & Swelling Physics
+              // Smooth scale and positioning
               let x = offset * stepX;
-              let z = 0;
-              let rotateY = 0;
               let scale = 1.0;
               let opacity = 1.0;
-              let zIndex = 20;
+              let zIndex = 10;
 
               if (offset === 0) {
-                // Center card: Swells forward toward camera, un-tilted, 100% scale
+                // Center card: full size, front, fully visible
                 x = 0;
-                z = 50;
-                rotateY = 0;
                 scale = 1.0;
                 opacity = 1.0;
-                zIndex = 30;
-              } else if (offset === -1) {
-                // Left card: Recedes back, tilted inward, smaller
-                x = -stepX;
-                z = -60;
-                rotateY = 16;
-                scale = 0.8;
-                opacity = 0.6;
-                zIndex = 15;
-              } else if (offset === 1) {
-                // Right card: Recedes back, tilted inward, smaller
-                x = stepX;
-                z = -60;
-                rotateY = -16;
-                scale = 0.8;
-                opacity = 0.6;
-                zIndex = 15;
-              } else if (offset < -1) {
-                // Far left: offstage
+                zIndex = 50;
+              } else if (Math.abs(offset) === 1) {
+                // Side cards: scaled down, behind center, semi-opaque
                 x = offset * stepX;
-                z = -140;
-                rotateY = 28;
-                scale = 0.62;
-                opacity = 0;
-                zIndex = 5;
+                scale = 0.8;
+                opacity = 0.65;
+                zIndex = 10;
               } else {
-                // Far right: offstage
+                // Offscreen cards
                 x = offset * stepX;
-                z = -140;
-                rotateY = -28;
-                scale = 0.62;
+                scale = 0.65;
                 opacity = 0;
-                zIndex = 5;
+                zIndex = 1;
               }
 
               return (
@@ -256,15 +229,13 @@ export default function GameShowcase({ games }: GameShowcaseProps) {
                   key={v}
                   className="absolute top-1/2 left-1/2 will-change-transform"
                   style={{
-                    transform: `translate(calc(-50% + ${x}px), -50%) translateZ(${z}px) rotateY(${rotateY}deg) scale(${scale})`,
+                    transform: `translate(calc(-50% + ${x}px), -50%) scale(${scale})`,
                     opacity,
                     zIndex,
                     pointerEvents:
                       isCenter || isLeft || isRight ? "auto" : "none",
-                    transformStyle: "preserve-3d",
-                    backfaceVisibility: "hidden",
                     transition: isReady
-                      ? "transform 650ms cubic-bezier(0.22, 1, 0.36, 1), opacity 650ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 650ms ease"
+                      ? "transform 500ms cubic-bezier(0.25, 1, 0.5, 1), opacity 500ms ease"
                       : "none",
                   }}
                 >
@@ -280,11 +251,14 @@ export default function GameShowcase({ games }: GameShowcaseProps) {
                           ? "Game Berikutnya"
                           : undefined
                     }
-                    className={`relative flex flex-col justify-between w-[290px] sm:w-[340px] md:w-[380px] h-[430px] sm:h-[460px] md:h-[480px] rounded-[2.5rem] border-4 p-4 sm:p-6 transition-all duration-500 ${
+                    className={`relative flex flex-col justify-between w-[290px] sm:w-[340px] md:w-[380px] h-[430px] sm:h-[460px] md:h-[480px] rounded-[2.5rem] border-4 p-4 sm:p-6 transition-all duration-300 ${
                       isCenter
-                        ? "border-[#FFD447]/80 bg-[#5E1386] shadow-[0_20px_40px_rgba(0,0,0,0.5),8px_8px_0_#0E0A1A]"
-                        : "border-[#39265E] bg-[#5E1386]/80 shadow-[4px_4px_0_#0E0A1A] cursor-pointer hover:opacity-90"
+                        ? "border-[#FFD447] shadow-[8px_8px_0_#0E0A1A]"
+                        : "border-[#39265E] shadow-[4px_4px_0_#0E0A1A] cursor-pointer hover:opacity-90"
                     }`}
+                    style={{
+                      backgroundColor: isCenter ? "#2D124D" : "#230E3D",
+                    }}
                   >
                     {/* Top: Artwork Container */}
                     <div className="relative w-full">
@@ -294,57 +268,53 @@ export default function GameShowcase({ games }: GameShowcaseProps) {
                         title={game.name}
                       />
 
-                      {/* Side Arrow Indicator / Button Overlay with Smooth Fade */}
-                      <div
-                        className={`absolute inset-0 flex items-center justify-center rounded-2xl bg-black/25 transition-opacity duration-400 ${
-                          !isCenter
-                            ? "opacity-100 pointer-events-auto"
-                            : "opacity-0 pointer-events-none"
-                        }`}
-                      >
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (isLeft) handlePrev();
-                            else handleNext();
-                          }}
-                          aria-label={
-                            isLeft ? "Game Sebelumnya" : "Game Berikutnya"
-                          }
-                          className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-[#FFD447] text-[#0E0A1A] font-bold shadow-[2px_2px_0_#B8960A] text-base sm:text-lg transition-transform hover:scale-110 active:scale-95 cursor-pointer"
-                        >
-                          {isLeft ? "◀" : "▶"}
-                        </button>
-                      </div>
+                      {/* Side Arrow Indicator / Button Overlay (only on side cards) */}
+                      {!isCenter && (
+                        <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/20 hover:bg-black/10 transition-colors">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (isLeft) handlePrev();
+                              else handleNext();
+                            }}
+                            aria-label={
+                              isLeft ? "Game Sebelumnya" : "Game Berikutnya"
+                            }
+                            className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-[#FFD447] text-[#0E0A1A] font-bold shadow-[2px_2px_0_#B8960A] text-base sm:text-lg transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+                          >
+                            {isLeft ? "◀" : "▶"}
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Middle: Game Name */}
                     <div className="my-2 sm:my-3 text-center">
                       <h3
-                        className={`truncate max-w-full font-display tracking-wide text-white drop-shadow-[2px_2px_0_#0E0A1A] transition-all duration-400 ${
+                        className={`truncate max-w-full font-display tracking-wide text-white drop-shadow-[2px_2px_0_#0E0A1A] transition-all duration-300 ${
                           isCenter
                             ? "text-2xl sm:text-3xl text-[#FFD447]"
-                            : "text-lg sm:text-xl text-[#FFF5E9]/80"
+                            : "text-base sm:text-lg text-[#FFF5E9]/80"
                         }`}
                       >
                         {game.name}
                       </h3>
                     </div>
 
-                    {/* Bottom: Description & Action Button with Smooth Fade & Drift */}
+                    {/* Bottom: Description & Action Button (Only visible on Center Card) */}
                     <div
-                      className={`w-full flex flex-col items-center transition-all duration-500 ${
+                      className={`w-full flex flex-col items-center transition-all duration-300 ${
                         isCenter
-                          ? "opacity-100 translate-y-0 pointer-events-auto"
-                          : "opacity-0 translate-y-2 pointer-events-none select-none"
+                          ? "opacity-100 pointer-events-auto"
+                          : "opacity-0 pointer-events-none select-none"
                       }`}
                     >
                       <p className="line-clamp-2 text-center font-body text-xs sm:text-sm text-[#FFF5E9]/85 px-1 min-h-[36px]">
-                        {game.description}
+                        {isCenter ? game.description : ""}
                       </p>
 
-                      <div className="mt-3 sm:mt-4">
+                      <div className="mt-3 sm:mt-4 min-h-[44px] flex items-center">
                         {isCenter && (
                           <Link
                             href={`/games/${game.id}`}
@@ -365,7 +335,7 @@ export default function GameShowcase({ games }: GameShowcaseProps) {
               type="button"
               onClick={handlePrev}
               aria-label="Game Sebelumnya"
-              className="sm:hidden absolute left-2 top-1/2 -translate-y-1/2 z-40 flex h-10 w-10 items-center justify-center rounded-xl border-2 border-[#FFD447] bg-[#5E1386] text-[#FFD447] shadow-[2px_2px_0_#0E0A1A] active:translate-y-0.5 cursor-pointer"
+              className="sm:hidden absolute left-2 top-1/2 -translate-y-1/2 z-50 flex h-10 w-10 items-center justify-center rounded-xl border-2 border-[#FFD447] bg-[#211B35] text-[#FFD447] shadow-[2px_2px_0_#0E0A1A] active:translate-y-0.5 cursor-pointer"
             >
               ◀
             </button>
@@ -373,7 +343,7 @@ export default function GameShowcase({ games }: GameShowcaseProps) {
               type="button"
               onClick={handleNext}
               aria-label="Game Berikutnya"
-              className="sm:hidden absolute right-2 top-1/2 -translate-y-1/2 z-40 flex h-10 w-10 items-center justify-center rounded-xl border-2 border-[#FFD447] bg-[#5E1386] text-[#FFD447] shadow-[2px_2px_0_#0E0A1A] active:translate-y-0.5 cursor-pointer"
+              className="sm:hidden absolute right-2 top-1/2 -translate-y-1/2 z-50 flex h-10 w-10 items-center justify-center rounded-xl border-2 border-[#FFD447] bg-[#211B35] text-[#FFD447] shadow-[2px_2px_0_#0E0A1A] active:translate-y-0.5 cursor-pointer"
             >
               ▶
             </button>

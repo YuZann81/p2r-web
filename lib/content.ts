@@ -87,9 +87,9 @@ export const GAMES: readonly Game[] = [
     name: "Cyber Runner 2099",
     description:
       "Game arcade endless runner berkecepatan tinggi dengan nuansa visual cyberpunk neon. Hindari rintangan siber dan raih skor tertinggi!",
-    image: "/images/game-1.png",
+    image: "/images/games/cyber-runner-2099.svg",
     imageAlt: "Cyber Runner 2099 game artwork",
-    logo: "/images/game-1-logo.png",
+    logo: "/images/games/cyber-runner-2099.svg",
     logoAlt: "Cyber Runner 2099 logo",
   },
   {
@@ -97,9 +97,9 @@ export const GAMES: readonly Game[] = [
     name: "Byte Defender",
     description:
       "Game arcade shooter strategi untuk melindungi server inti dari gelombang malware dan bug digital dalam pertarungan piksel yang intens.",
-    image: "/images/game-2.png",
+    image: "/images/games/byte-defender.svg",
     imageAlt: "Byte Defender game artwork",
-    logo: "/images/game-2-logo.png",
+    logo: "/images/games/byte-defender.svg",
     logoAlt: "Byte Defender logo",
   },
   {
@@ -107,9 +107,9 @@ export const GAMES: readonly Game[] = [
     name: "Neon Highway",
     description:
       "Game balap arkade futuristik berkecepatan tinggi melintasi jalanan metropolis bercahaya neon.",
-    image: "/images/game-3.png",
+    image: "/images/games/neon-highway.svg",
     imageAlt: "Neon Highway game artwork",
-    logo: "/images/game-3-logo.png",
+    logo: "/images/games/neon-highway.svg",
     logoAlt: "Neon Highway logo",
   },
 ] as const;
