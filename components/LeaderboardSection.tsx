@@ -68,11 +68,11 @@ export default async function LeaderboardSection() {
 
             {/* Rank 1 (Center with Champion Badge) */}
             <div className="relative flex flex-col items-center order-1 sm:order-2 sm:-translate-y-4">
-              <span className="mb-2 rounded-md bg-[#0E0A1A] px-3 py-1 font-display text-xs font-bold tracking-wider text-[#FFD447] border border-[#FFD447]/60 uppercase shadow-[0_0_12px_rgba(255,212,71,0.3)]">
+              <span className="mb-2 rounded-md bg-[#0E0A1A] px-3 py-1 font-display text-xs font-bold tracking-wider text-[#FFD447] border border-[#FFD447]/60 uppercase shadow-[2px_2px_0_#0E0A1A]">
                 JUARA 1
               </span>
               <div className="w-full rounded-2xl border-2 border-[#FFD447] bg-gradient-to-b from-[#FFD447]/20 via-[#211B35] to-[#171224] p-6 text-center shadow-[8px_8px_0_#0E0A1A]">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#FFD447] font-display text-2xl font-bold text-[#0E0A1A] shadow-[0_0_16px_rgba(255,212,71,0.6)] mb-2">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#FFD447] font-display text-2xl font-bold text-[#0E0A1A] shadow-[2px_2px_0_#B8960A] mb-2">
                   #1
                 </div>
                 <h3 className="font-display text-2xl text-[#FFD447] font-bold truncate">
@@ -131,13 +131,14 @@ export default async function LeaderboardSection() {
           </div>
         )}
 
-        {/* See Details Button */}
+        {/* Tombol Klasemen Lengkap */}
         <div className="flex justify-center">
           <Link
             href="/leaderboard"
-            className="inline-flex items-center justify-center rounded-xl bg-[#FFD447] px-8 py-3.5 font-display text-xl text-[#0E0A1A] shadow-[4px_4px_0_#B8960A] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#B8960A] active:translate-y-0.5 active:shadow-[2px_2px_0_#B8960A]"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FFD447] px-8 py-3.5 font-display text-lg font-bold text-[#0E0A1A] shadow-[4px_4px_0_#B8960A] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#B8960A] active:translate-y-0.5 active:shadow-[2px_2px_0_#B8960A] cursor-pointer"
           >
-            See Details
+            <span>Lihat Klasemen Lengkap</span>
+            <span>&rarr;</span>
           </Link>
         </div>
       </div>

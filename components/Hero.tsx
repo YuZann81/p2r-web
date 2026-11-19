@@ -12,15 +12,7 @@ type HeroProps = {
 
 export default function Hero({ onExplore }: HeroProps) {
   return (
-    <section className="relative flex min-h-[calc(100dvh-4.25rem)] w-full flex-col justify-between overflow-hidden px-4 py-8 sm:px-6 md:py-12">
-      {/* Background Radial Glow */}
-      <div
-        className="pointer-events-none absolute -top-24 left-1/2 h-[500px] w-[900px] -translate-x-1/2 rounded-full opacity-25 blur-[130px]"
-        style={{
-          background: "radial-gradient(circle, #9470E8 0%, #39265E 70%, transparent 100%)",
-        }}
-      />
-
+    <section className="relative flex min-h-[calc(100dvh-4.25rem)] w-full flex-col justify-between overflow-hidden px-4 py-8 sm:px-6 md:py-12 bg-[#211B35]">
       {/* Top spacer / Decorative accent row */}
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-2 sm:px-6">
         <div className="animate-[float-slow_4s_ease-in-out_infinite] flex items-center">
@@ -29,7 +21,7 @@ export default function Hero({ onExplore }: HeroProps) {
             alt="Pixel Coin"
             width={72}
             height={72}
-            className="drop-shadow-[0_4px_8px_rgba(255,212,71,0.3)] w-10 h-10 sm:w-14 sm:h-14 object-contain"
+            className="w-10 h-10 sm:w-14 sm:h-14 object-contain"
             priority
           />
         </div>
@@ -40,7 +32,7 @@ export default function Hero({ onExplore }: HeroProps) {
             alt="Sparkle Star"
             width={64}
             height={64}
-            className="drop-shadow-[0_0_12px_rgba(255,212,71,0.5)] w-9 h-9 sm:w-12 sm:h-12 object-contain"
+            className="w-9 h-9 sm:w-12 sm:h-12 object-contain"
             priority
           />
         </div>
@@ -80,7 +72,7 @@ export default function Hero({ onExplore }: HeroProps) {
             href="/games"
             className="inline-flex items-center justify-center rounded-xl border-2 border-[#68D5E8] bg-[#39265E]/80 px-7 py-3.5 font-display text-xl text-[#68D5E8] shadow-[4px_4px_0_#0E0A1A] transition-all hover:-translate-y-0.5 hover:bg-[#39265E] hover:text-[#FFF5E9] active:translate-y-0.5 cursor-pointer"
           >
-            Mainkan Game Arcade
+            Mainkan Game
           </Link>
         </div>
       </div>
