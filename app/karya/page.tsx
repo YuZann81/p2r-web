@@ -42,15 +42,6 @@ export default async function KaryaPage() {
           </header>
 
           <KaryaDirectory initialKaryas={karyas} />
-
-          <div className="mt-14 flex justify-center border-t border-white/10 pt-8">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-[#171224] px-6 py-2.5 font-display text-sm tracking-wider text-[#68D5E8] shadow-[2px_2px_0_#0E0A1A] transition-all hover:border-[#FFD447] hover:text-[#FFD447] hover:-translate-y-0.5"
-            >
-              ← Kembali ke Beranda
-            </Link>
-          </div>
         </div>
       </main>
 

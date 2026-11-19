@@ -41,10 +41,6 @@ export default function Footer() {
             <p className="mt-4 font-body text-sm leading-relaxed text-[#FFF5E9]/75 max-w-sm">
               Pixel To Reality: The Cyber Arcade. Pameran karya teknologi, game interaktif, inovasi software, IoT, dan digital art persembahan siswa Rekayasa Perangkat Lunak (RPL).
             </p>
-            <div className="mt-4 flex items-center gap-2 text-xs text-[#68D5E8]">
-              <span className="inline-block h-2 w-2 rounded-full bg-[#7AC70C] animate-pulse" />
-              <span>Event Pameran Aktif &bull; Rekayasa Perangkat Lunak</span>
-            </div>
           </div>
 
           {/* Nav Links */}
