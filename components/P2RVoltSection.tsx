@@ -34,21 +34,6 @@ export default function P2RVoltSection() {
           {/* Left Column: Cyber Information Panel */}
           <div className="lg:col-span-7 flex flex-col justify-between rounded-3xl border-2 border-[#39265E] bg-[#171224] p-6 shadow-[8px_8px_0_#0E0A1A] sm:p-8">
             <div>
-              {/* Terminal Title Bar */}
-              <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-4">
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-[#EF4444]" />
-                  <span className="h-3 w-3 rounded-full bg-[#FFD447]" />
-                  <span className="h-3 w-3 rounded-full bg-[#68D5E8]" />
-                  <span className="ml-2 font-display text-xs tracking-wider text-[#FFD447] sm:text-sm">
-                    PROFIL_EVENT.SYS
-                  </span>
-                </div>
-                <span className="rounded-md bg-[#211B35] px-2.5 py-0.5 font-display text-[11px] text-[#68D5E8] border border-[#68D5E8]/30">
-                  VOLT 1.0 AKTIF
-                </span>
-              </div>
-
               {/* Dialog Body Text */}
               <div className="space-y-4 font-body text-base leading-relaxed text-[#FFF5E9]/90 sm:text-lg">
                 <p>

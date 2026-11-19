@@ -143,9 +143,6 @@ export default async function LeaderboardPage() {
                       <th scope="col" className="px-5 py-4 sm:px-6">
                         Player
                       </th>
-                      <th scope="col" className="px-5 py-4 sm:px-6">
-                        Game
-                      </th>
                       <th scope="col" className="px-5 py-4 text-right sm:px-6">
                         Score
                       </th>
@@ -174,9 +171,6 @@ export default async function LeaderboardPage() {
                         </td>
                         <td className="px-5 py-4 font-semibold text-[#FFF5E9] sm:px-6">
                           {entry.playerName}
-                        </td>
-                        <td className="px-5 py-4 text-[#68D5E8] sm:px-6">
-                          {entry.gameName}
                         </td>
                         <td className="px-5 py-4 text-right font-display text-base font-bold text-[#FFD447] sm:px-6 sm:text-lg">
                           {entry.score.toLocaleString("id-ID")}

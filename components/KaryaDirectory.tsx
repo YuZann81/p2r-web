@@ -10,7 +10,6 @@ type KaryaDirectoryProps = {
 
 const CATEGORIES = [
   { id: "all", label: "Semua Kategori" },
-  { id: "game", label: "Game Arcade" },
   { id: "website", label: "Web Innovation" },
   { id: "software", label: "Software" },
   { id: "hardware_robotics", label: "IoT & Hardware" },

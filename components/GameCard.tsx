@@ -49,9 +49,6 @@ export default function GameCard({
       </div>
 
       <div className={reversed ? "md:order-1" : ""}>
-        <div className="inline-block rounded-lg bg-[#68D5E8]/20 px-3 py-1 font-display text-xs text-[#68D5E8] mb-3">
-          ARCADE GAME
-        </div>
         <h3 className="font-display text-3xl text-[#FFD447] sm:text-4xl drop-shadow-[2px_2px_0_#0E0A1A]">
           {game.name}
         </h3>

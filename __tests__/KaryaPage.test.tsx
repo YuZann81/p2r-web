@@ -95,12 +95,12 @@ describe("KaryaPage (/karya)", () => {
     const Component = await KaryaPage()
     render(Component)
 
-    // Filter to Game category
-    const gameTab = screen.getByRole("tab", { name: "Game Arcade" })
-    await user.click(gameTab)
+    // Filter to IoT category
+    const iotTab = screen.getByRole("tab", { name: "IoT & Hardware" })
+    await user.click(iotTab)
 
-    expect(screen.getByText("Cyber Runner 2099")).toBeInTheDocument()
-    expect(screen.queryByText("Smart Attendance IoT")).not.toBeInTheDocument()
+    expect(screen.getByText("Smart Attendance IoT")).toBeInTheDocument()
+    expect(screen.queryByText("Cyber Runner 2099")).not.toBeInTheDocument()
 
     // Filter to Website category (empty)
     const webTab = screen.getByRole("tab", { name: "Web Innovation" })

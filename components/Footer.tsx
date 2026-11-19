@@ -84,12 +84,6 @@ export default function Footer() {
             </h4>
             <div className="mt-4 flex flex-wrap gap-2">
               <Link
-                href="/karya?category=game"
-                className="rounded-lg border border-white/10 bg-[#211B35] px-3 py-1 font-body text-xs text-[#FFF5E9]/80 hover:border-[#FFD447] hover:text-[#FFD447] transition-colors"
-              >
-                Game Arcade
-              </Link>
-              <Link
                 href="/karya?category=website"
                 className="rounded-lg border border-white/10 bg-[#211B35] px-3 py-1 font-body text-xs text-[#FFF5E9]/80 hover:border-[#68D5E8] hover:text-[#68D5E8] transition-colors"
               >
@@ -114,9 +108,6 @@ export default function Footer() {
                 Digital Art
               </Link>
             </div>
-            <p className="mt-4 font-body text-xs text-[#FFF5E9]/60">
-              Mendukung inovasi dan kreativitas generasi muda teknologi Indonesia.
-            </p>
           </div>
         </div>
 
