@@ -56,7 +56,7 @@ export default function Hero({ onExplore }: HeroProps) {
 
         {/* Subtitle badge - Concise & informative */}
         <div className="mt-5 inline-flex items-center rounded-full border border-[#68D5E8]/30 bg-[#68D5E8]/10 px-4 py-1.5 font-display text-xs tracking-widest text-[#68D5E8] uppercase sm:text-sm">
-          The Cyber Arcade &bull; Pameran Karya Siswa RPL
+          Pameran Karya Siswa RPL
         </div>
 
         {/* Subheading text */}

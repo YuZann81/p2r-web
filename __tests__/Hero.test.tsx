@@ -29,12 +29,13 @@ describe("Hero", () => {
       ).toBeInTheDocument();
     });
 
-    it("renders the primary call-to-action button", () => {
+    it("renders the primary call-to-action button linking to /karya", () => {
       render(<Hero />);
       const cta = screen.getByRole("button", {
         name: new RegExp(HERO_CONTENT.ctaLabel, "i"),
       });
       expect(cta).toBeInTheDocument();
+      expect(cta).toHaveAttribute("href", "/karya");
     });
   });
 
