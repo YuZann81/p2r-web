@@ -36,9 +36,6 @@ export default async function KaryaPage() {
             >
               SEMUA KARYA
             </h1>
-            <p className="mx-auto mt-3 max-w-2xl font-body text-base text-[#FFF5E9]/85 sm:text-lg">
-              Direktori lengkap seluruh karya pameran inovasi teknologi, website modern, software aplikasi, IoT, dan digital art buatan siswa RPL.
-            </p>
           </header>
 
           <KaryaDirectory initialKaryas={karyas} />

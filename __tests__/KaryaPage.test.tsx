@@ -65,9 +65,6 @@ describe("KaryaPage (/karya)", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: /semua karya/i }),
     ).toBeInTheDocument()
-    expect(
-      screen.getByText(/direktori lengkap seluruh karya pameran/i),
-    ).toBeInTheDocument()
 
     // Back to home links
     const backLinks = screen.getAllByRole("link", {
