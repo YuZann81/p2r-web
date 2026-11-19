@@ -77,7 +77,7 @@ describe("MerchandisePage (/merchandise)", () => {
     jest.restoreAllMocks()
   })
 
-  it("renders page heading, description, and back-to-home link", async () => {
+  it("renders page heading and back-to-home link", async () => {
     mockedFetchProducts.mockResolvedValueOnce(mockProducts)
 
     const Component = await MerchandisePage()
@@ -85,9 +85,6 @@ describe("MerchandisePage (/merchandise)", () => {
 
     expect(
       screen.getByRole("heading", { level: 1, name: /katalog merchandise/i }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText(/koleksi merchandise resmi dan produk dana usaha/i),
     ).toBeInTheDocument()
 
     const backLinks = screen.getAllByRole("link", {

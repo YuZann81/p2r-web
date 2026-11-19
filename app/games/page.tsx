@@ -21,7 +21,7 @@ export default async function GamesPage() {
       <main className="flex-1 px-4 py-10 sm:px-6 md:py-16">
         <div className="mx-auto w-full max-w-6xl">
           {/* Header */}
-          <header className="mb-12 text-center md:mb-16">
+          <header className="mb-10 text-center md:mb-14">
             <Link
               href="/"
               className="inline-flex items-center gap-1.5 font-display text-sm tracking-wider text-[#68D5E8] transition-colors hover:text-[#FFD447]"
@@ -36,9 +36,6 @@ export default async function GamesPage() {
             >
               DIREKTORI GAME
             </h1>
-            <p className="mx-auto mt-3 max-w-2xl font-body text-base text-[#FFF5E9]/85 sm:text-lg">
-              Koleksi lengkap seluruh game arcade interaktif buatan siswa jurusan Rekayasa Perangkat Lunak. Pilih game favoritmu, mainkan, dan catatkan skormu di leaderboard!
-            </p>
           </header>
 
           {/* Game List */}
@@ -63,16 +60,6 @@ export default async function GamesPage() {
               </div>
             )}
           </section>
-
-          {/* Bottom Back Button */}
-          <div className="mt-16 flex justify-center md:mt-24">
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center rounded-xl bg-[#FFD447] px-8 py-3.5 font-display text-xl text-[#0E0A1A] shadow-[4px_4px_0_#B8960A] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#B8960A] active:translate-y-0.5 active:shadow-[2px_2px_0_#B8960A]"
-            >
-              Kembali ke Beranda
-            </Link>
-          </div>
         </div>
       </main>
 

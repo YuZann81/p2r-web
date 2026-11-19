@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function LeaderboardPage() {
-  const { mode, entries } = await getLeaderboardData();
+  const { entries } = await getLeaderboardData();
 
   const topThree = entries.slice(0, 3);
   const podiumOrder =
@@ -41,33 +41,7 @@ export default async function LeaderboardPage() {
             >
               LEADERBOARD
             </h1>
-            <p className="mx-auto mt-3 max-w-2xl font-body text-base text-[#FFF5E9]/85 sm:text-lg">
-              Papan klasemen global skor turnamen arcade pameran Pixel To Reality. Raih skor tertinggi dan catat namamu di posisi puncak!
-            </p>
           </header>
-
-          {/* Mode Banner */}
-          <div className="mb-10 rounded-2xl border-2 border-[#39265E] bg-[#171224] p-4 text-center sm:p-5">
-            {mode === "preview" ? (
-              <>
-                <span className="inline-block rounded-lg bg-[#FFD447]/20 px-3.5 py-1 font-display text-xs tracking-wider uppercase text-[#FFD447] sm:text-sm">
-                  SIMULASI / PREVIEW MODE
-                </span>
-                <p className="mt-2 text-xs font-body text-[#FFF5E9]/80 sm:text-sm">
-                  Data klasemen di bawah ini merupakan data simulasi preview pameran. Leaderboard live real-time diperbarui saat sesi turnamen aktif.
-                </p>
-              </>
-            ) : (
-              <>
-                <span className="inline-block rounded-lg bg-[#7AC70C]/20 px-3.5 py-1 font-display text-xs tracking-wider uppercase text-[#7AC70C] sm:text-sm">
-                  LIVE EVENT LEADERBOARD
-                </span>
-                <p className="mt-2 text-xs font-body text-[#FFF5E9]/80 sm:text-sm">
-                  Papan klasemen skor resmi turnamen arcade pameran Pixel To Reality: The Cyber Arcade.
-                </p>
-              </>
-            )}
-          </div>
 
           {/* Top 3 Podium Highlights */}
           {podiumOrder.length > 0 && (
@@ -186,16 +160,6 @@ export default async function LeaderboardPage() {
               </div>
             )}
           </section>
-
-          {/* Bottom Back Button */}
-          <div className="mt-14 flex justify-center md:mt-20">
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center rounded-xl bg-[#FFD447] px-8 py-3.5 font-display text-xl text-[#0E0A1A] shadow-[4px_4px_0_#B8960A] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#B8960A] active:translate-y-0.5 active:shadow-[2px_2px_0_#B8960A]"
-            >
-              Kembali ke Beranda
-            </Link>
-          </div>
         </div>
       </main>
 

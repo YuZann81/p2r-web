@@ -38,29 +38,10 @@ export default async function FeedsPage() {
             >
               INFO TERKINI &amp; FEEDS
             </h1>
-            <p className="mx-auto mt-3 max-w-2xl font-body text-base text-[#FFF5E9]/85 sm:text-lg">
-              Linimasa postingan, dokumentasi pameran, dan pengumuman resmi seputar Pixel To Reality: The Cyber Arcade.
-            </p>
           </header>
 
           {/* Interactive Stream Component */}
           <FeedsStream initialFeeds={feeds} />
-
-          {/* Footer Navigation */}
-          <div className="mt-16 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center rounded-xl bg-[#FFD447] px-8 py-3.5 font-display text-lg font-bold text-[#0E0A1A] shadow-[4px_4px_0_#B8960A] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#B8960A] active:translate-y-0.5 active:shadow-[2px_2px_0_#B8960A]"
-            >
-              Kembali ke Beranda
-            </Link>
-            <Link
-              href="/merchandise"
-              className="inline-flex items-center justify-center rounded-xl border-2 border-[#39265E] bg-[#211B35] px-8 py-3.5 font-display text-lg font-bold text-[#FFF5E9] transition-all hover:bg-[#39265E]"
-            >
-              Lihat Merchandise
-            </Link>
-          </div>
         </div>
       </main>
 

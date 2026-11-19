@@ -71,17 +71,6 @@ describe("LeaderboardPage", () => {
       }
     });
 
-    it("renders the SIMULASI / PREVIEW MODE notice banner", async () => {
-      const Component = await LeaderboardPage();
-      render(Component);
-      expect(
-        screen.getByText(/simulasi \/ preview mode/i),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/data klasemen di bawah ini merupakan data simulasi/i),
-      ).toBeInTheDocument();
-    });
-
     it("exposes semantic table and section structures for accessibility", async () => {
       const Component = await LeaderboardPage();
       render(Component);
@@ -103,7 +92,7 @@ describe("LeaderboardPage", () => {
   });
 
   describe("Live Mode (API data)", () => {
-    it("renders live event banner when live mode is active", async () => {
+    it("renders live entries when live mode is active", async () => {
       mockedGetLeaderboardData.mockResolvedValueOnce({
         mode: "live",
         entries: [
@@ -116,9 +105,6 @@ describe("LeaderboardPage", () => {
       const Component = await LeaderboardPage();
       render(Component);
 
-      expect(
-        screen.getByText(/live event leaderboard/i),
-      ).toBeInTheDocument();
       expect(screen.getAllByText("LiveChampion").length).toBeGreaterThan(0);
       expect(screen.getAllByText(/120\.000/i).length).toBeGreaterThan(0);
     });

@@ -42,9 +42,6 @@ describe("GamesPage", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: /direktori game/i }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(/koleksi lengkap seluruh game arcade interaktif/i),
-    ).toBeInTheDocument();
 
     // Game items
     expect(screen.getByText("Pixel Runner")).toBeInTheDocument();
