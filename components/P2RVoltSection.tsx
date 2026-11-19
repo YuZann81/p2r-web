@@ -67,26 +67,23 @@ export default function P2RVoltSection() {
             </div>
           </div>
 
-          {/* Right Column: Countdown Console (Clean & Balanced, No Cluttered Stats) */}
-          <div className="lg:col-span-5 flex flex-col justify-center rounded-3xl border-2 border-[#39265E] bg-[#171224] p-6 shadow-[8px_8px_0_#0E0A1A] sm:p-8">
-            {/* Live Countdown Console */}
-            <div className="rounded-2xl border-2 border-[#9470E8]/50 bg-[#39265E]/40 p-6 sm:p-8 text-center flex flex-col items-center justify-center">
-              <span className="font-display text-xs tracking-widest uppercase text-[#FFD447] sm:text-sm">
-                SESI PAMERAN &amp; TURNAMEN
-              </span>
+          {/* Right Column: Countdown Console (Clean Single-Card, No Redundant Nested Border) */}
+          <div className="lg:col-span-5 flex flex-col items-center justify-center rounded-3xl border-2 border-[#39265E] bg-[#171224] p-6 text-center shadow-[8px_8px_0_#0E0A1A] sm:p-8">
+            <span className="font-display text-xs tracking-widest uppercase text-[#FFD447] sm:text-sm">
+              SESI PAMERAN &amp; TURNAMEN
+            </span>
 
-              <div className="mt-6 flex items-center justify-center">
-                <div className="rounded-2xl bg-[#0E0A1A] px-8 py-4 border border-[#68D5E8]/40 shadow-inner">
-                  <span className="font-display text-4xl sm:text-6xl tracking-widest text-[#68D5E8]">
-                    {formattedTime}
-                  </span>
-                </div>
+            <div className="mt-6 flex items-center justify-center">
+              <div className="rounded-2xl bg-[#0E0A1A] px-8 py-4 border border-[#68D5E8]/40 shadow-inner">
+                <span className="font-display text-4xl sm:text-6xl tracking-widest text-[#68D5E8]">
+                  {formattedTime}
+                </span>
               </div>
-
-              <p className="mt-4 text-xs sm:text-sm font-body text-[#FFF5E9]/75 max-w-xs">
-                Waktu menuju penutupan sesi pameran &amp; rekapitulasi poin turnamen
-              </p>
             </div>
+
+            <p className="mt-4 text-xs sm:text-sm font-body text-[#FFF5E9]/75 max-w-xs">
+              Waktu menuju penutupan sesi pameran &amp; rekapitulasi poin turnamen
+            </p>
           </div>
         </div>
       </div>
