@@ -46,9 +46,6 @@ export default function GameShowcase({ games }: GameShowcaseProps) {
             <span className="absolute -top-3 -right-6 text-lg sm:text-xl text-[#FFD447]">✦</span>
             <span className="absolute -bottom-2 -left-5 text-sm sm:text-base text-[#68D5E8]">✦</span>
           </div>
-          <p className="mt-3 max-w-md font-body text-sm sm:text-base text-[#FFF5E9]/80">
-            Koleksi game arcade interaktif buatan siswa RPL. Mainkan langsung dan raih skor tertinggi!
-          </p>
         </div>
 
         {/* Carousel Showcase (Desain Kartu Sesuai Mockup) */}

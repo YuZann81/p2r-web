@@ -185,9 +185,6 @@ export default function ArcadeCabinetSection() {
           >
             KARYA PAMERAN RPL
           </h2>
-          <p className="mt-3 max-w-2xl mx-auto font-body text-base text-[#FFF5E9]/80 sm:text-lg">
-            Pilih kategori karya di bawah untuk menjelajahi inovasi buatan siswa Rekayasa Perangkat Lunak.
-          </p>
         </div>
 
         {/* =========================================================================

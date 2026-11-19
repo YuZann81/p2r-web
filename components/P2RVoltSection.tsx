@@ -24,9 +24,6 @@ export default function P2RVoltSection() {
           <h2 className="font-display text-4xl tracking-wider text-[#FFD447] sm:text-5xl md:text-6xl drop-shadow-[3px_3px_0_#0E0A1A]">
             P2R VOLT 1
           </h2>
-          <p className="mt-3 max-w-2xl font-body text-base text-[#FFF5E9]/80 sm:text-lg">
-            Pameran karya inovasi dan panggung unjuk talenta siswa jurusan Rekayasa Perangkat Lunak.
-          </p>
         </div>
 
         {/* 2-Column Content Layout */}

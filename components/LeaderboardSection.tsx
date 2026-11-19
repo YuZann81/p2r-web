@@ -39,9 +39,6 @@ export default async function LeaderboardSection() {
           >
             LEADERBOARD
           </h2>
-          <p className="mt-3 font-body text-base text-[#FFF5E9]/80 sm:text-lg">
-            Papan klasemen skor tertinggi pemain turnamen pameran Pixel To Reality
-          </p>
         </div>
 
         {/* Cyber Tournament Podium */}
