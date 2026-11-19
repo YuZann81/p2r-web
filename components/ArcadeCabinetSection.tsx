@@ -241,13 +241,12 @@ export default function ArcadeCabinetSection() {
                         color: isSelected ? cat.color : undefined,
                       }}
                     >
-                      <div className="flex items-center gap-2.5">
-                        <span className={`text-xs ${isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-60"}`}>
-                          ▶
-                        </span>
-                        <span>{cat.label}</span>
-                      </div>
-                      <span className={`text-xs transition-transform ${isSelected ? "translate-x-0.5 opacity-100" : "opacity-25"}`}>
+                      <span>{cat.label}</span>
+                      <span
+                        className={`text-xs transition-transform ${
+                          isSelected ? "translate-x-1 opacity-100" : "opacity-30 group-hover:opacity-75"
+                        }`}
+                      >
                         ▶
                       </span>
                     </button>
