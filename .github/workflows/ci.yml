@@ -38,7 +38,7 @@ jobs:
       # non-production; a PR targeting main builds production URLs for
       # validation only and never uploads a release artifact.
       P2R_WEB_PRODUCTION_BUILD: ${{ (github.ref == 'refs/heads/main' || github.base_ref == 'main') && 'true' || 'false' }}
-      P2R_WEB_API_BASE_URL: https://pameran.devsaka.id/api
+      P2R_WEB_API_BASE_URL: https://pameran.devsaka.id/api/v1
       P2R_WEB_PANEL_URL: https://pameran.devsaka.id/panel
 
     steps:
