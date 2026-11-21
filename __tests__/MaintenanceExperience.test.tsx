@@ -1,4 +1,6 @@
 import React from "react";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import MaintenanceExperience from "@/components/maintenance/MaintenanceExperience";
 import PlatformStatusGuard from "@/components/maintenance/PlatformStatusGuard";
@@ -33,7 +35,7 @@ const SCHEDULED_STATUS: PlatformStatus = {
   databaseConnected: true,
   maintenance: {
     enabled: true,
-    message: "Kami sedang meningkatkan performa pameran Pixels to Reality.",
+    message: "We are calibrating the arcade cabinets.",
     schedule: "Sabtu, 22 Nov 2026 • 01:00–03:00 WIB",
     source: "live",
   },
@@ -59,7 +61,7 @@ describe("Dual-State Pixel-Art Maintenance Experience", () => {
     jest.clearAllMocks();
   });
 
-  it("renders minimal top-left wordmark and crisp pixel-art System Degraded scene without logo image", () => {
+  it("renders reference-matched System Degraded UI using P2R typography, no logo image, and crisp pixel-art diorama", () => {
     const onRetry = jest.fn();
     render(
       <MaintenanceExperience
@@ -71,19 +73,22 @@ describe("Dual-State Pixel-Art Maintenance Experience", () => {
 
     expect(screen.getByText("PIXEL TO REALITY")).toBeInTheDocument();
     expect(document.querySelector("img")).toBeNull();
-    expect(screen.getByText("Sistem Sedang Dipulihkan")).toBeInTheDocument();
+    expect(screen.getByText("SYSTEM DEGRADED")).toBeInTheDocument();
+    expect(
+      screen.getByText("The arcade servers are temporarily offline."),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("img", {
-        name: /robot teknisi kecil sedang memperbaiki mesin arcade/i,
+        name: /robot teknisi memperbaiki mesin arcade/i,
       }),
     ).toHaveAttribute("shape-rendering", "crispEdges");
 
-    const retryBtn = screen.getByRole("button", { name: /coba lagi/i });
+    const retryBtn = screen.getByRole("button", { name: /^retry$/i });
     fireEvent.click(retryBtn);
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
-  it("renders crisp pixel-art Scheduled Maintenance scene with custom message and schedule", () => {
+  it("renders reference-matched Scheduled Maintenance UI with custom message and schedule", () => {
     const onRetry = jest.fn();
     render(
       <MaintenanceExperience
@@ -95,24 +100,20 @@ describe("Dual-State Pixel-Art Maintenance Experience", () => {
 
     expect(screen.getByText("PIXEL TO REALITY")).toBeInTheDocument();
     expect(document.querySelector("img")).toBeNull();
+    expect(screen.getByText("UNDER MAINTENANCE")).toBeInTheDocument();
     expect(
-      screen.getByText("Dunia P2R Sedang Ditingkatkan"),
+      screen.getByText("We are calibrating the arcade cabinets."),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(
-        "Kami sedang meningkatkan performa pameran Pixels to Reality.",
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Sabtu, 22 Nov 2026 • 01:00–03:00 WIB/),
+      screen.getByText("Sabtu, 22 Nov 2026 • 01:00–03:00 WIB"),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("img", {
-        name: /konstruksi dan peningkatan dunia Pixels to Reality/i,
+        name: /peningkatan dan pemeliharaan terjadwal mesin arcade/i,
       }),
     ).toHaveAttribute("shape-rendering", "crispEdges");
     expect(
-      screen.getByRole("button", { name: /coba lagi/i }),
+      screen.getByRole("button", { name: /^retry$/i }),
     ).toBeInTheDocument();
   });
 
@@ -128,10 +129,10 @@ describe("Dual-State Pixel-Art Maintenance Experience", () => {
       </PlatformStatusGuard>,
     );
 
-    expect(screen.getByText("Sistem Sedang Dipulihkan")).toBeInTheDocument();
+    expect(screen.getByText("SYSTEM DEGRADED")).toBeInTheDocument();
     expect(screen.queryByText("Konten Utama P2R")).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /coba lagi/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^retry$/i }));
 
     await waitFor(() => {
       expect(screen.getByText("Konten Utama P2R")).toBeInTheDocument();
@@ -151,12 +152,10 @@ describe("Dual-State Pixel-Art Maintenance Experience", () => {
       </PlatformStatusGuard>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /coba lagi/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^retry$/i }));
 
     await waitFor(() => {
-      expect(
-        screen.getByText("Dunia P2R Sedang Ditingkatkan"),
-      ).toBeInTheDocument();
+      expect(screen.getByText("UNDER MAINTENANCE")).toBeInTheDocument();
     });
     expect(screen.queryByText("Konten Utama P2R")).not.toBeInTheDocument();
   });
@@ -175,11 +174,24 @@ describe("Dual-State Pixel-Art Maintenance Experience", () => {
       </PlatformStatusGuard>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /coba lagi/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^retry$/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("Sistem Sedang Dipulihkan")).toBeInTheDocument();
+      expect(screen.getByText("SYSTEM DEGRADED")).toBeInTheDocument();
     });
     expect(screen.queryByText("Konten Utama P2R")).not.toBeInTheDocument();
+  });
+
+  it("disables pixel-art maintenance animations under prefers-reduced-motion", () => {
+    const css = readFileSync(
+      path.resolve(process.cwd(), "app/globals.css"),
+      "utf8",
+    );
+    expect(css).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(css).toContain(".p2r-anim-wrench");
+    expect(css).toContain(".p2r-anim-led");
+    expect(css).toContain(".p2r-anim-eye");
+    expect(css).toContain(".p2r-anim-core");
+    expect(css).toContain("animation: none !important");
   });
 });

@@ -5,412 +5,485 @@ interface SceneProps {
 }
 
 /**
- * 16-bit Pixel-Art Scene: System Degraded
- * Transparent-sky 112x56 integer pixel diorama (crispEdges) designed to sit
- * directly on the full-viewport arcade ground horizon without any card frame.
- * Depicts a small P2R robot technician repairing an upright arcade machine.
+ * 16-bit Isometric Pixel-Art Diorama: System Degraded
+ * Strict 120x92 integer pixel canvas (shapeRendering="crispEdges") designed to
+ * sit directly on the #1c0e32 background canvas with zero framing or card box.
+ * Depicts a 3/4 rear-left isometric purple arcade cabinet with cyan edge rim,
+ * loose diagnostic cables, floor tools, metallic cog, and a small pixel robot
+ * technician holding a glowing yellow-green wrench.
  */
 export function SystemDegradedPixelScene({ className = "" }: SceneProps) {
   return (
     <svg
-      viewBox="0 0 112 56"
-      width="1120"
-      height="560"
+      viewBox="0 0 120 92"
+      width="960"
+      height="736"
       shapeRendering="crispEdges"
       role="img"
-      aria-label="Ilustrasi pixel-art robot teknisi kecil sedang memperbaiki mesin arcade P2R"
-      className={`block select-none [image-rendering:pixelated] ${className}`}
+      aria-label="Ilustrasi pixel-art robot teknisi memperbaiki mesin arcade"
+      className={`block h-auto w-full select-none [image-rendering:pixelated] ${className}`}
     >
-      {/* Subtle floating pixel ambience integrated into page sky */}
-      <rect x="8" y="10" width="1" height="1" fill="#ffe500" opacity="0.85" />
-      <rect x="16" y="4" width="1" height="1" fill="#22d3ee" opacity="0.7" />
-      <rect x="64" y="6" width="1" height="1" fill="#c4b5fd" opacity="0.75" />
-      <rect x="92" y="12" width="1" height="1" fill="#ffe500" opacity="0.8" />
-      <rect x="103" y="7" width="1" height="1" fill="#22d3ee" opacity="0.7" />
-      <rect x="78" y="16" width="1" height="1" fill="#fb923c" opacity="0.75" />
+      {/* === SUBTLE GROUND CAST SHADOWS ON #1c0e32 CANVAS === */}
+      <rect x="18" y="67" width="44" height="7" fill="#110621" />
+      <rect x="22" y="74" width="36" height="3" fill="#110621" />
+      <rect x="27" y="77" width="24" height="2" fill="#110621" />
+      <rect x="73" y="73" width="20" height="5" fill="#110621" />
+      <rect x="76" y="78" width="14" height="2" fill="#110621" />
+      <rect x="96" y="73" width="13" height="4" fill="#110621" />
+      <rect x="8" y="76" width="18" height="3" fill="#110621" />
+      <rect x="27" y="81" width="16" height="4" fill="#110621" />
 
-      {/* Ground contact shadows flush with bottom arcade floor (y=52) */}
-      <rect x="15" y="51" width="42" height="3" fill="#0c0418" opacity="0.75" />
-      <rect x="61" y="51" width="23" height="3" fill="#0c0418" opacity="0.75" />
-      <rect x="86" y="51" width="15" height="2" fill="#0c0418" opacity="0.7" />
+      {/* === 3/4 REAR-LEFT ISOMETRIC PURPLE ARCADE CABINET === */}
+      {/* Top roof silhouette & outline */}
+      <rect x="22" y="9" width="29" height="1" fill="#0b0416" />
+      <rect x="20" y="10" width="35" height="1" fill="#0b0416" />
+      <rect x="19" y="11" width="39" height="2" fill="#0b0416" />
+      <rect x="19" y="13" width="42" height="3" fill="#0b0416" />
+      <rect x="19" y="16" width="44" height="5" fill="#0b0416" />
 
-      {/* === UPRIGHT RETRO P2R ARCADE MACHINE (x=19..54, y=5..52) === */}
-      {/* Outer cabinet silhouette */}
-      <rect x="20" y="5" width="32" height="47" fill="#0c0418" />
-      {/* Slanted top marquee hood */}
-      <rect x="19" y="6" width="34" height="9" fill="#0c0418" />
-      <rect x="20" y="7" width="32" height="7" fill="#4c2396" />
-      <rect x="20" y="7" width="32" height="1" fill="#7c53f5" />
-      <rect x="50" y="8" width="2" height="6" fill="#2a1147" />
-      {/* Lit arcade marquee display */}
-      <rect x="22" y="8" width="28" height="5" fill="#160829" />
-      <rect x="23" y="9" width="26" height="3" fill="#5b2be6" />
-      <rect x="24" y="10" width="2" height="1" fill="#ef4444" />
-      <rect x="27" y="10" width="2" height="1" fill="#fb923c" />
-      <rect x="31" y="10" width="10" height="1" fill="#ffe500" />
-      <rect x="43" y="10" width="2" height="1" fill="#fb923c" />
-      <rect x="46" y="10" width="2" height="1" fill="#ef4444" />
+      {/* Top roof bright lavender fill */}
+      <rect x="24" y="10" width="25" height="1" fill="#8b6ad6" />
+      <rect x="22" y="11" width="31" height="2" fill="#7c5bc4" />
+      <rect x="22" y="13" width="35" height="3" fill="#714fb8" />
+      <rect x="25" y="16" width="35" height="2" fill="#6342a6" />
 
-      {/* Upper cabinet body & CRT screen bay */}
-      <rect x="21" y="15" width="30" height="16" fill="#3a2166" />
-      <rect x="21" y="15" width="1" height="16" fill="#5b37a0" />
-      <rect x="49" y="15" width="2" height="16" fill="#231242" />
-      {/* Recessed CRT bezel & glass */}
-      <rect x="23" y="16" width="26" height="13" fill="#120722" />
-      <rect x="24" y="17" width="24" height="11" fill="#091526" />
-      {/* Subtle CRT scanlines */}
-      <rect x="24" y="18" width="24" height="1" fill="#0f233d" />
-      <rect x="24" y="21" width="24" height="1" fill="#0f233d" />
-      <rect x="24" y="24" width="24" height="1" fill="#0f233d" />
-      <rect x="24" y="27" width="24" height="1" fill="#0f233d" />
-      {/* Glass corner glint */}
-      <rect x="25" y="18" width="3" height="1" fill="#22d3ee" opacity="0.4" />
-      <rect x="25" y="19" width="1" height="2" fill="#22d3ee" opacity="0.3" />
+      {/* Bright cyan rim along top-right & top-left roof edge */}
+      <rect x="49" y="10" width="4" height="1" fill="#2fd8f2" />
+      <rect x="53" y="11" width="3" height="1" fill="#2fd8f2" />
+      <rect x="56" y="12" width="3" height="1" fill="#2fd8f2" />
+      <rect x="58" y="13" width="3" height="2" fill="#2fd8f2" />
+      <rect x="60" y="15" width="2" height="3" fill="#2fd8f2" />
 
-      {/* CRT Diagnostic Warning Emblem (!) */}
-      <rect x="29" y="19" width="2" height="1" fill="#ffe500" />
-      <rect x="28" y="20" width="4" height="1" fill="#ffe500" />
-      <rect x="27" y="21" width="6" height="2" fill="#fb923c" />
-      <rect x="26" y="23" width="8" height="2" fill="#ef4444" />
-      <rect x="26" y="25" width="8" height="1" fill="#dc2626" />
-      <rect x="29" y="20" width="2" height="3" fill="#120722" />
-      <rect x="29" y="24" width="2" height="1" fill="#120722" />
+      {/* Left cabinet side-profile outline */}
+      <rect x="19" y="18" width="20" height="8" fill="#0b0416" />
+      <rect x="21" y="26" width="18" height="16" fill="#0b0416" />
+      {/* Control deck protrusion outline */}
+      <rect x="13" y="42" width="26" height="9" fill="#0b0416" />
+      {/* Lower cabinet left face outline */}
+      <rect x="18" y="51" width="21" height="23" fill="#0b0416" />
+      <rect x="23" y="72" width="16" height="4" fill="#0b0416" />
 
-      {/* CRT Glitch / Signal Waveform */}
-      <rect x="36" y="23" width="2" height="1" fill="#22d3ee" />
-      <rect x="38" y="21" width="1" height="2" fill="#22d3ee" />
-      <rect x="39" y="20" width="1" height="5" fill="#fb923c" />
-      <rect x="40" y="24" width="1" height="2" fill="#fb923c" />
-      <rect x="41" y="23" width="2" height="1" fill="#ef4444" />
-      <rect x="44" y="23" width="2" height="1" fill="#ef4444" />
-      <rect x="36" y="26" width="4" height="1" fill="#fb923c" />
-      <rect x="41" y="26" width="5" height="1" fill="#475569" />
+      {/* Left cabinet side fill (rich cyber-arcade violet) */}
+      <rect x="20" y="16" width="17" height="9" fill="#6a48b2" />
+      <rect x="22" y="25" width="15" height="17" fill="#6342a8" />
+      <rect x="14" y="43" width="23" height="6" fill="#7351bd" />
+      <rect x="19" y="49" width="18" height="23" fill="#5e3ea0" />
+      <rect x="24" y="71" width="13" height="3" fill="#533591" />
+      {/* Subtle angled shade on left face */}
+      <rect x="21" y="19" width="5" height="5" fill="#4f328c" />
+      <rect x="24" y="28" width="6" height="12" fill="#4f328c" />
+      <rect x="21" y="52" width="5" height="16" fill="#4f328c" />
 
-      {/* Protruding Arcade Control Deck (Joystick + Buttons) */}
-      <rect x="17" y="30" width="38" height="5" fill="#0c0418" />
-      <rect x="18" y="31" width="36" height="3" fill="#5b2be6" />
-      <rect x="18" y="31" width="36" height="1" fill="#8b65ff" />
-      {/* Arcade Joystick */}
-      <rect x="24" y="29" width="2" height="2" fill="#cbd5e1" />
-      <rect x="23" y="27" width="4" height="2" fill="#ef4444" />
-      <rect x="24" y="27" width="1" height="1" fill="#fca5a5" />
-      {/* Arcade Buttons */}
-      <rect x="33" y="31" width="3" height="1" fill="#ffe500" />
-      <rect x="38" y="31" width="3" height="1" fill="#22d3ee" />
-      <rect x="43" y="31" width="3" height="1" fill="#7ac70c" />
+      {/* Crisp cyan edge trim tracing the left arcade silhouette */}
+      <rect x="20" y="12" width="1" height="13" fill="#2fd8f2" />
+      <rect x="21" y="24" width="2" height="2" fill="#2fd8f2" />
+      <rect x="22" y="26" width="1" height="15" fill="#2fd8f2" />
+      <rect x="15" y="42" width="7" height="1" fill="#2fd8f2" />
+      <rect x="14" y="43" width="1" height="6" fill="#2fd8f2" />
+      <rect x="15" y="49" width="4" height="1" fill="#2fd8f2" />
+      <rect x="19" y="50" width="1" height="21" fill="#2fd8f2" />
+      <rect x="20" y="71" width="5" height="1" fill="#2fd8f2" />
+      <rect x="25" y="72" width="6" height="1" fill="#2fd8f2" />
+      <rect x="31" y="73" width="6" height="1" fill="#2fd8f2" />
 
-      {/* Lower Cabinet Body + Open Service Access Panel */}
-      <rect x="21" y="35" width="30" height="16" fill="#321b59" />
-      <rect x="21" y="35" width="1" height="16" fill="#4d2c87" />
-      <rect x="49" y="35" width="2" height="16" fill="#1e0f38" />
-      {/* Coin slot trim on left */}
-      <rect x="23" y="37" width="5" height="6" fill="#160829" />
-      <rect x="24" y="38" width="3" height="2" fill="#ef4444" />
-      <rect x="25" y="41" width="1" height="1" fill="#ffe500" />
+      {/* Tiny red ball-top joystick peeking on left control deck */}
+      <rect x="16" y="38" width="4" height="3" fill="#0b0416" />
+      <rect x="17" y="38" width="2" height="2" fill="#ef4444" />
+      <rect x="17" y="38" width="1" height="1" fill="#fca5a5" />
+      <rect x="17" y="41" width="2" height="2" fill="#cbd5e1" />
+      <rect x="20" y="41" width="2" height="1" fill="#ffe500" />
 
-      {/* Open Circuit Service Bay on right side of lower cabinet */}
-      <rect x="30" y="37" width="19" height="11" fill="#090d1a" />
-      {/* Green/cyan PCB inside bay */}
-      <rect x="31" y="38" width="14" height="9" fill="#14532d" />
-      <rect x="32" y="39" width="12" height="7" fill="#166534" />
-      <rect x="33" y="40" width="4" height="1" fill="#22d3ee" />
-      <rect x="36" y="41" width="1" height="2" fill="#22d3ee" />
-      <rect x="37" y="43" width="5" height="1" fill="#7ac70c" />
-      <rect x="39" y="40" width="4" height="2" fill="#0f172a" />
-      <rect x="40" y="40" width="2" height="1" fill="#94a3b8" />
-      <rect x="33" y="43" width="2" height="2" fill="#fbbf24" />
-      {/* Hinged access door swung open downward-right */}
-      <rect x="14" y="40" width="5" height="9" fill="#0c0418" />
-      <rect x="15" y="41" width="3" height="7" fill="#64748b" />
-      <rect x="15" y="41" width="1" height="7" fill="#94a3b8" />
-      <rect x="19" y="41" width="2" height="1" fill="#94a3b8" />
-      <rect x="19" y="47" width="2" height="1" fill="#94a3b8" />
+      {/* Rear Cabinet Service Face (x=38..62, y=18..75) */}
+      <rect x="37" y="18" width="26" height="57" fill="#0b0416" />
+      <rect x="38" y="19" width="23" height="54" fill="#442b78" />
+      {/* Subtle vertical corner crease & right depth shade */}
+      <rect x="38" y="19" width="2" height="54" fill="#52358f" />
+      <rect x="58" y="19" width="3" height="54" fill="#352061" />
+      {/* Crisp vertical cyan rim along outer right cabinet edge */}
+      <rect x="61" y="18" width="1" height="54" fill="#2fd8f2" />
+      <rect x="56" y="72" width="5" height="1" fill="#2fd8f2" />
+      <rect x="49" y="73" width="7" height="1" fill="#2fd8f2" />
+      <rect x="39" y="74" width="10" height="1" fill="#2fd8f2" />
 
-      {/* Crisp Electric Spark Clusters */}
-      <rect x="46" y="39" width="1" height="1" fill="#fb923c" />
-      <rect x="46" y="40" width="1" height="1" fill="#ffffff" />
-      <rect x="45" y="40" width="1" height="1" fill="#ffe500" />
-      <rect x="47" y="40" width="1" height="1" fill="#ffe500" />
-      <rect x="46" y="41" width="1" height="1" fill="#fb923c" />
-      <rect x="48" y="45" width="1" height="1" fill="#ffe500" />
-      <rect x="47" y="46" width="1" height="1" fill="#fb923c" />
-      <rect x="49" y="46" width="1" height="1" fill="#fb923c" />
+      {/* Upper Rear Ventilation Louver Slits */}
+      <rect x="43" y="24" width="13" height="1" fill="#1e103b" />
+      <rect x="43" y="27" width="13" height="1" fill="#1e103b" />
+      <rect x="43" y="30" width="13" height="1" fill="#1e103b" />
+      <rect x="43" y="33" width="10" height="1" fill="#1e103b" />
 
-      {/* Floor diagnostic cable */}
-      <rect x="46" y="49" width="2" height="2" fill="#0891b2" />
-      <rect x="48" y="50" width="7" height="1" fill="#22d3ee" />
-      <rect x="55" y="51" width="5" height="1" fill="#0891b2" />
-      <rect x="60" y="50" width="3" height="1" fill="#22d3ee" />
+      {/* Lower Rear Power Panel, Vent Grate & Diagnostic LEDs */}
+      <rect x="40" y="59" width="7" height="7" fill="#1d0f38" />
+      <rect x="41" y="60" width="2" height="2" fill="#332059" />
+      <rect x="44" y="60" width="2" height="2" fill="#332059" />
+      <rect x="41" y="63" width="2" height="2" fill="#332059" />
+      <rect x="44" y="63" width="2" height="2" fill="#332059" />
 
-      {/* === SMALL 16-BIT ROBOT TECHNICIAN (x=63..82, y=24..52) === */}
-      {/* Compact scale relative to the tall upright arcade cabinet */}
-      {/* Antenna */}
-      <rect x="72" y="21" width="2" height="2" fill="#22d3ee" />
-      <rect x="72" y="21" width="1" height="1" fill="#ffffff" />
-      <rect x="72" y="23" width="2" height="2" fill="#64748b" />
+      {/* Power port box with blinking diagnostic LEDs */}
+      <rect x="51" y="60" width="8" height="6" fill="#150a29" />
+      <rect x="52" y="61" width="2" height="2" fill="#2fd8f2" className="p2r-anim-led" />
+      <rect x="56" y="61" width="2" height="2" fill="#ef4444" className="p2r-anim-led" />
+      <rect x="52" y="64" width="6" height="1" fill="#2c1954" />
 
-      {/* Robot Head */}
-      <rect x="66" y="25" width="14" height="10" fill="#0c0418" />
-      <rect x="67" y="26" width="12" height="8" fill="#94a3b8" />
-      <rect x="67" y="26" width="12" height="2" fill="#e2e8f0" />
-      <rect x="77" y="28" width="2" height="6" fill="#64748b" />
-      {/* Side ear bolts */}
-      <rect x="65" y="28" width="1" height="3" fill="#ffe500" />
-      <rect x="80" y="28" width="1" height="3" fill="#d99b00" />
-      {/* Dark visor & focused cyan eyes looking left at the machine */}
-      <rect x="68" y="28" width="9" height="4" fill="#0f172a" />
-      <rect x="69" y="29" width="2" height="2" fill="#22d3ee" />
-      <rect x="69" y="29" width="1" height="1" fill="#ffffff" />
-      <rect x="73" y="29" width="2" height="2" fill="#22d3ee" />
-      <rect x="73" y="29" width="1" height="1" fill="#ffffff" />
+      {/* === LOOSE CURLING BLACK DIAGNOSTIC WIRES ON FLOOR === */}
+      <rect x="45" y="66" width="1" height="4" fill="#090314" />
+      <rect x="46" y="70" width="3" height="1" fill="#090314" />
+      <rect x="49" y="71" width="4" height="1" fill="#090314" />
+      <rect x="53" y="72" width="3" height="3" fill="#090314" />
+      <rect x="51" y="75" width="3" height="3" fill="#090314" />
+      <rect x="48" y="78" width="4" height="2" fill="#090314" />
+      <rect x="45" y="80" width="4" height="1" fill="#090314" />
+      {/* Wire plug tip 1 */}
+      <rect x="44" y="80" width="2" height="2" fill="#cbd5e1" />
+      <rect x="43" y="81" width="1" height="1" fill="#ffe500" />
+
+      {/* Second wire snaking right under robot */}
+      <rect x="56" y="66" width="1" height="5" fill="#090314" />
+      <rect x="57" y="71" width="6" height="1" fill="#090314" />
+      <rect x="63" y="72" width="5" height="2" fill="#090314" />
+      <rect x="68" y="74" width="4" height="4" fill="#090314" />
+      <rect x="72" y="78" width="7" height="1" fill="#090314" />
+      <rect x="79" y="79" width="7" height="2" fill="#090314" />
+      <rect x="86" y="81" width="7" height="1" fill="#090314" />
+      {/* Wire plug tip 2 */}
+      <rect x="93" y="80" width="3" height="2" fill="#ffe500" />
+      <rect x="96" y="81" width="1" height="1" fill="#cbd5e1" />
+
+      {/* === SMALL 16-BIT PIXEL ROBOT TECHNICIAN (x=70..96, y=24..77) === */}
+      {/* Top Antenna */}
+      <rect x="82" y="23" width="3" height="3" fill="#0b0416" />
+      <rect x="83" y="24" width="1" height="1" fill="#4be3ff" className="p2r-anim-led" />
+      <rect x="83" y="26" width="1" height="4" fill="#94a3b8" />
+
+      {/* Cubic Isometric Robot Head */}
+      <rect x="73" y="30" width="19" height="16" fill="#0b0416" />
+      {/* Top light steel face */}
+      <rect x="75" y="31" width="14" height="3" fill="#e2e8f0" />
+      <rect x="74" y="32" width="16" height="2" fill="#cbd5e1" />
+      {/* Front steel face */}
+      <rect x="74" y="34" width="13" height="11" fill="#9ba9c4" />
+      {/* Shaded right head face */}
+      <rect x="87" y="34" width="4" height="11" fill="#647292" />
+      {/* Left & Right Ear Bolts */}
+      <rect x="71" y="37" width="2" height="4" fill="#0b0416" />
+      <rect x="72" y="38" width="1" height="2" fill="#cbd5e1" />
+      <rect x="92" y="37" width="3" height="5" fill="#0b0416" />
+      <rect x="92" y="38" width="2" height="3" fill="#7c8ba8" />
+
+      {/* Dark Visor Screen & Glowing Soft Cyan Eyes */}
+      <rect x="75" y="35" width="11" height="8" fill="#171130" />
+      <rect x="76" y="36" width="9" height="6" fill="#201842" />
+      <g className="p2r-anim-eye">
+        <rect x="77" y="37" width="2" height="4" fill="#4be3ff" />
+        <rect x="77" y="37" width="1" height="1" fill="#ffffff" />
+        <rect x="82" y="37" width="2" height="4" fill="#4be3ff" />
+        <rect x="82" y="37" width="1" height="1" fill="#ffffff" />
+      </g>
 
       {/* Neck */}
-      <rect x="70" y="35" width="6" height="1" fill="#475569" />
+      <rect x="79" y="46" width="6" height="2" fill="#475569" />
 
-      {/* Robot Torso with P2R Violet Vest */}
-      <rect x="65" y="36" width="16" height="10" fill="#0c0418" />
-      <rect x="66" y="37" width="14" height="8" fill="#5b2be6" />
-      <rect x="66" y="37" width="14" height="1" fill="#7c53f5" />
-      <rect x="78" y="38" width="2" height="7" fill="#3d1ba3" />
-      {/* Chest badge */}
-      <rect x="69" y="39" width="7" height="3" fill="#1e1038" />
-      <rect x="70" y="40" width="2" height="1" fill="#ffe500" />
-      <rect x="73" y="40" width="2" height="1" fill="#7ac70c" />
-      {/* Utility belt */}
-      <rect x="66" y="43" width="14" height="2" fill="#b98b00" />
-      <rect x="71" y="43" width="4" height="2" fill="#ffe500" />
+      {/* Compact Boxy Silver Torso */}
+      <rect x="75" y="48" width="15" height="13" fill="#0b0416" />
+      <rect x="76" y="49" width="10" height="11" fill="#b4c0d9" />
+      <rect x="76" y="49" width="10" height="2" fill="#dbe4f5" />
+      <rect x="86" y="49" width="3" height="11" fill="#6e7c9c" />
 
-      {/* Left Arm + Pixel Wrench reaching into the arcade circuit bay */}
-      <rect x="56" y="39" width="10" height="3" fill="#0c0418" />
-      <rect x="57" y="40" width="9" height="1" fill="#cbd5e1" />
-      <rect x="56" y="40" width="2" height="1" fill="#ffe500" />
-      {/* Silver Pixel Wrench */}
-      <rect x="50" y="40" width="6" height="2" fill="#e2e8f0" />
-      <rect x="51" y="41" width="5" height="1" fill="#94a3b8" />
-      <rect x="48" y="38" width="3" height="2" fill="#e2e8f0" />
-      <rect x="48" y="42" width="3" height="2" fill="#cbd5e1" />
+      {/* Glowing Cyan/Mint Chest Display */}
+      <rect x="77" y="51" width="8" height="6" fill="#171130" />
+      <rect x="78" y="52" width="6" height="4" fill="#2be8d5" />
+      <rect x="79" y="53" width="2" height="1" fill="#ffffff" />
+      <rect x="82" y="54" width="1" height="1" fill="#0e7490" />
 
-      {/* Right Arm */}
-      <rect x="80" y="38" width="3" height="6" fill="#0c0418" />
-      <rect x="81" y="39" width="1" height="4" fill="#cbd5e1" />
+      {/* Right Arm hanging down */}
+      <rect x="90" y="50" width="4" height="10" fill="#0b0416" />
+      <rect x="91" y="51" width="2" height="7" fill="#9ba9c4" />
+      <rect x="91" y="51" width="1" height="5" fill="#cbd5e1" />
+      <rect x="91" y="59" width="3" height="3" fill="#0b0416" />
+      <rect x="92" y="60" width="1" height="1" fill="#cbd5e1" />
 
-      {/* Compact Legs & Boots */}
-      <rect x="67" y="46" width="4" height="4" fill="#0c0418" />
-      <rect x="68" y="46" width="2" height="3" fill="#64748b" />
-      <rect x="66" y="49" width="5" height="3" fill="#0c0418" />
-      <rect x="67" y="50" width="3" height="1" fill="#ffe500" />
+      {/* Left Arm + Large Glowing Yellow-Green Wrench (Subtle working bob) */}
+      <g className="p2r-anim-wrench">
+        {/* Articulated Left Arm */}
+        <rect x="67" y="51" width="9" height="4" fill="#0b0416" />
+        <rect x="68" y="52" width="7" height="2" fill="#cbd5e1" />
+        <rect x="68" y="53" width="7" height="1" fill="#8e9cb8" />
 
-      <rect x="75" y="46" width="4" height="4" fill="#0c0418" />
-      <rect x="76" y="46" width="2" height="3" fill="#64748b" />
-      <rect x="75" y="49" width="5" height="3" fill="#0c0418" />
-      <rect x="76" y="50" width="3" height="1" fill="#ffe500" />
+        {/* Large Diagonal Yellow-Green Pixel Wrench */}
+        {/* Top open jaw near cabinet */}
+        <rect x="57" y="41" width="7" height="2" fill="#0b0416" />
+        <rect x="55" y="43" width="10" height="5" fill="#0b0416" />
+        <rect x="57" y="48" width="8" height="2" fill="#0b0416" />
+        <rect x="58" y="42" width="5" height="2" fill="#e8f538" />
+        <rect x="56" y="44" width="3" height="3" fill="#e8f538" />
+        <rect x="61" y="44" width="3" height="4" fill="#e8f538" />
+        <rect x="58" y="47" width="6" height="2" fill="#a3e635" />
+        {/* Jaw cutout */}
+        <rect x="58" y="44" width="3" height="2" fill="#1c0e32" />
 
-      {/* === PIXEL TOOLBOX (x=87..99, y=44..52) === */}
-      <rect x="90" y="43" width="6" height="2" fill="#0c0418" />
-      <rect x="91" y="44" width="4" height="1" fill="#cbd5e1" />
-      <rect x="87" y="45" width="12" height="7" fill="#0c0418" />
-      <rect x="88" y="46" width="10" height="5" fill="#dc2626" />
-      <rect x="88" y="46" width="10" height="1" fill="#ef4444" />
-      <rect x="88" y="48" width="10" height="1" fill="#991b1b" />
-      <rect x="92" y="47" width="2" height="2" fill="#ffe500" />
+        {/* Diagonal wrench handle */}
+        <rect x="61" y="49" width="5" height="4" fill="#0b0416" />
+        <rect x="62" y="50" width="3" height="3" fill="#e8f538" />
+        <rect x="63" y="53" width="5" height="4" fill="#0b0416" />
+        <rect x="64" y="54" width="3" height="3" fill="#d9f029" />
+        <rect x="65" y="56" width="5" height="4" fill="#0b0416" />
+        <rect x="66" y="57" width="3" height="3" fill="#a3e635" />
+
+        {/* Bottom wrench jaw */}
+        <rect x="66" y="60" width="7" height="5" fill="#0b0416" />
+        <rect x="67" y="61" width="5" height="3" fill="#e8f538" />
+        <rect x="68" y="63" width="3" height="2" fill="#84cc16" />
+        <rect x="69" y="63" width="1" height="2" fill="#1c0e32" />
+
+        {/* Robot hand gripping wrench */}
+        <rect x="65" y="51" width="4" height="4" fill="#0b0416" />
+        <rect x="66" y="52" width="2" height="2" fill="#e2e8f0" />
+      </g>
+
+      {/* Robot Legs & Cyan-Highlighted Boots */}
+      <rect x="77" y="61" width="4" height="10" fill="#0b0416" />
+      <rect x="78" y="61" width="2" height="9" fill="#94a3b8" />
+      <rect x="78" y="61" width="1" height="9" fill="#cbd5e1" />
+      <rect x="75" y="70" width="6" height="5" fill="#0b0416" />
+      <rect x="76" y="71" width="4" height="3" fill="#cbd5e1" />
+      <rect x="76" y="73" width="4" height="1" fill="#4be3ff" />
+
+      <rect x="84" y="61" width="4" height="10" fill="#0b0416" />
+      <rect x="85" y="61" width="2" height="9" fill="#94a3b8" />
+      <rect x="85" y="61" width="1" height="9" fill="#cbd5e1" />
+      <rect x="83" y="71" width="6" height="5" fill="#0b0416" />
+      <rect x="84" y="72" width="4" height="3" fill="#cbd5e1" />
+      <rect x="84" y="74" width="4" height="1" fill="#4be3ff" />
+
+      {/* === FLOOR PROPS: SCREWDRIVER, MINI WRENCH, METALLIC COG === */}
+      {/* Yellow-handled Screwdriver (bottom-left) */}
+      <rect x="9" y="71" width="5" height="2" fill="#0b0416" />
+      <rect x="10" y="72" width="4" height="1" fill="#4be3ff" />
+      <rect x="13" y="72" width="4" height="3" fill="#0b0416" />
+      <rect x="14" y="73" width="3" height="1" fill="#cbd5e1" />
+      <rect x="16" y="73" width="9" height="5" fill="#0b0416" />
+      <rect x="17" y="74" width="7" height="3" fill="#ffe500" />
+      <rect x="18" y="76" width="6" height="1" fill="#d99b00" />
+
+      {/* Silver-Cyan Mini Wrench (below cabinet) */}
+      <rect x="35" y="75" width="6" height="4" fill="#0b0416" />
+      <rect x="36" y="76" width="4" height="2" fill="#cbd5e1" />
+      <rect x="32" y="78" width="5" height="3" fill="#0b0416" />
+      <rect x="33" y="79" width="3" height="1" fill="#4be3ff" />
+      <rect x="28" y="80" width="6" height="4" fill="#0b0416" />
+      <rect x="29" y="81" width="4" height="2" fill="#cbd5e1" />
+      <rect x="29" y="82" width="2" height="1" fill="#4be3ff" />
+
+      {/* Metallic Isometric Pixel Cog / Gear (far right) */}
+      <rect x="99" y="66" width="7" height="9" fill="#0b0416" />
+      <rect x="96" y="68" width="13" height="5" fill="#0b0416" />
+      <rect x="97" y="67" width="11" height="7" fill="#0b0416" />
+      {/* Gear silver rim & teeth */}
+      <rect x="100" y="67" width="5" height="7" fill="#94a3b8" />
+      <rect x="97" y="69" width="11" height="3" fill="#94a3b8" />
+      <rect x="98" y="68" width="9" height="5" fill="#cbd5e1" />
+      {/* Gear inner depth & hole */}
+      <rect x="98" y="72" width="9" height="1" fill="#64748b" />
+      <rect x="101" y="69" width="3" height="2" fill="#1c0e32" />
     </svg>
   );
 }
 
 /**
- * 16-bit Pixel-Art Scene: Scheduled Maintenance
- * Transparent-sky 112x56 integer pixel diorama (crispEdges) sharing the exact
- * scale, palette, and ground horizon as SystemDegradedPixelScene.
- * Depicts the P2R world under construction and scheduled upgrade.
+ * 16-bit Isometric Pixel-Art Diorama: Scheduled Maintenance
+ * Strict 120x92 integer pixel canvas matching SystemDegradedPixelScene in
+ * perspective, 1px dark outlines, purple/cyan/yellow palette, and frameless
+ * integration directly onto #1c0e32.
+ * Depicts the P2R arcade cabinet inside a compact upgrade gantry lowering a
+ * glowing upgrade core while the pixel robot wears a hard hat with blueprint.
  */
 export function ScheduledMaintenancePixelScene({ className = "" }: SceneProps) {
   return (
     <svg
-      viewBox="0 0 112 56"
-      width="1120"
-      height="560"
+      viewBox="0 0 120 92"
+      width="960"
+      height="736"
       shapeRendering="crispEdges"
       role="img"
-      aria-label="Ilustrasi pixel-art konstruksi dan peningkatan dunia Pixels to Reality"
-      className={`block select-none [image-rendering:pixelated] ${className}`}
+      aria-label="Ilustrasi pixel-art peningkatan dan pemeliharaan terjadwal mesin arcade P2R"
+      className={`block h-auto w-full select-none [image-rendering:pixelated] ${className}`}
     >
-      {/* Subtle floating pixel ambience integrated into page sky */}
-      <rect x="12" y="9" width="1" height="1" fill="#ffe500" opacity="0.85" />
-      <rect x="24" y="14" width="1" height="1" fill="#22d3ee" opacity="0.75" />
-      <rect x="36" y="5" width="1" height="1" fill="#c4b5fd" opacity="0.75" />
-      <rect x="74" y="4" width="1" height="1" fill="#ffe500" opacity="0.8" />
-      <rect x="103" y="10" width="1" height="1" fill="#22d3ee" opacity="0.75" />
+      {/* === SUBTLE GROUND CAST SHADOWS ON #1c0e32 CANVAS === */}
+      <rect x="17" y="68" width="48" height="7" fill="#110621" />
+      <rect x="22" y="75" width="38" height="3" fill="#110621" />
+      <rect x="74" y="73" width="20" height="5" fill="#110621" />
+      <rect x="77" y="78" width="14" height="2" fill="#110621" />
+      <rect x="97" y="74" width="11" height="3" fill="#110621" />
+      <rect x="8" y="78" width="26" height="4" fill="#110621" />
 
-      {/* Ground contact shadows flush with bottom arcade floor (y=52) */}
-      <rect x="11" y="51" width="16" height="2" fill="#0c0418" opacity="0.75" />
-      <rect x="30" y="51" width="49" height="3" fill="#0c0418" opacity="0.75" />
-      <rect x="81" y="51" width="22" height="2" fill="#0c0418" opacity="0.7" />
+      {/* === COMPACT ISOMETRIC PIXEL UPGRADE GANTRY / HOIST FRAME === */}
+      {/* Back-right gantry leg */}
+      <rect x="61" y="9" width="4" height="63" fill="#0b0416" />
+      <rect x="62" y="10" width="2" height="61" fill="#d99b00" />
+      <rect x="62" y="10" width="1" height="61" fill="#ffe500" />
+      {/* Front-left gantry leg */}
+      <rect x="16" y="13" width="4" height="58" fill="#0b0416" />
+      <rect x="17" y="14" width="2" height="56" fill="#d99b00" />
+      <rect x="17" y="14" width="1" height="56" fill="#ffe500" />
 
-      {/* === OVERHEAD PIXEL CONSTRUCTION CRANE (Right Mast + Boom) === */}
-      {/* Crane vertical mast */}
-      <rect x="86" y="7" width="6" height="45" fill="#0c0418" />
-      <rect x="87" y="8" width="1" height="43" fill="#ffe500" />
-      <rect x="90" y="8" width="1" height="43" fill="#d99b00" />
-      <rect x="88" y="11" width="2" height="1" fill="#ffe500" />
-      <rect x="88" y="16" width="2" height="1" fill="#d99b00" />
-      <rect x="88" y="21" width="2" height="1" fill="#ffe500" />
-      <rect x="88" y="26" width="2" height="1" fill="#d99b00" />
-      <rect x="88" y="31" width="2" height="1" fill="#ffe500" />
-      <rect x="88" y="36" width="2" height="1" fill="#d99b00" />
-      <rect x="88" y="41" width="2" height="1" fill="#ffe500" />
-      <rect x="88" y="46" width="2" height="1" fill="#d99b00" />
-      {/* Mast safety beacon */}
-      <rect x="88" y="5" width="2" height="2" fill="#ef4444" />
-      <rect x="88" y="5" width="1" height="1" fill="#ffe500" />
+      {/* Top horizontal lattice beam */}
+      <rect x="15" y="7" width="52" height="6" fill="#0b0416" />
+      <rect x="16" y="8" width="50" height="1" fill="#ffe500" />
+      <rect x="16" y="11" width="50" height="1" fill="#d99b00" />
+      <rect x="21" y="9" width="2" height="2" fill="#ffe500" />
+      <rect x="28" y="9" width="2" height="2" fill="#ffe500" />
+      <rect x="35" y="9" width="2" height="2" fill="#ffe500" />
+      <rect x="42" y="9" width="2" height="2" fill="#ffe500" />
+      <rect x="49" y="9" width="2" height="2" fill="#ffe500" />
+      <rect x="56" y="9" width="2" height="2" fill="#ffe500" />
 
-      {/* Horizontal crane boom */}
-      <rect x="44" y="7" width="56" height="5" fill="#0c0418" />
-      <rect x="45" y="8" width="54" height="1" fill="#ffe500" />
-      <rect x="45" y="10" width="54" height="1" fill="#d99b00" />
-      <rect x="48" y="9" width="1" height="1" fill="#ffe500" />
-      <rect x="54" y="9" width="1" height="1" fill="#ffe500" />
-      <rect x="60" y="9" width="1" height="1" fill="#ffe500" />
-      <rect x="66" y="9" width="1" height="1" fill="#ffe500" />
-      <rect x="72" y="9" width="1" height="1" fill="#ffe500" />
-      <rect x="78" y="9" width="1" height="1" fill="#ffe500" />
-      {/* Counterweight */}
-      <rect x="94" y="9" width="6" height="4" fill="#64748b" />
-      <rect x="94" y="9" width="6" height="1" fill="#94a3b8" />
+      {/* Gantry Top Safety Beacon */}
+      <rect x="61" y="4" width="4" height="3" fill="#0b0416" />
+      <rect x="62" y="5" width="2" height="2" fill="#ffe500" className="p2r-anim-led" />
 
-      {/* Hoist Trolley, Cable & Radiant P2R Upgrade Core */}
-      <rect x="52" y="11" width="6" height="3" fill="#475569" />
-      <rect x="53" y="12" width="4" height="1" fill="#cbd5e1" />
-      <rect x="54" y="14" width="2" height="6" fill="#94a3b8" />
-      <rect x="55" y="14" width="1" height="6" fill="#e2e8f0" />
-      <rect x="53" y="19" width="4" height="2" fill="#ffe500" />
+      {/* === 3/4 ISOMETRIC PURPLE ARCADE CABINET BEING UPGRADED === */}
+      {/* Lower & mid cabinet silhouette matching Scene 1 scale */}
+      <rect x="23" y="29" width="35" height="44" fill="#0b0416" />
+      {/* Left cabinet face */}
+      <rect x="24" y="30" width="16" height="42" fill="#6544ad" />
+      <rect x="25" y="33" width="5" height="15" fill="#4f328c" />
+      <rect x="25" y="54" width="5" height="14" fill="#4f328c" />
+      {/* Cyan rim on left edge */}
+      <rect x="24" y="30" width="1" height="41" fill="#2fd8f2" />
+      <rect x="25" y="71" width="14" height="1" fill="#2fd8f2" />
 
-      {/* Radiant P2R Upgrade Core Crystal being lowered */}
-      <rect x="54" y="21" width="2" height="1" fill="#ffffff" />
-      <rect x="52" y="22" width="6" height="1" fill="#ffe500" />
-      <rect x="51" y="23" width="8" height="3" fill="#ffe500" />
-      <rect x="52" y="23" width="6" height="2" fill="#22d3ee" />
-      <rect x="54" y="23" width="2" height="2" fill="#ffffff" />
-      <rect x="52" y="26" width="6" height="1" fill="#d99b00" />
-      <rect x="54" y="27" width="2" height="1" fill="#ffe500" />
-      {/* Symmetrical upgrade sparkles */}
-      <rect x="48" y="22" width="1" height="1" fill="#22d3ee" />
-      <rect x="61" y="22" width="1" height="1" fill="#22d3ee" />
-      <rect x="49" y="26" width="1" height="1" fill="#ffe500" />
-      <rect x="60" y="26" width="1" height="1" fill="#ffe500" />
+      {/* Right/front-angled upgrade display face */}
+      <rect x="40" y="30" width="17" height="42" fill="#442b78" />
+      <rect x="55" y="30" width="2" height="42" fill="#321e5c" />
+      <rect x="57" y="30" width="1" height="41" fill="#2fd8f2" />
+      <rect x="41" y="72" width="16" height="1" fill="#2fd8f2" />
 
-      {/* === P2R CYBER ARCADE MONUMENT UNDER UPGRADE (x=39..71, y=29..52) === */}
-      <rect x="39" y="29" width="32" height="23" fill="#0c0418" />
-      <rect x="40" y="30" width="30" height="21" fill="#431fb8" />
-      <rect x="40" y="30" width="30" height="2" fill="#5b2be6" />
-      <rect x="40" y="30" width="30" height="1" fill="#7c53f5" />
-      <rect x="68" y="31" width="2" height="20" fill="#2a1147" />
-      {/* Glowing cyan receiving slot */}
-      <rect x="50" y="29" width="10" height="2" fill="#0e7490" />
-      <rect x="51" y="30" width="8" height="1" fill="#22d3ee" />
+      {/* Glowing Open Top Upgrade Bay */}
+      <rect x="26" y="28" width="29" height="4" fill="#0e7490" />
+      <rect x="28" y="29" width="25" height="2" fill="#2fd8f2" />
+      <rect x="33" y="29" width="15" height="1" fill="#a5f3fc" />
 
-      {/* Monument Upgrade Display Screen */}
-      <rect x="43" y="33" width="24" height="13" fill="#160829" />
-      <rect x="44" y="34" width="22" height="11" fill="#0b152b" />
-      {/* Upward Upgrade Chevrons */}
-      <rect x="54" y="36" width="2" height="1" fill="#ffe500" />
-      <rect x="52" y="37" width="6" height="1" fill="#ffe500" />
-      <rect x="50" y="38" width="3" height="1" fill="#22d3ee" />
-      <rect x="57" y="38" width="3" height="1" fill="#22d3ee" />
-      <rect x="49" y="39" width="2" height="1" fill="#22d3ee" />
-      <rect x="59" y="39" width="2" height="1" fill="#22d3ee" />
-      <rect x="54" y="40" width="2" height="1" fill="#7ac70c" />
-      <rect x="52" y="41" width="6" height="1" fill="#7ac70c" />
-      <rect x="51" y="42" width="2" height="1" fill="#22d3ee" />
-      <rect x="57" y="42" width="2" height="1" fill="#22d3ee" />
-      {/* Pedestal trim */}
-      <rect x="40" y="48" width="30" height="3" fill="#2a1147" />
-      <rect x="42" y="49" width="4" height="1" fill="#ffe500" />
-      <rect x="53" y="49" width="4" height="1" fill="#22d3ee" />
-      <rect x="64" y="49" width="4" height="1" fill="#ffe500" />
+      {/* Cabinet Screen Showing Crisp Pixel Upgrade Chevron */}
+      <rect x="42" y="35" width="13" height="15" fill="#130926" />
+      <rect x="43" y="36" width="11" height="13" fill="#0b1830" />
+      <rect x="48" y="38" width="1" height="1" fill="#ffe500" />
+      <rect x="47" y="39" width="3" height="1" fill="#ffe500" />
+      <rect x="46" y="40" width="5" height="1" fill="#2fd8f2" />
+      <rect x="45" y="41" width="2" height="1" fill="#2fd8f2" />
+      <rect x="50" y="41" width="2" height="1" fill="#2fd8f2" />
+      <rect x="48" y="43" width="1" height="1" fill="#7ac70c" />
+      <rect x="47" y="44" width="3" height="1" fill="#7ac70c" />
+      <rect x="46" y="45" width="2" height="1" fill="#2fd8f2" />
+      <rect x="49" y="45" width="2" height="1" fill="#2fd8f2" />
 
-      {/* === CONSTRUCTION SCAFFOLDING FLANKING MONUMENT === */}
-      {/* Left Scaffold */}
-      <rect x="33" y="24" width="1" height="28" fill="#94a3b8" />
-      <rect x="38" y="24" width="1" height="28" fill="#94a3b8" />
-      <rect x="32" y="28" width="8" height="2" fill="#d99b00" />
-      <rect x="32" y="28" width="8" height="1" fill="#ffe500" />
-      <rect x="32" y="39" width="8" height="2" fill="#d99b00" />
-      <rect x="32" y="39" width="8" height="1" fill="#ffe500" />
-      <rect x="34" y="31" width="1" height="1" fill="#64748b" />
-      <rect x="35" y="33" width="2" height="1" fill="#64748b" />
-      <rect x="37" y="35" width="1" height="1" fill="#64748b" />
-      <rect x="34" y="43" width="1" height="1" fill="#64748b" />
-      <rect x="35" y="45" width="2" height="1" fill="#64748b" />
-      <rect x="37" y="47" width="1" height="1" fill="#64748b" />
+      {/* Lower Front Trim Details */}
+      <rect x="43" y="54" width="11" height="2" fill="#2fd8f2" />
+      <rect x="43" y="58" width="11" height="8" fill="#26154a" />
+      <rect x="45" y="60" width="3" height="2" fill="#ffe500" />
+      <rect x="49" y="60" width="3" height="2" fill="#2fd8f2" className="p2r-anim-led" />
 
-      {/* Right Scaffold */}
-      <rect x="71" y="24" width="1" height="28" fill="#94a3b8" />
-      <rect x="76" y="24" width="1" height="28" fill="#94a3b8" />
-      <rect x="70" y="28" width="8" height="2" fill="#d99b00" />
-      <rect x="70" y="28" width="8" height="1" fill="#ffe500" />
-      <rect x="70" y="39" width="8" height="2" fill="#d99b00" />
-      <rect x="70" y="39" width="8" height="1" fill="#ffe500" />
-      <rect x="72" y="31" width="1" height="1" fill="#64748b" />
-      <rect x="73" y="33" width="2" height="1" fill="#64748b" />
-      <rect x="75" y="35" width="1" height="1" fill="#64748b" />
-      <rect x="72" y="43" width="1" height="1" fill="#64748b" />
-      <rect x="73" y="45" width="2" height="1" fill="#64748b" />
-      <rect x="75" y="47" width="1" height="1" fill="#64748b" />
+      {/* === HOIST TROLLEY & LOWERING GLOWING UPGRADE CORE MODULE === */}
+      <rect x="37" y="12" width="7" height="3" fill="#475569" />
+      <rect x="38" y="13" width="5" height="1" fill="#cbd5e1" />
+      <rect x="40" y="15" width="1" height="5" fill="#e2e8f0" />
 
-      {/* === SMALL 16-BIT BUILDER BOT IN HARD HAT (x=12..29, y=27..52) === */}
-      {/* Yellow Safety Hard Hat */}
-      <rect x="14" y="27" width="10" height="4" fill="#0c0418" />
-      <rect x="15" y="28" width="8" height="3" fill="#ffe500" />
-      <rect x="16" y="28" width="4" height="1" fill="#ffffff" />
-      <rect x="13" y="31" width="12" height="2" fill="#0c0418" />
-      <rect x="14" y="31" width="10" height="1" fill="#d99b00" />
+      <g className="p2r-anim-core">
+        {/* Hoist clamp */}
+        <rect x="38" y="19" width="5" height="2" fill="#0b0416" />
+        <rect x="39" y="19" width="3" height="1" fill="#ffe500" />
+        {/* Glowing Golden-Cyan P2R Upgrade Core Cartridge */}
+        <rect x="35" y="21" width="11" height="7" fill="#0b0416" />
+        <rect x="36" y="22" width="9" height="5" fill="#ffe500" />
+        <rect x="37" y="23" width="7" height="3" fill="#2fd8f2" />
+        <rect x="39" y="23" width="3" height="2" fill="#ffffff" />
+        {/* Crisp tiny sparkles */}
+        <rect x="32" y="22" width="1" height="1" fill="#ffe500" />
+        <rect x="48" y="22" width="1" height="1" fill="#2fd8f2" />
+      </g>
 
-      {/* Builder Bot Head */}
-      <rect x="14" y="33" width="10" height="7" fill="#0c0418" />
-      <rect x="15" y="33" width="8" height="6" fill="#94a3b8" />
-      <rect x="15" y="33" width="8" height="1" fill="#e2e8f0" />
-      <rect x="16" y="34" width="7" height="4" fill="#0f172a" />
-      <rect x="17" y="35" width="2" height="2" fill="#22d3ee" />
-      <rect x="17" y="35" width="1" height="1" fill="#ffffff" />
-      <rect x="20" y="35" width="2" height="2" fill="#22d3ee" />
-      <rect x="20" y="35" width="1" height="1" fill="#ffffff" />
+      {/* === SAME CUTE PIXEL ROBOT WEARING YELLOW HARD HAT + BLUEPRINT === */}
+      {/* Yellow Isometric Safety Hard Hat */}
+      <rect x="75" y="25" width="15" height="5" fill="#0b0416" />
+      <rect x="76" y="26" width="13" height="3" fill="#ffe500" />
+      <rect x="77" y="26" width="6" height="1" fill="#ffffff" />
+      <rect x="72" y="29" width="21" height="2" fill="#0b0416" />
+      <rect x="73" y="29" width="19" height="1" fill="#d99b00" />
 
-      {/* High-Vis Builder Torso */}
-      <rect x="13" y="40" width="12" height="7" fill="#0c0418" />
-      <rect x="14" y="41" width="10" height="5" fill="#5b2be6" />
-      <rect x="14" y="41" width="2" height="5" fill="#ffe500" />
-      <rect x="22" y="41" width="2" height="5" fill="#ffe500" />
-      <rect x="16" y="43" width="6" height="1" fill="#ffe500" />
+      {/* Robot Head */}
+      <rect x="74" y="31" width="18" height="15" fill="#0b0416" />
+      <rect x="75" y="32" width="12" height="13" fill="#9ba9c4" />
+      <rect x="87" y="32" width="4" height="13" fill="#647292" />
+      <rect x="92" y="37" width="2" height="4" fill="#0b0416" />
+      <rect x="92" y="38" width="1" height="2" fill="#7c8ba8" />
 
-      {/* Held Cyan Blueprint */}
-      <rect x="23" y="39" width="7" height="6" fill="#0c0418" />
-      <rect x="24" y="40" width="5" height="4" fill="#0891b2" />
-      <rect x="25" y="41" width="3" height="1" fill="#ffffff" />
-      <rect x="25" y="43" width="2" height="1" fill="#22d3ee" />
+      {/* Visor & Glowing Cyan Eyes */}
+      <rect x="76" y="35" width="10" height="8" fill="#171130" />
+      <rect x="77" y="36" width="8" height="6" fill="#201842" />
+      <g className="p2r-anim-eye">
+        <rect x="78" y="37" width="2" height="4" fill="#4be3ff" />
+        <rect x="78" y="37" width="1" height="1" fill="#ffffff" />
+        <rect x="83" y="37" width="2" height="4" fill="#4be3ff" />
+        <rect x="83" y="37" width="1" height="1" fill="#ffffff" />
+      </g>
 
-      {/* Legs & Boots */}
-      <rect x="14" y="47" width="4" height="5" fill="#0c0418" />
-      <rect x="15" y="47" width="2" height="3" fill="#64748b" />
-      <rect x="15" y="50" width="3" height="1" fill="#ffe500" />
-      <rect x="20" y="47" width="4" height="5" fill="#0c0418" />
-      <rect x="21" y="47" width="2" height="3" fill="#64748b" />
-      <rect x="21" y="50" width="3" height="1" fill="#ffe500" />
+      {/* Neck & Torso */}
+      <rect x="80" y="46" width="6" height="2" fill="#475569" />
+      <rect x="76" y="48" width="15" height="13" fill="#0b0416" />
+      <rect x="77" y="49" width="10" height="11" fill="#b4c0d9" />
+      <rect x="77" y="49" width="10" height="2" fill="#dbe4f5" />
+      <rect x="87" y="49" width="3" height="11" fill="#6e7c9c" />
 
-      {/* === CONSTRUCTION SAFETY CONE & BARRICADE (x=78..102, y=44..52) === */}
-      {/* Safety Cone */}
-      <rect x="79" y="46" width="2" height="2" fill="#fb923c" />
-      <rect x="78" y="48" width="4" height="1" fill="#ffffff" />
-      <rect x="78" y="49" width="4" height="2" fill="#fb923c" />
-      <rect x="77" y="51" width="6" height="1" fill="#ea580c" />
+      {/* Glowing Cyan Chest Display */}
+      <rect x="78" y="51" width="8" height="6" fill="#171130" />
+      <rect x="79" y="52" width="6" height="4" fill="#2be8d5" />
+      <rect x="80" y="53" width="2" height="1" fill="#ffffff" />
 
-      {/* Yellow & Ink Striped Barricade */}
-      <rect x="85" y="44" width="16" height="5" fill="#0c0418" />
-      <rect x="86" y="45" width="14" height="3" fill="#ffe500" />
-      <rect x="88" y="45" width="2" height="3" fill="#2a1147" />
-      <rect x="92" y="45" width="2" height="3" fill="#2a1147" />
-      <rect x="96" y="45" width="2" height="3" fill="#2a1147" />
-      <rect x="86" y="49" width="2" height="3" fill="#64748b" />
-      <rect x="98" y="49" width="2" height="3" fill="#64748b" />
+      {/* Left Arm Holding Open Cyan Blueprint */}
+      <rect x="63" y="49" width="13" height="9" fill="#0b0416" />
+      <rect x="64" y="50" width="11" height="7" fill="#0e7490" />
+      <rect x="65" y="51" width="9" height="5" fill="#22d3ee" />
+      {/* Blueprint grid marks */}
+      <rect x="66" y="52" width="4" height="1" fill="#ffffff" />
+      <rect x="66" y="54" width="6" height="1" fill="#0b1830" />
+      <rect x="72" y="52" width="1" height="2" fill="#ffe500" />
+      {/* Robot hand */}
+      <rect x="73" y="52" width="3" height="3" fill="#cbd5e1" />
+
+      {/* Right Arm */}
+      <rect x="91" y="50" width="4" height="10" fill="#0b0416" />
+      <rect x="92" y="51" width="2" height="7" fill="#9ba9c4" />
+
+      {/* Legs & Cyan-Highlighted Boots */}
+      <rect x="78" y="61" width="4" height="10" fill="#0b0416" />
+      <rect x="79" y="61" width="2" height="9" fill="#94a3b8" />
+      <rect x="76" y="70" width="6" height="5" fill="#0b0416" />
+      <rect x="77" y="71" width="4" height="3" fill="#cbd5e1" />
+      <rect x="77" y="73" width="4" height="1" fill="#4be3ff" />
+
+      <rect x="85" y="61" width="4" height="10" fill="#0b0416" />
+      <rect x="86" y="61" width="2" height="9" fill="#94a3b8" />
+      <rect x="84" y="71" width="6" height="5" fill="#0b0416" />
+      <rect x="85" y="72" width="4" height="3" fill="#cbd5e1" />
+      <rect x="85" y="74" width="4" height="1" fill="#4be3ff" />
+
+      {/* === FLOOR PROPS: STRIPED BARRICADE & SAFETY CONE === */}
+      {/* Yellow-and-Plum Striped Construction Barricade (bottom-left) */}
+      <rect x="9" y="72" width="22" height="6" fill="#0b0416" />
+      <rect x="10" y="73" width="20" height="4" fill="#ffe500" />
+      <rect x="13" y="73" width="3" height="4" fill="#1c0e32" />
+      <rect x="19" y="73" width="3" height="4" fill="#1c0e32" />
+      <rect x="25" y="73" width="3" height="4" fill="#1c0e32" />
+      <rect x="11" y="78" width="2" height="4" fill="#94a3b8" />
+      <rect x="27" y="78" width="2" height="4" fill="#94a3b8" />
+
+      {/* Orange-and-White Pixel Safety Cone (far right) */}
+      <rect x="100" y="66" width="4" height="2" fill="#0b0416" />
+      <rect x="99" y="68" width="6" height="3" fill="#0b0416" />
+      <rect x="98" y="71" width="8" height="3" fill="#0b0416" />
+      <rect x="97" y="74" width="10" height="2" fill="#0b0416" />
+      <rect x="101" y="67" width="2" height="2" fill="#fb923c" />
+      <rect x="100" y="69" width="4" height="2" fill="#ffffff" />
+      <rect x="99" y="71" width="6" height="3" fill="#fb923c" />
+      <rect x="98" y="74" width="8" height="1" fill="#ea580c" />
     </svg>
   );
 }
