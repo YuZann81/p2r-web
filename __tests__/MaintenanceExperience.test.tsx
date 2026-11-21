@@ -59,7 +59,7 @@ describe("Dual-State Pixel-Art Maintenance Experience", () => {
     jest.clearAllMocks();
   });
 
-  it("renders crisp pixel-art System Degraded scene with Indonesian recovery copy and retry action", () => {
+  it("renders minimal top-left wordmark and crisp pixel-art System Degraded scene without logo image", () => {
     const onRetry = jest.fn();
     render(
       <MaintenanceExperience
@@ -69,11 +69,12 @@ describe("Dual-State Pixel-Art Maintenance Experience", () => {
       />,
     );
 
-    expect(screen.getByText("Gangguan Sistem")).toBeInTheDocument();
-    expect(screen.getByText("Layanan Sedang Dipulihkan")).toBeInTheDocument();
+    expect(screen.getByText("PIXEL TO REALITY")).toBeInTheDocument();
+    expect(document.querySelector("img")).toBeNull();
+    expect(screen.getByText("Sistem Sedang Dipulihkan")).toBeInTheDocument();
     expect(
       screen.getByRole("img", {
-        name: /robot teknisi P2R sedang memperbaiki terminal komputer/i,
+        name: /robot teknisi kecil sedang memperbaiki mesin arcade/i,
       }),
     ).toHaveAttribute("shape-rendering", "crispEdges");
 
@@ -92,7 +93,8 @@ describe("Dual-State Pixel-Art Maintenance Experience", () => {
       />,
     );
 
-    expect(screen.getByText("Pemeliharaan Terjadwal")).toBeInTheDocument();
+    expect(screen.getByText("PIXEL TO REALITY")).toBeInTheDocument();
+    expect(document.querySelector("img")).toBeNull();
     expect(
       screen.getByText("Dunia P2R Sedang Ditingkatkan"),
     ).toBeInTheDocument();
@@ -102,7 +104,7 @@ describe("Dual-State Pixel-Art Maintenance Experience", () => {
       ),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Sabtu, 22 Nov 2026 • 01:00–03:00 WIB"),
+      screen.getByText(/Sabtu, 22 Nov 2026 • 01:00–03:00 WIB/),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("img", {
@@ -110,7 +112,7 @@ describe("Dual-State Pixel-Art Maintenance Experience", () => {
       }),
     ).toHaveAttribute("shape-rendering", "crispEdges");
     expect(
-      screen.getByRole("button", { name: /periksa status/i }),
+      screen.getByRole("button", { name: /coba lagi/i }),
     ).toBeInTheDocument();
   });
 
@@ -126,7 +128,7 @@ describe("Dual-State Pixel-Art Maintenance Experience", () => {
       </PlatformStatusGuard>,
     );
 
-    expect(screen.getByText("Layanan Sedang Dipulihkan")).toBeInTheDocument();
+    expect(screen.getByText("Sistem Sedang Dipulihkan")).toBeInTheDocument();
     expect(screen.queryByText("Konten Utama P2R")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /coba lagi/i }));
@@ -149,7 +151,7 @@ describe("Dual-State Pixel-Art Maintenance Experience", () => {
       </PlatformStatusGuard>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /periksa status/i }));
+    fireEvent.click(screen.getByRole("button", { name: /coba lagi/i }));
 
     await waitFor(() => {
       expect(
@@ -176,7 +178,7 @@ describe("Dual-State Pixel-Art Maintenance Experience", () => {
     fireEvent.click(screen.getByRole("button", { name: /coba lagi/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("Layanan Sedang Dipulihkan")).toBeInTheDocument();
+      expect(screen.getByText("Sistem Sedang Dipulihkan")).toBeInTheDocument();
     });
     expect(screen.queryByText("Konten Utama P2R")).not.toBeInTheDocument();
   });
