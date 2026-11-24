@@ -1,29 +1,16 @@
 "use client";
 
-import React, { Suspense, useCallback, useEffect, useState } from "react";
+import React, { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
-
-function sanitizeRedirectPath(raw: string | null): string {
-  if (!raw) return "/";
-  const trimmed = raw.trim();
-  if (
-    trimmed.startsWith("/") &&
-    !trimmed.startsWith("//") &&
-    !trimmed.startsWith("/\\")
-  ) {
-    return trimmed;
-  }
-  return "/";
-}
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login, isAuthenticated } = useAuth();
 
-  const redirectUrl = sanitizeRedirectPath(searchParams.get("redirect"));
+  const redirectUrl = searchParams.get("redirect") || "/";
   const action = searchParams.get("action");
   const productId = searchParams.get("productId");
   const slug = searchParams.get("slug");
@@ -33,8 +20,7 @@ function LoginForm() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Compute final destination after login
-  const getDestinationUrl = useCallback(() => {
+  const getDestinationUrl = () => {
     const params = new URLSearchParams();
     if (action) params.set("action", action);
     if (productId) params.set("productId", productId);
@@ -46,14 +32,13 @@ function LoginForm() {
       return `${redirectUrl}${separator}${queryString}`;
     }
     return redirectUrl;
-  }, [action, productId, redirectUrl, slug]);
+  };
 
-  // If already authenticated, redirect immediately
-  useEffect(() => {
+  React.useEffect(() => {
     if (isAuthenticated) {
       router.replace(getDestinationUrl());
     }
-  }, [getDestinationUrl, isAuthenticated, router]);
+  }, [isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -84,32 +69,39 @@ function LoginForm() {
     }
   };
 
+  const registerQuery = new URLSearchParams();
+  if (redirectUrl !== "/") registerQuery.set("redirect", redirectUrl);
+  if (action) registerQuery.set("action", action);
+  if (productId) registerQuery.set("productId", productId);
+  if (slug) registerQuery.set("slug", slug);
+  const registerHref = `/register${registerQuery.toString() ? `?${registerQuery.toString()}` : ""}`;
+
   return (
-    <div className="w-full max-w-md rounded-3xl border border-white/20 bg-black/40 p-8 shadow-2xl backdrop-blur-md sm:p-10">
+    <div className="w-full max-w-md rounded-3xl border-2 border-[#39265E] bg-[#171224] p-8 shadow-[8px_8px_0_#0E0A1A] sm:p-10">
       <div className="mb-8 text-center">
-        <span className="inline-block rounded-full bg-arcade-yellow/20 px-4 py-1 font-display text-xs tracking-wider uppercase text-arcade-yellow">
+        <span className="inline-block rounded-lg bg-[#FFD447]/20 px-3.5 py-1 font-display text-xs tracking-wider uppercase text-[#FFD447]">
           {action === "vote"
             ? "Otentikasi Voting Karya"
             : action === "order"
-              ? "Otentikasi Penukaran Merchandise"
+              ? "Otentikasi Pemesanan"
               : "Cyber Arcade Access"}
         </span>
-        <h1 className="mt-3 font-display text-3xl text-arcade-yellow [text-shadow:2px_2px_0_var(--arcade-ink)] sm:text-4xl">
+        <h1 className="mt-3 font-display text-3xl text-[#FFD447] sm:text-4xl drop-shadow-[2px_2px_0_#0E0A1A]">
           MASUK AKUN
         </h1>
-        <p className="mt-2 text-xs font-semibold text-white/80 sm:text-sm">
+        <p className="mt-2 font-body text-xs text-[#FFF5E9]/80 sm:text-sm">
           {action === "vote"
             ? "Masuk untuk memberikan vote pada karya inovasi favoritmu."
             : action === "order"
-              ? "Masuk untuk menukarkan merchandise pilihanmu di booth panitia."
-              : "Masuk untuk mengakses fitur voting karya dan penukaran merchandise."}
+              ? "Masuk untuk melanjutkan pemesanan merchandise pilihanmu."
+              : "Masuk untuk mengakses fitur voting dan pemesanan merchandise pameran."}
         </p>
       </div>
 
       {errorMessage && (
         <div
           role="alert"
-          className="mb-6 rounded-xl border border-red-500/50 bg-red-500/20 p-4 text-center text-sm font-semibold text-red-200 backdrop-blur-xs"
+          className="mb-6 rounded-xl border border-red-500/50 bg-red-500/20 p-4 text-center font-body text-sm text-red-200"
         >
           {errorMessage}
         </div>
@@ -119,7 +111,7 @@ function LoginForm() {
         <div>
           <label
             htmlFor="email"
-            className="block font-display text-sm tracking-wider uppercase text-arcade-yellow"
+            className="block font-display text-sm tracking-wider uppercase text-[#FFD447]"
           >
             Email
           </label>
@@ -132,14 +124,14 @@ function LoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="nama@email.com"
             disabled={isSubmitting}
-            className="mt-2 w-full rounded-xl border border-white/20 bg-black/50 px-4 py-3 text-white placeholder-white/40 outline-none transition-colors focus:border-arcade-yellow focus:ring-2 focus:ring-arcade-yellow/50 disabled:opacity-50"
+            className="mt-2 w-full rounded-xl border border-white/20 bg-[#211B35] px-4 py-3 font-body text-sm text-white placeholder-white/40 outline-none transition-colors focus:border-[#68D5E8] focus:ring-2 focus:ring-[#68D5E8]/30 disabled:opacity-50"
           />
         </div>
 
         <div>
           <label
             htmlFor="password"
-            className="block font-display text-sm tracking-wider uppercase text-arcade-yellow"
+            className="block font-display text-sm tracking-wider uppercase text-[#FFD447]"
           >
             Kata Sandi
           </label>
@@ -152,26 +144,26 @@ function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
             disabled={isSubmitting}
-            className="mt-2 w-full rounded-xl border border-white/20 bg-black/50 px-4 py-3 text-white placeholder-white/40 outline-none transition-colors focus:border-arcade-yellow focus:ring-2 focus:ring-arcade-yellow/50 disabled:opacity-50"
+            className="mt-2 w-full rounded-xl border border-white/20 bg-[#211B35] px-4 py-3 font-body text-sm text-white placeholder-white/40 outline-none transition-colors focus:border-[#68D5E8] focus:ring-2 focus:ring-[#68D5E8]/30 disabled:opacity-50"
           />
         </div>
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="mt-4 inline-flex w-full items-center justify-center bg-arcade-yellow py-3.5 font-display text-lg font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
+          className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-[#FFD447] py-3.5 font-display text-lg font-bold text-[#0E0A1A] shadow-[4px_4px_0_#B8960A] transition-all hover:bg-[#FFE500] hover:shadow-[5px_5px_0_#B8960A] active:translate-y-0.5 active:shadow-[2px_2px_0_#B8960A] disabled:opacity-50 disabled:pointer-events-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
         >
-          {isSubmitting ? "Memproses..." : "Masuk ke Akun →"}
+          {isSubmitting ? "Memproses..." : "Masuk ke Akun"}
         </button>
       </form>
 
-      <div className="mt-8 text-center text-xs font-semibold text-white/70 sm:text-sm">
+      <div className="mt-8 text-center font-body text-xs text-[#FFF5E9]/70 sm:text-sm">
         Belum punya akun?{" "}
         <Link
-          href="/register"
-          className="font-display tracking-wider text-arcade-yellow underline transition-opacity hover:opacity-80"
+          href={registerHref}
+          className="font-display tracking-wider text-[#68D5E8] underline hover:text-[#FFD447] transition-colors"
         >
-          Daftarkan diri ke Panitia
+          Daftar Sekarang
         </Link>
       </div>
     </div>
@@ -180,18 +172,12 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <main
-      className="flex min-h-screen flex-col items-center justify-between px-6 py-12 md:px-12 md:py-16"
-      style={{
-        background:
-          "linear-gradient(160deg, var(--arcade-violet) 0%, var(--arcade-purple) 100%)",
-      }}
-    >
+    <main className="flex min-h-screen flex-col items-center justify-between bg-[#211B35] px-4 py-12 text-[#FFF5E9] sm:px-6 md:py-16">
       <div className="mx-auto flex w-full max-w-5xl flex-col items-center">
         <header className="mb-8 text-center">
           <Link
             href="/"
-            className="inline-block font-display text-sm uppercase tracking-wider text-arcade-yellow transition-opacity hover:opacity-80 md:text-base"
+            className="inline-flex items-center gap-1.5 font-display text-sm tracking-wider text-[#68D5E8] transition-colors hover:text-[#FFD447] md:text-base"
           >
             ← Kembali ke Beranda
           </Link>
@@ -199,7 +185,7 @@ export default function LoginPage() {
 
         <Suspense
           fallback={
-            <div className="p-10 font-display text-lg text-arcade-yellow">
+            <div className="p-10 font-display text-lg text-[#FFD447]">
               Memuat form login...
             </div>
           }
@@ -208,8 +194,8 @@ export default function LoginPage() {
         </Suspense>
       </div>
 
-      <footer className="mt-16 text-center font-display text-xs text-white/50">
-        Pixel To Reality: The Cyber Arcade
+      <footer className="mt-16 text-center font-display text-xs text-[#FFF5E9]/50">
+        Pixel To Reality: The Cyber Arcade &bull; Rekayasa Perangkat Lunak
       </footer>
     </main>
   );

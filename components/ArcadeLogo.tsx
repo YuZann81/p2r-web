@@ -1,29 +1,22 @@
-import Image from "next/image";
+import Link from "next/link";
+import { PixelLogo } from "@/components/PixelLogo";
 
-/**
- * Official Pixel2Reality logo.
- *
- * The artwork is the official asset served from /public/brand. It is NOT
- * redrawn as text: the previous wordmark was a text approximation of the real
- * mark. Sizing is driven by height so the 1600x1600 source keeps its 1:1
- * aspect ratio at every breakpoint.
- */
-const LOGO_SRC = "/brand/pixel2reality-logo.png";
-
-export default function ArcadeLogo({ className = "" }: { className?: string }) {
+export default function ArcadeLogo() {
   return (
-    <span className={`inline-flex items-center ${className}`}>
-      <Image
-        src={LOGO_SRC}
-        alt="Pixel2Reality — Pameran Karya Teknologi"
-        width={1600}
-        height={1600}
-        priority
-        sizes="(max-width: 640px) 48px, (max-width: 1024px) 60px, 72px"
-        className="h-10 w-10 sm:h-12 sm:w-12 lg:h-[4.5rem] lg:w-[4.5rem]"
-      />
-    </span>
+    <Link
+      href="/"
+      className="group flex items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[#FFD447] transition-transform hover:scale-[1.02]"
+      aria-label="Pixel To Reality Home"
+    >
+      <PixelLogo className="size-8 sm:size-9" />
+      <div className="flex flex-col items-start">
+        <span className="font-display text-xl sm:text-2xl tracking-wide text-[#FFD447] drop-shadow-[2px_2px_0_#0E0A1A] group-hover:text-[#68D5E8] transition-colors leading-none">
+          PIXEL TO REALITY
+        </span>
+        <span className="font-body text-[10px] tracking-wider text-[#B7ABCE] font-semibold uppercase mt-0.5">
+          RPL Cyber Exhibition
+        </span>
+      </div>
+    </Link>
   );
 }
-
-export { LOGO_SRC };

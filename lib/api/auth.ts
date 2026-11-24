@@ -23,10 +23,21 @@ export async function loginUser(
   );
 }
 
+/**
+ * Public self-registration (`/auth/register`) is not available on the
+ * production API — participant accounts are provisioned by the committee
+ * at the exhibition booth.
+ */
 export async function registerUser(
-  data: RegisterData,
+  _data: RegisterData,
 ): Promise<ApiResponse<AuthResponseData>> {
-  return apiPost<AuthResponseData, RegisterData>("/auth/register", data);
+  void _data;
+  return {
+    success: false,
+    message:
+      "Pendaftaran akun dilakukan langsung melalui panitia di booth pameran.",
+    data: null as unknown as AuthResponseData,
+  };
 }
 
 export async function getCurrentUser(token: string): Promise<ApiResponse<User>> {

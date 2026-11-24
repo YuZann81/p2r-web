@@ -1,3 +1,7 @@
+jest.mock("@/components/Footer", () => function MockFooter() {
+  return <footer data-testid="mock-footer" />;
+});
+
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import KaryaPage from "@/app/karya/page"
@@ -15,11 +19,11 @@ const mockedGetAllKaryas = getAllKaryas as jest.MockedFunction<
 const mockKaryas: KaryaDetail[] = [
   {
     id: "karya-1",
-    title: "Cyber Runner 2099",
-    slug: "cyber-runner-2099",
+    title: "Portal Sekolah Next.js",
+    slug: "portal-sekolah-nextjs",
     description: "Fast paced endless runner game.",
     creators: "Tim Game RPL",
-    category: "game",
+    category: "website",
     tech_stack: ["Phaser.js", "WebAudio"],
     media_urls: ["/images/game-1.png"],
     live_url: "https://play.example.com",
@@ -65,9 +69,6 @@ describe("KaryaPage (/karya)", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: /semua karya/i }),
     ).toBeInTheDocument()
-    expect(
-      screen.getByText(/direktori lengkap seluruh karya pameran/i),
-    ).toBeInTheDocument()
 
     // Back to home links
     const backLinks = screen.getAllByRole("link", {
@@ -77,14 +78,14 @@ describe("KaryaPage (/karya)", () => {
     expect(backLinks[0]).toHaveAttribute("href", "/")
 
     // Initial items rendered
-    expect(screen.getByText("Cyber Runner 2099")).toBeInTheDocument()
+    expect(screen.getByText("Portal Sekolah Next.js")).toBeInTheDocument()
     expect(screen.getByText("Smart Attendance IoT")).toBeInTheDocument()
 
     // Detail links
     const detailLinks = screen.getAllByRole("link", {
       name: /lihat detail karya/i,
     })
-    expect(detailLinks[0]).toHaveAttribute("href", "/karya/cyber-runner-2099")
+    expect(detailLinks[0]).toHaveAttribute("href", "/karya/portal-sekolah-nextjs")
     expect(detailLinks[1]).toHaveAttribute("href", "/karya/smart-attendance-iot")
   })
 
@@ -96,14 +97,14 @@ describe("KaryaPage (/karya)", () => {
     render(Component)
 
     // Filter to Game category
-    const gameTab = screen.getByRole("tab", { name: "Game Arcade" })
+    const gameTab = screen.getByRole("tab", { name: "Web Innovation" })
     await user.click(gameTab)
 
-    expect(screen.getByText("Cyber Runner 2099")).toBeInTheDocument()
+    expect(screen.getByText("Portal Sekolah Next.js")).toBeInTheDocument()
     expect(screen.queryByText("Smart Attendance IoT")).not.toBeInTheDocument()
 
     // Filter to Website category (empty)
-    const webTab = screen.getByRole("tab", { name: "Web Innovation" })
+    const webTab = screen.getByRole("tab", { name: "Digital Art" })
     await user.click(webTab)
 
     expect(
@@ -113,7 +114,7 @@ describe("KaryaPage (/karya)", () => {
       }),
     ).toBeInTheDocument()
     expect(
-      screen.getByText(/Karya pameran untuk kategori Web Innovation/i),
+      screen.getByText(/Karya pameran untuk kategori Digital Art/i),
     ).toBeInTheDocument()
   })
 

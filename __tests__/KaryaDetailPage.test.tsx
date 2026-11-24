@@ -1,3 +1,7 @@
+jest.mock("@/components/Footer", () => function MockFooter() {
+  return <footer data-testid="mock-footer" />;
+});
+
 import { render, screen } from "@testing-library/react"
 import KaryaDetailPage, { generateMetadata } from "@/app/karya/[slug]/page"
 import { getKaryaBySlug } from "@/lib/karya/getKaryaBySlug"

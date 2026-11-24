@@ -1,5 +1,7 @@
-import React, { Suspense } from "react";
+import React from "react";
 import Link from "next/link";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import GameArtwork from "@/components/GameArtwork";
 import VoteButton from "@/components/VoteButton";
 import type { KaryaDetail } from "@/lib/api/types/karya";
@@ -36,12 +38,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   digital_art: "Digital Art",
 };
 
-function isValidRuntimeUrl(url: string | null | undefined): boolean {
-  if (!url || typeof url !== "string") return false;
-  const trimmed = url.trim();
-  return trimmed.startsWith("http://") || trimmed.startsWith("https://");
-}
-
 export default function KaryaDetailView({
   karya,
   backHref,
@@ -64,163 +60,133 @@ export default function KaryaDetailView({
     : [];
 
   return (
-    <main
-      className="flex min-h-screen flex-col justify-between px-6 py-12 md:px-12 md:py-16"
-      style={{
-        background:
-          "linear-gradient(160deg, var(--arcade-violet) 0%, var(--arcade-purple) 100%)",
-      }}
-    >
-      <div className="mx-auto w-full max-w-5xl">
-        {/* Navigation / Header */}
-        <header className="mb-10 text-center md:mb-14">
-          <Link
-            href={backHref}
-            className="inline-block font-display text-sm uppercase tracking-wider text-arcade-yellow transition-opacity hover:opacity-80 md:text-base"
-          >
-            {backLabel}
-          </Link>
+    <div className="flex min-h-screen flex-col bg-[#211B35] text-[#FFF5E9]">
+      <Navbar />
 
-          <div className="mt-4 flex items-center justify-center gap-3">
-            <span className="inline-block rounded-full bg-arcade-yellow/20 px-4 py-1 font-display text-xs tracking-wider uppercase text-arcade-yellow sm:text-sm">
-              {categoryLabel}
-            </span>
-            {karya.votes_count > 0 && (
-              <span className="inline-block rounded-full bg-white/10 px-3.5 py-1 font-display text-xs tracking-wider text-white sm:text-sm">
-                ⭐ {karya.votes_count} Votes
+      <main className="flex-1 px-4 py-10 sm:px-6 md:py-16">
+        <div className="mx-auto w-full max-w-5xl">
+          {/* Navigation / Header */}
+          <header className="mb-10 text-center md:mb-14">
+            <Link
+              href={backHref}
+              className="inline-flex items-center gap-1.5 font-display text-sm tracking-wider text-[#68D5E8] transition-colors hover:text-[#FFD447] md:text-base"
+            >
+              {backLabel}
+            </Link>
+
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <span className="inline-block rounded-lg border border-[#FFD447]/40 bg-[#FFD447]/15 px-3.5 py-1 font-display text-xs tracking-wider uppercase text-[#FFD447] sm:text-sm">
+                {categoryLabel}
               </span>
-            )}
-          </div>
-
-          <h1 className="mt-4 font-display text-4xl text-arcade-yellow [text-shadow:3px_3px_0_var(--arcade-ink)] sm:text-5xl md:text-6xl">
-            {karya.title}
-          </h1>
-
-          {karya.creators && (
-            <p className="mx-auto mt-2 text-sm font-semibold tracking-wide text-white/80 sm:text-base">
-              Karya oleh: <span className="text-arcade-yellow">{karya.creators}</span>
-            </p>
-          )}
-        </header>
-
-        {/* Content Showcase Grid */}
-        <section aria-label={`Detail Karya ${karya.title}`} className="w-full">
-          <div className="grid grid-cols-1 items-start gap-10 md:grid-cols-2 md:gap-14">
-            
-            {/* Sisi Kiri: Artwork */}
-            <div className="flex flex-col items-center justify-center">
-              <GameArtwork
-                image={mainImage}
-                imageAlt={`${karya.title} artwork`}
-                logo={mainLogo}
-                logoAlt={`${karya.title} logo`}
-                tilt="left"
-              />
+              {karya.votes_count > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-[#39265E] px-3.5 py-1 font-display text-xs tracking-wider text-white sm:text-sm">
+                  <svg className="h-3.5 w-3.5 fill-[#FFD447]" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  <span>{karya.votes_count} Votes</span>
+                </span>
+              )}
             </div>
 
-            {/* Sisi Kanan: Deskripsi, Tech Stack, & Aksi */}
-            <div className="flex flex-col gap-6 rounded-2xl border border-white/15 bg-black/30 p-6 backdrop-blur-xs sm:p-8">
-              <div>
-                <h2 className="font-display text-xl uppercase tracking-wider text-arcade-yellow sm:text-2xl">
-                  Tentang Karya
-                </h2>
-                <p className="mt-3 text-base leading-relaxed text-white/90 sm:text-lg">
-                  {karya.description || "Deskripsi karya belum tersedia."}
-                </p>
+            <h1
+              className="mt-4 font-display text-4xl text-[#FFD447] sm:text-5xl md:text-6xl select-none"
+              style={{
+                textShadow: "3px 3px 0px #C37D29, 6px 6px 0px #0E0A1A",
+              }}
+            >
+              {karya.title}
+            </h1>
+
+            {karya.creators && (
+              <p className="mx-auto mt-2 font-body text-sm text-[#FFF5E9]/80 sm:text-base">
+                Karya oleh: <span className="font-semibold text-[#68D5E8]">{karya.creators}</span>
+              </p>
+            )}
+          </header>
+
+          {/* Content Showcase Grid */}
+          <section aria-label={`Detail Karya ${karya.title}`} className="w-full">
+            <div className="grid grid-cols-1 items-start gap-10 md:grid-cols-2 md:gap-14">
+              {/* Sisi Kiri: Artwork */}
+              <div className="flex flex-col items-center justify-center">
+                <GameArtwork
+                  image={mainImage}
+                  imageAlt={`${karya.title} artwork`}
+                  logo={mainLogo}
+                  logoAlt={`${karya.title} logo`}
+                  tilt="left"
+                />
               </div>
 
-              {techStackList.length > 0 && (
+              {/* Sisi Kanan: Deskripsi, Tech Stack, & Aksi */}
+              <div className="flex flex-col gap-6 rounded-3xl border-2 border-[#39265E] bg-[#171224] p-6 shadow-[6px_6px_0_#0E0A1A] sm:p-8">
                 <div>
-                  <h3 className="font-display text-sm uppercase tracking-wider text-arcade-yellow/90 sm:text-base">
-                    Tech Stack &amp; Tools
-                  </h3>
-                  <div className="mt-2.5 flex flex-wrap gap-2">
-                    {techStackList.map((tech) => (
-                      <span
-                        key={tech}
-                        className="rounded-lg border border-arcade-yellow/40 bg-arcade-yellow/10 px-3 py-1 font-display text-xs font-semibold text-arcade-yellow sm:text-sm"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
+                  <h2 className="font-display text-xl tracking-wider text-[#FFD447] sm:text-2xl">
+                    Tentang Karya
+                  </h2>
+                  <p className="mt-3 font-body text-base leading-relaxed text-[#FFF5E9]/90 sm:text-lg">
+                    {karya.description || "Deskripsi karya belum tersedia."}
+                  </p>
                 </div>
-              )}
 
-              {/* Voting Button */}
-              <div className="border-t border-white/10 pt-4">
-                <Suspense fallback={null}>
+                {techStackList.length > 0 && (
+                  <div>
+                    <h3 className="font-display text-sm tracking-wider uppercase text-[#68D5E8] sm:text-base">
+                      Tech Stack &amp; Tools
+                    </h3>
+                    <div className="mt-2.5 flex flex-wrap gap-2">
+                      {techStackList.map((tech) => (
+                        <span
+                          key={tech}
+                          className="rounded-lg border border-[#39265E] bg-[#211B35] px-3 py-1 font-display text-xs text-[#FFD447] sm:text-sm"
+                        >
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Voting Button */}
+                <div className="border-t border-white/10 pt-4">
                   <VoteButton
                     slug={karya.slug}
                     initialVotesCount={karya.votes_count || 0}
                     initialIsVoted={karya.is_voted_by_me}
                   />
-                </Suspense>
-              </div>
+                </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                {karya.category === "game" ? (
-                  isValidRuntimeUrl(karya.live_url) ? (
+                {/* Action Buttons */}
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  {karya.live_url && (
                     <a
-                      href={karya.live_url!}
+                      href={karya.live_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center bg-arcade-yellow px-6 py-3 text-center font-display text-base font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
+                      className="inline-flex items-center justify-center rounded-xl bg-[#FFD447] px-6 py-3 font-display text-base font-bold text-[#0E0A1A] shadow-[4px_4px_0_#B8960A] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#B8960A] active:translate-y-0.5 active:shadow-[2px_2px_0_#B8960A]"
                     >
-                      Mainkan / Buka Live Demo →
+                      Mainkan / Buka Live Demo
                     </a>
-                  ) : (
-                    <div className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-black/40 px-6 py-3 font-display text-sm text-white/50">
-                      Runtime Game Belum Tersedia
-                    </div>
-                  )
-                ) : karya.live_url ? (
-                  <a
-                    href={karya.live_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center bg-arcade-yellow px-6 py-3 text-center font-display text-base font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
-                  >
-                    Buka Live Demo →
-                  </a>
-                ) : null}
+                  )}
 
-                {karya.repo_url && (
-                  <a
-                    href={karya.repo_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center border-2 border-white/40 bg-black/40 px-6 py-3 text-center font-display text-base font-bold text-white transition-colors hover:border-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-arcade-yellow"
-                  >
-                    Source Code Repo
-                  </a>
-                )}
+                  {karya.repo_url && (
+                    <a
+                      href={karya.repo_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center rounded-xl border-2 border-[#39265E] bg-[#211B35] px-6 py-3 font-display text-base font-bold text-[#FFF5E9] transition-all hover:bg-[#39265E]"
+                    >
+                      Source Code Repo
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* Footer Nav Links */}
-        <div className="mt-14 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6 md:mt-20">
-          <Link
-            href={backHref}
-            className="inline-flex items-center justify-center bg-arcade-yellow px-8 py-3 font-display text-lg font-bold text-arcade-ink shadow-[6px_6px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[3px_3px_0_var(--arcade-yellow-shadow)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
-          >
-            {backLabel.replace("← ", "")}
-          </Link>
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center border border-white/30 bg-black/30 px-8 py-3 font-display text-lg font-bold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-arcade-yellow"
-          >
-            Kembali ke Beranda
-          </Link>
+          </section>
         </div>
-      </div>
+      </main>
 
-      <footer className="mt-16 text-center font-display text-xs text-white/50">
-        Pixel To Reality: The Cyber Arcade
-      </footer>
-    </main>
+      <Footer />
+    </div>
   );
 }

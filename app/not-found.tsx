@@ -1,37 +1,36 @@
 import React from "react";
 import Link from "next/link";
+import Pixel404Illustration from "@/components/Pixel404Illustration";
+import AnimatedArcadeHeading from "@/components/AnimatedArcadeHeading";
 
 export default function NotFound() {
   return (
-    <main
-      className="flex min-h-screen flex-col items-center justify-center px-6 py-16 text-center font-body"
-      style={{
-        background:
-          "linear-gradient(160deg, var(--arcade-violet) 0%, var(--arcade-purple) 100%)",
-      }}
-    >
-      <div className="mx-auto flex max-w-lg flex-col items-center rounded-3xl border-2 border-dashed border-arcade-yellow/40 bg-black/40 p-8 shadow-2xl backdrop-blur-md sm:p-12">
-        <span className="inline-block rounded-full bg-arcade-yellow/20 px-4 py-1 font-display text-xs font-bold tracking-wider uppercase text-arcade-yellow">
-          404 Error — Stage Not Found
-        </span>
-        <h1 className="mt-4 font-display text-6xl font-bold text-arcade-yellow [text-shadow:3px_3px_0_var(--arcade-ink)] sm:text-7xl">
-          GAME OVER
-        </h1>
-        <p className="mt-3 text-base font-semibold text-white/90 sm:text-lg">
-          Halaman yang Anda tuju tidak ditemukan atau telah berpindah dimensi.
+    <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-[#211B35] px-4 py-8 text-center text-[#FFF5E9] sm:px-6 sm:py-14">
+      <div className="flex w-full max-w-2xl flex-col items-center justify-center text-center">
+        {/* 1. Ilustrasi Pixel Art Retro Arcade (Elemen Visual Utama) */}
+        <Pixel404Illustration className="mb-2 sm:mb-3" />
+
+        {/* 2. Heading Utama: Animated Arcade Typography (Glitch & Scramble) */}
+        <AnimatedArcadeHeading />
+
+        {/* 3. Deskripsi Singkat yang Terbaca & Proporsional */}
+        <p className="mt-2.5 max-w-[580px] font-body text-sm leading-relaxed text-[#FFF5E9]/90 sm:mt-3.5 sm:text-base md:text-lg">
+          Oops! Halaman yang kamu cari tidak ditemukan atau mungkin telah berpindah dimensi.
         </p>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+
+        {/* 4. Dua Tombol Navigasi Seimbang (Satu Baris pada Desktop, Vertikal pada Smartphone) */}
+        <div className="mt-7 flex w-full flex-col items-center justify-center gap-3.5 sm:mt-8 sm:w-auto sm:flex-row sm:gap-4">
           <Link
             href="/"
-            className="inline-flex items-center justify-center bg-arcade-yellow px-6 py-3 font-display text-base font-bold text-arcade-ink shadow-[4px_4px_0_var(--arcade-yellow-shadow)] transition-transform hover:-translate-y-0.5 active:translate-y-0.5"
+            className="inline-flex h-12 w-full sm:w-auto min-w-[180px] items-center justify-center rounded-xl bg-[#FFD43B] px-6 font-display text-base font-bold text-[#0E0A1A] shadow-[4px_4px_0_#B8960A] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#B8960A] active:translate-y-0.5 active:shadow-[2px_2px_0_#B8960A] sm:text-lg"
           >
-            Kembali ke Beranda →
+            Kembali ke Beranda
           </Link>
           <Link
             href="/games"
-            className="inline-flex items-center justify-center border border-white/30 bg-black/30 px-6 py-3 font-display text-base font-bold text-white transition-colors hover:bg-white/10"
+            className="inline-flex h-12 w-full sm:w-auto min-w-[180px] items-center justify-center rounded-xl border-2 border-[#503080] bg-transparent px-6 font-display text-base font-bold text-[#FFF5E9] shadow-[4px_4px_0_#0E0A1A] transition-all hover:-translate-y-0.5 hover:border-[#9470E8] hover:bg-[#503080]/30 hover:text-[#FFD43B] active:translate-y-0.5 active:shadow-[2px_2px_0_#0E0A1A] sm:text-lg"
           >
-            Lihat Game Arcade
+            Jelajahi Game
           </Link>
         </div>
       </div>

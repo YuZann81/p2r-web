@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
-import { ApiError } from "@/lib/api/client";
 import { voteKarya, unvoteKarya } from "@/lib/api/karya";
 
 type VoteButtonProps = {
@@ -36,7 +35,23 @@ export default function VoteButton({
     message: string;
   } | null>(null);
 
-  const handleVote = useCallback(async () => {
+  // Auto-resume vote intent after authentication redirect
+  useEffect(() => {
+    const action = searchParams?.get ? searchParams.get("action") : null;
+    const targetSlug = searchParams?.get ? searchParams.get("slug") : null;
+
+    if (
+      action === "vote" &&
+      targetSlug === slug &&
+      isAuthenticated &&
+      !isVoted &&
+      !isLoading
+    ) {
+      handleVote();
+    }
+  }, [searchParams, isAuthenticated, slug]);
+
+  const handleVote = async () => {
     if (!isAuthenticated) {
       const currentPath =
         typeof window !== "undefined" ? window.location.pathname : `/karya/${slug}`;
@@ -63,26 +78,15 @@ export default function VoteButton({
           setIsVoted(true);
           setFeedback({
             type: "success",
-            message: "⭐ Vote kamu berhasil dicatat! Terima kasih telah mendukung karya ini.",
+            message: "Vote kamu berhasil dicatat! Terima kasih telah mendukung karya ini.",
           });
         } catch (err) {
-          if (err instanceof ApiError && err.status === 409) {
-            setIsVoted(true);
-            setFeedback({
-              type: "info",
-              message: "Kamu telah memberikan vote untuk karya ini.",
-            });
-          } else if (err instanceof ApiError && err.status === 401) {
-            setFeedback({
-              type: "error",
-              message: "Sesi masuk berakhir. Silakan masuk kembali.",
-            });
-          } else {
-            setFeedback({
-              type: "error",
-              message: "Gagal memproses vote. Silakan coba lagi.",
-            });
-          }
+          // If already voted on backend or duplicate
+          setIsVoted(true);
+          setFeedback({
+            type: "info",
+            message: "Kamu telah memberikan vote untuk karya ini.",
+          });
         }
       } else {
         // Cancel Vote (Unvote)
@@ -98,50 +102,15 @@ export default function VoteButton({
             type: "info",
             message: "Vote kamu telah dibatalkan.",
           });
-        } catch (err) {
-          if (err instanceof ApiError && err.status === 409) {
-            setIsVoted(false);
-            setFeedback({
-              type: "info",
-              message: "Vote kamu sudah dibatalkan sebelumnya.",
-            });
-          } else if (err instanceof ApiError && err.status === 401) {
-            setFeedback({
-              type: "error",
-              message: "Sesi masuk berakhir. Silakan masuk kembali.",
-            });
-          } else {
-            setFeedback({
-              type: "error",
-              message: "Gagal membatalkan vote. Silakan coba lagi.",
-            });
-          }
+        } catch {
+          setIsVoted(false);
+          setVotesCount((c) => Math.max(0, c - 1));
         }
       }
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, isLoading, isVoted, router, slug, token, votesCount]);
-
-  // Auto-resume vote intent after authentication redirect. The resume must run
-  // as a side effect of the redirect landing on this page, so the resulting
-  // state updates are intentionally driven from this effect.
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    const action = searchParams?.get ? searchParams.get("action") : null;
-    const targetSlug = searchParams?.get ? searchParams.get("slug") : null;
-
-    if (
-      action === "vote" &&
-      targetSlug === slug &&
-      isAuthenticated &&
-      !isVoted &&
-      !isLoading
-    ) {
-      handleVote();
-    }
-  }, [searchParams, isAuthenticated, slug, handleVote, isLoading, isVoted]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+  };
 
   return (
     <div className={`flex flex-col gap-2 ${className}`}>
@@ -169,12 +138,16 @@ export default function VoteButton({
           </span>
         ) : isVoted ? (
           <>
-            <span className="text-lg">✓</span>
+            <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
             <span>Voted ({votesCount})</span>
           </>
         ) : (
           <>
-            <span className="text-lg">⭐</span>
+            <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
             <span>Beri Vote ({votesCount})</span>
           </>
         )}

@@ -1,14 +1,14 @@
 "use client";
 
-import React, { Suspense, useState, useEffect } from 'react';
-import Link from 'next/link';
-import type { Product } from '@/lib/api/types/product';
-import { fetchProducts } from '@/lib/api/products';
-import MerchandiseDetailModal from './MerchandiseDetailModal';
-import ChatAdmin from './ChatAdmin';
-import MerchandiseCard, { PixelBorder } from './MerchandiseCard';
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import type { Product } from "@/lib/api/types/product";
+import { fetchProducts } from "@/lib/api/products";
+import MerchandiseInfoModal from "./MerchandiseInfoModal";
+import ChatAdmin from "./ChatAdmin";
+import MerchandiseCard from "./MerchandiseCard";
 
-function MerchandiseSectionContent() {
+export default function MerchandiseSection() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -35,78 +35,64 @@ function MerchandiseSectionContent() {
     };
   }, []);
 
-  const handleOpenDetail = (product: Product) => {
-    setSelectedProduct(product);
-  };
-
-  const handleCloseDetail = () => {
-    setSelectedProduct(null);
-  };
-
   return (
-    <section id="merchandise" className="relative w-full bg-arcade-violet font-body text-white min-h-screen pb-24">
-      <PixelBorder />
-      <div
-        className="w-full h-10 bg-repeat-x bg-auto"
-        style={{
-          backgroundImage: "url('/image_775622.png')",
-          imageRendering: "pixelated",
-        }}
-      />
-
-      <div className="max-w-6xl mx-auto px-6 pt-12 flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
+    <section
+      id="merchandise"
+      className="relative w-full bg-[#1A142A] font-body text-[#FFF5E9] py-16 md:py-24 border-t border-[#39265E]"
+    >
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col lg:flex-row gap-10 lg:gap-14 items-start">
         {/* KIRI: Loading State, Grid Produk, atau Empty State */}
         {isLoading ? (
-          <div className="flex-1 w-full flex flex-col items-center justify-center p-10 md:p-14 border-2 border-dashed border-arcade-yellow/30 bg-black/20 text-center rounded-2xl backdrop-blur-xs min-h-[300px]">
-            <div className="w-12 h-12 mb-4 border-4 border-arcade-yellow/30 border-t-arcade-yellow rounded-full animate-spin" />
-            <p className="font-display text-lg tracking-wider text-arcade-yellow uppercase">
+          <div className="flex-1 w-full flex flex-col items-center justify-center p-10 md:p-14 border-2 border-dashed border-[#FFD447]/30 bg-[#211B35]/40 text-center rounded-2xl min-h-[300px]">
+            <div className="w-10 h-10 mb-4 border-4 border-[#FFD447]/30 border-t-[#FFD447] rounded-full animate-spin" />
+            <p className="font-display text-base tracking-wider text-[#FFD447] uppercase">
               Memuat Katalog Merchandise...
             </p>
           </div>
         ) : products.length > 0 ? (
-          <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-8">
-            {products.slice(0, 3).map((product, index) => (
+          <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-6">
+            {products.map((product, index) => (
               <MerchandiseCard
                 key={product.id}
                 product={product}
-                onClick={() => handleOpenDetail(product)}
+                onClick={() => setSelectedProduct(product)}
                 containerClassName={index === 0 ? "md:col-span-2" : "col-span-1"}
                 imageBoxClassName={index === 0 ? "aspect-[16/10]" : "aspect-square"}
               />
             ))}
           </div>
         ) : (
-          <div className="flex-1 w-full flex flex-col items-center justify-center p-10 md:p-14 border-2 border-dashed border-arcade-yellow/40 bg-black/20 text-center rounded-2xl backdrop-blur-xs">
-            <div className="w-16 h-16 mb-4 flex items-center justify-center rounded-full bg-arcade-yellow/20 text-arcade-yellow">
-              <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+          <div className="flex-1 w-full flex flex-col items-center justify-center p-10 md:p-14 border-2 border-dashed border-[#FFD447]/40 bg-[#211B35]/60 text-center rounded-2xl">
+            <div className="w-14 h-14 mb-4 flex items-center justify-center rounded-full bg-[#FFD447]/20 text-[#FFD447]">
+              <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M21.5 8.5l-3.5-5H6L2.5 8.5 2 9v11a1 1 0 001 1h18a1 1 0 001-1V9l-.5-.5zM6.8 5.5h10.4l2.1 3H4.7l2.1-3zM20 19H4V10.5h16V19z" />
               </svg>
             </div>
-            <span className="inline-block rounded-full bg-arcade-yellow/20 px-4 py-1 font-display text-sm tracking-wide text-arcade-yellow mb-3">
-              Koleksi Pameran
+            <span className="inline-block rounded-full bg-[#FFD447]/20 px-3.5 py-1 font-display text-xs tracking-wider text-[#FFD447] mb-3">
+              Official Merch
             </span>
-            <h3 className="font-display text-2xl md:text-3xl text-arcade-yellow font-bold drop-shadow-sm mb-3">
+            <h3 className="font-display text-2xl md:text-3xl text-[#FFD447] font-bold mb-2">
               Merchandise Segera Hadir
             </h3>
-            <p className="text-white/80 font-medium text-base max-w-md leading-relaxed">
-              Koleksi resmi Pixel To Reality sedang dipersiapkan. Pantau informasi terbaru melalui admin atau kunjungi booth panitia pameran!
+            <p className="text-[#FFF5E9]/80 font-body text-sm max-w-md leading-relaxed">
+              Koleksi resmi Pixel To Reality sedang dipersiapkan. Kunjungi booth panitia pameran untuk informasi penukaran koin!
             </p>
           </div>
         )}
 
         {/* KANAN: Detail & CTA */}
-        <div className="w-full lg:w-80 pt-2 lg:pt-0">
-          <h2 className="text-arcade-yellow text-4xl font-display font-bold mb-5 drop-shadow-[2px_3px_0_var(--arcade-ink)] leading-tight">
-            Katalog<br />Merchandise
-          </h2>
-          <p className="text-white font-semibold text-lg leading-relaxed">
-            Koleksi merchandise resmi edisi Cyber Arcade: kaos eksklusif, gantungan kunci, lanyard, stiker pack, dan reward game resmi Pixel To Reality.
-          </p>
+        <div className="w-full lg:w-80">
+          <div className="rounded-2xl border-2 border-[#39265E] bg-[#211B35] p-6 shadow-[6px_6px_0_#0E0A1A]">
+            <h2 className="text-[#FFD447] text-3xl font-display font-bold mb-4 drop-shadow-[2px_2px_0_#0E0A1A]">
+              OFFICIAL MERCHANDISE
+            </h2>
+            <p className="text-[#FFF5E9]/85 font-body text-sm leading-relaxed mb-6">
+              Tukarkan koin hasil bermain di pameran dengan merchandise resmi edisi terbatas di booth panitia Pixel To Reality.
+            </p>
 
-          <div className="mt-8">
             <Link
               href="/merchandise"
-              className="inline-flex items-center justify-center bg-arcade-yellow px-6 py-3 font-display text-lg font-bold text-arcade-ink shadow-[6px_6px_0_var(--arcade-yellow-shadow)] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0_var(--arcade-yellow-shadow)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[3px_3px_0_var(--arcade-yellow-shadow)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-[#FFD447] py-3 font-display text-lg font-bold text-[#0E0A1A] shadow-[4px_4px_0_#B8960A] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#B8960A] active:translate-y-0.5 active:shadow-[2px_2px_0_#B8960A]"
             >
               Lihat Semua Merchandise
             </Link>
@@ -114,33 +100,25 @@ function MerchandiseSectionContent() {
         </div>
       </div>
 
-      {/* Floating Helpdesk Button */}
+      {/* Floating Chat Button */}
       <button
         type="button"
         onClick={() => setIsChatOpen(true)}
-        aria-label="Buka Informasi Helpdesk Panitia"
-        className="fixed bottom-8 right-8 w-16 h-16 bg-white rounded-full flex items-center justify-center drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)] hover:scale-105 active:scale-95 transition-all z-40 outline-none cursor-pointer"
+        aria-label="Buka Chat Admin"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-[#FFD447] text-[#0E0A1A] rounded-2xl flex items-center justify-center shadow-[4px_4px_0_#0E0A1A] hover:scale-105 active:scale-95 transition-all z-40 outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
       >
-        <svg className="w-8 h-8 text-arcade-ink" fill="currentColor" viewBox="0 0 24 24">
+        <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M12 3c-4.97 0-9 3.358-9 7.5 0 2.38 1.34 4.5 3.38 5.82-.18 1.76-1.19 3.51-1.28 3.66a.75.75 0 00.98 1.05c2.31-1.33 4.14-2.58 5.09-3.23.6.07 1.21.1 1.83.1 4.97 0 9-3.358 9-7.5S16.97 3 12 3z" />
         </svg>
       </button>
 
       {selectedProduct && (
-        <MerchandiseDetailModal
+        <MerchandiseInfoModal
           product={selectedProduct}
-          onClose={handleCloseDetail}
+          onClose={() => setSelectedProduct(null)}
         />
       )}
       {isChatOpen && <ChatAdmin onClose={() => setIsChatOpen(false)} />}
     </section>
-  );
-}
-
-export default function MerchandiseSection() {
-  return (
-    <Suspense fallback={<div className="text-center font-display text-arcade-yellow">Memuat section merchandise...</div>}>
-      <MerchandiseSectionContent />
-    </Suspense>
   );
 }

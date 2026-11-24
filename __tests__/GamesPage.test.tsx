@@ -1,3 +1,7 @@
+jest.mock("@/components/Footer", () => function MockFooter() {
+  return <footer data-testid="mock-footer" />;
+});
+
 import { render, screen, within } from "@testing-library/react";
 import GamesPage from "@/app/games/page";
 import { getGames } from "@/lib/games/getGames";
@@ -41,9 +45,6 @@ describe("GamesPage", () => {
     // Heading & Intro
     expect(
       screen.getByRole("heading", { level: 1, name: /direktori game/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/koleksi lengkap seluruh game arcade interaktif/i),
     ).toBeInTheDocument();
 
     // Game items

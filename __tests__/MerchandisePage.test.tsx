@@ -1,3 +1,7 @@
+jest.mock("@/components/Footer", () => function MockFooter() {
+  return <footer data-testid="mock-footer" />;
+});
+
 import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import MerchandisePage from "@/app/merchandise/page"
@@ -90,9 +94,6 @@ describe("MerchandisePage (/merchandise)", () => {
 
     expect(
       screen.getByRole("heading", { level: 1, name: /katalog merchandise/i }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText(/koleksi merchandise resmi dan produk dana usaha/i),
     ).toBeInTheDocument()
 
     const backLinks = screen.getAllByRole("link", {

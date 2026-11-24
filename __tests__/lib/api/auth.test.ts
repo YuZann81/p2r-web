@@ -36,25 +36,18 @@ describe("Auth API Service", () => {
     expect(result.data?.token).toBe("token-123");
   });
 
-  it("calls /auth/register with user data", async () => {
+  it("does not call obsolete /auth/register endpoint and returns booth notice", async () => {
     const registerData = {
       name: "New Player",
       email: "new@example.com",
       password: "password123",
     };
-    mockedApiPost.mockResolvedValueOnce({
-      success: true,
-      message: "Registration successful",
-      data: {
-        token: "token-456",
-        user: { id: 2, name: "New Player", email: "new@example.com" },
-      },
-    });
 
     const result = await registerUser(registerData);
 
-    expect(mockedApiPost).toHaveBeenCalledWith("/auth/register", registerData);
-    expect(result.data?.user.name).toBe("New Player");
+    expect(mockedApiPost).not.toHaveBeenCalled();
+    expect(result.success).toBe(false);
+    expect(result.message).toMatch(/booth pameran/i);
   });
 
   it("calls /auth/me with Bearer token", async () => {

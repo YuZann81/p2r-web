@@ -8,7 +8,7 @@ export default function Marquee({ text, repeat = 4 }: MarqueeProps) {
 
   return (
     <div
-      className="overflow-hidden bg-arcade-yellow py-3"
+      className="overflow-hidden bg-[#171224] py-2 border-y border-[#39265E]"
       role="marquee"
       aria-label={text}
     >
@@ -22,7 +22,7 @@ export default function Marquee({ text, repeat = 4 }: MarqueeProps) {
             {items.map((_, i) => (
               <span
                 key={i}
-                className="font-display text-sm whitespace-nowrap text-arcade-ink sm:text-base"
+                className="font-display text-xs tracking-wider uppercase text-[#FFD447]/80 sm:text-sm"
               >
                 {text}
               </span>

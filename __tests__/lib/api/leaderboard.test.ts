@@ -1,7 +1,4 @@
-import {
-  fetchGlobalLeaderboard,
-  fetchKaryaLeaderboard,
-} from "@/lib/api/leaderboard";
+import { fetchGameLeaderboard } from "@/lib/api/leaderboard";
 import { apiGet } from "@/lib/api/client";
 
 jest.mock("@/lib/api/client", () => ({
@@ -13,60 +10,48 @@ const mockedApiGet = apiGet as jest.MockedFunction<typeof apiGet>;
 describe("Leaderboard API service", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
-  describe("fetchGlobalLeaderboard", () => {
-    it("calls /leaderboards/global and returns data array", async () => {
-      const mockData = [
-        { rank: 1, playerName: "Player1", gameName: "Cyber Runner", score: 9999 },
-      ];
+  describe("fetchGameLeaderboard", () => {
+    it("calls /games/{slug}/leaderboard and maps live entries", async () => {
       mockedApiGet.mockResolvedValueOnce({
         success: true,
-        message: "",
-        data: mockData,
+        message: "Leaderboard retrieved successfully.",
+        data: {
+          game: { id: "g-1", slug: "pixeltype", title: "PixelType" },
+          leaderboard: [
+            { rank: 1, player: { id: 10, name: "Player1" }, score: 9999 },
+          ],
+        },
       });
 
-      const result = await fetchGlobalLeaderboard();
+      const result = await fetchGameLeaderboard("pixeltype");
 
-      expect(mockedApiGet).toHaveBeenCalledWith("/leaderboards/global");
-      expect(result).toEqual(mockData);
+      expect(mockedApiGet).toHaveBeenCalledWith("/games/pixeltype/leaderboard");
+      expect(result).toEqual([
+        { rank: 1, playerName: "Player1", gameName: "PixelType", score: 9999 },
+      ]);
     });
 
-    it("returns empty array when API rejects", async () => {
-      mockedApiGet.mockRejectedValueOnce(new Error("Network Error"));
+    it("returns empty array when game has no leaderboard entries", async () => {
+      mockedApiGet.mockResolvedValueOnce({
+        success: true,
+        message: "Leaderboard retrieved successfully.",
+        data: {
+          game: { id: "g-1", slug: "pixeltype", title: "PixelType" },
+          leaderboard: [],
+        },
+      });
 
-      const result = await fetchGlobalLeaderboard();
+      const result = await fetchGameLeaderboard("pixeltype");
 
       expect(result).toEqual([]);
     });
-  });
 
-  describe("fetchKaryaLeaderboard", () => {
-    it("calls /leaderboards/karyas and returns data array", async () => {
-      const mockData = [
-        { rank: 1, karyaTitle: "Best Web", category: "website", votesCount: 50, slug: "best-web" },
-      ];
-      mockedApiGet.mockResolvedValueOnce({
-        success: true,
-        message: "",
-        data: mockData,
-      });
+    it("returns empty array when API rejects (e.g. 422 CAPABILITY_NOT_ENABLED)", async () => {
+      mockedApiGet.mockRejectedValueOnce(new Error("CAPABILITY_NOT_ENABLED"));
 
-      const result = await fetchKaryaLeaderboard();
-
-      expect(mockedApiGet).toHaveBeenCalledWith("/leaderboards/karyas");
-      expect(result).toEqual(mockData);
-    });
-
-    it("returns empty array when API rejects", async () => {
-      mockedApiGet.mockRejectedValueOnce(new Error("Network Error"));
-
-      const result = await fetchKaryaLeaderboard();
+      const result = await fetchGameLeaderboard("save-the-savanna");
 
       expect(result).toEqual([]);
     });

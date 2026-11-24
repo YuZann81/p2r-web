@@ -11,7 +11,6 @@ export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Close mobile drawer when pressing Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isMobileMenuOpen) {
@@ -26,64 +25,69 @@ export default function Navbar() {
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/15 bg-arcade-violet/95 shadow-md backdrop-blur-md transition-all">
+    <header className="sticky top-0 z-50 w-full border-b border-[#39265E] bg-[#211B35]/95 shadow-md backdrop-blur-md">
       <nav
         aria-label="Navigasi Utama"
-        className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 md:px-10"
+        className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 md:px-10"
       >
-        {/* Left: Brand Logo */}
-        <div className="flex items-center">
+        {/* Left: Official P2R Logo */}
+        <div className="flex shrink-0 items-center">
           <ArcadeLogo />
         </div>
 
-        {/* Center: Desktop Navigation Links */}
-        <ul className="hidden items-center gap-6 md:flex lg:gap-8">
+        {/* Center: Primary Navigation (4 core journeys) */}
+        <ul className="hidden items-center gap-7 md:flex lg:gap-9">
           {NAV_LINKS.map((link) => (
             <li key={link.href}>
               <NavLink
                 label={link.label}
                 href={link.href}
-                className="font-display text-base tracking-wider text-white transition-colors hover:text-arcade-yellow focus-visible:text-arcade-yellow focus-visible:outline-none"
+                className="font-display text-base tracking-wide text-[#FFF5E9]/85 transition-colors hover:text-[#FFD447] focus-visible:text-[#FFD447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD447] rounded px-1 py-0.5"
+                activeClassName="text-[#FFD447] underline underline-offset-8 decoration-2"
               />
             </li>
           ))}
         </ul>
 
-        {/* Right: Actions (Auth, Mobile Hamburger) */}
-        <div className="flex items-center gap-3 sm:gap-4">
-          {/* Desktop Auth State */}
-          <div className="hidden sm:flex sm:items-center sm:gap-3">
+        {/* Right: Auth / Profile & Mobile Menu */}
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="hidden sm:flex sm:items-center sm:gap-2.5">
             {isAuthenticated ? (
-              <div className="flex items-center gap-3">
-                <span className="font-display text-xs tracking-wider text-arcade-yellow">
-                  {user?.name ? `Hai, ${user.name}` : "Akun Terhubung"}
-                </span>
+              <>
+                <Link
+                  href="/profile"
+                  className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[#39265E] bg-[#171224] px-3.5 py-1.5 font-display text-sm text-[#68D5E8] transition-colors hover:border-[#FFD447] hover:text-[#FFD447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD447]"
+                >
+                  <span className="max-w-[140px] truncate">
+                    {user?.name || "Profil Saya"}
+                  </span>
+                </Link>
                 <button
                   type="button"
                   onClick={() => logout()}
-                  className="rounded-xl border border-white/30 bg-black/40 px-3.5 py-1.5 font-display text-xs font-bold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow cursor-pointer"
+                  className="min-h-10 rounded-xl border border-white/20 bg-black/30 px-3.5 py-1.5 font-display text-xs font-bold text-[#FFF5E9]/85 transition-colors hover:border-white/40 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD447] cursor-pointer"
                 >
                   Keluar
                 </button>
-              </div>
+              </>
             ) : (
               <Link
                 href="/login"
-                className="rounded-xl bg-arcade-yellow px-4 py-1.5 font-display text-sm font-bold text-arcade-ink shadow-[2px_2px_0_var(--arcade-yellow-shadow)] transition-transform hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--arcade-yellow-shadow)] active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#FFD447] px-5 py-1.5 font-display text-sm font-bold text-[#0E0A1A] shadow-[3px_3px_0_#B8960A] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
                 Masuk
               </Link>
             )}
           </div>
 
-          {/* Mobile Hamburger Button */}
+          {/* Mobile Hamburger Button (44px touch target) */}
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-navigation-drawer"
             aria-label={isMobileMenuOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
-            className="flex items-center justify-center rounded-xl border border-white/20 bg-black/40 p-2.5 text-white transition-colors hover:border-arcade-yellow hover:text-arcade-yellow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow md:hidden cursor-pointer"
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#39265E] bg-[#171224] text-white transition-colors hover:border-[#FFD447] hover:text-[#FFD447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD447] md:hidden cursor-pointer"
           >
             {isMobileMenuOpen ? (
               <svg
@@ -124,35 +128,39 @@ export default function Navbar() {
       {isMobileMenuOpen && (
         <div
           id="mobile-navigation-drawer"
-          className="border-t border-white/10 bg-[#2A1147]/98 px-6 py-6 shadow-2xl backdrop-blur-xl md:hidden"
+          className="border-t border-[#39265E] bg-[#0E0A1A] px-5 py-5 shadow-2xl md:hidden"
         >
-          <ul className="flex flex-col gap-4">
+          <ul className="flex flex-col gap-1.5">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
                 <NavLink
                   label={link.label}
                   href={link.href}
                   onClick={closeMobileMenu}
-                  className="block rounded-lg px-3 py-2 font-display text-lg font-bold tracking-wider text-white transition-colors hover:bg-white/10 hover:text-arcade-yellow focus-visible:text-arcade-yellow"
+                  className="flex min-h-11 items-center rounded-xl px-4 py-2.5 font-display text-lg text-[#FFF5E9] transition-colors hover:bg-[#211B35] hover:text-[#FFD447] focus-visible:text-[#FFD447]"
+                  activeClassName="bg-[#211B35] text-[#FFD447]"
                 />
               </li>
             ))}
           </ul>
 
-          {/* Mobile Auth Button */}
-          <div className="mt-6 border-t border-white/15 pt-5 sm:hidden">
+          <div className="mt-5 border-t border-[#39265E] pt-4 sm:hidden">
             {isAuthenticated ? (
-              <div className="flex flex-col gap-3">
-                <span className="font-display text-sm text-arcade-yellow">
-                  {user?.name ? `Hai, ${user.name}` : "Akun Terhubung"}
-                </span>
+              <div className="flex flex-col gap-2.5">
+                <Link
+                  href="/profile"
+                  onClick={closeMobileMenu}
+                  className="flex min-h-11 w-full items-center justify-center rounded-xl border border-[#68D5E8]/40 bg-[#171224] py-2.5 font-display text-base text-[#68D5E8] transition-colors hover:border-[#FFD447] hover:text-[#FFD447]"
+                >
+                  Profil: {user?.name || "Akun Saya"}
+                </Link>
                 <button
                   type="button"
                   onClick={() => {
                     logout();
                     closeMobileMenu();
                   }}
-                  className="w-full rounded-xl border border-white/30 bg-black/40 py-2.5 font-display text-sm font-bold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-yellow"
+                  className="min-h-11 w-full rounded-xl border border-white/25 bg-black/40 py-2.5 font-display text-sm font-bold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD447] cursor-pointer"
                 >
                   Keluar dari Akun
                 </button>
@@ -161,7 +169,7 @@ export default function Navbar() {
               <Link
                 href="/login"
                 onClick={closeMobileMenu}
-                className="flex w-full items-center justify-center rounded-xl bg-arcade-yellow py-2.5 font-display text-base font-bold text-arcade-ink shadow-[2px_2px_0_var(--arcade-yellow-shadow)] transition-transform hover:-translate-y-0.5"
+                className="flex min-h-11 w-full items-center justify-center rounded-xl bg-[#FFD447] py-2.5 font-display text-base font-bold text-[#0E0A1A] shadow-[3px_3px_0_#B8960A] transition-transform hover:-translate-y-0.5"
               >
                 Masuk ke Akun
               </Link>
