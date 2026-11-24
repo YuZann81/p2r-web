@@ -21,6 +21,27 @@
 const PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_P2R_API_BASE_URL?.trim();
 
 const DEFAULT_BROWSER_API_PATH = "/api/v1";
+const PRODUCTION_HOST_PATTERN = /(^|\.)pameran\.devsaka\.id$/i;
+let warnedProductionHostInDev = false;
+
+function warnIfProductionHostInDev(url: string, envVarName: string): void {
+  if (process.env.NODE_ENV !== "development" || warnedProductionHostInDev) {
+    return;
+  }
+
+  try {
+    const parsed = new URL(url);
+    if (PRODUCTION_HOST_PATTERN.test(parsed.hostname)) {
+      warnedProductionHostInDev = true;
+      console.warn(
+        `[p2r-api] WARNING: ${envVarName} points to production host "${parsed.hostname}" during local development. ` +
+          'Use the local API ("http://127.0.0.1:8091/api/v1") in .env.local to stay isolated from production.',
+      );
+    }
+  } catch {
+    // URL validation is handled by the caller
+  }
+}
 
 /**
  * Validates a configured server-side base URL and strips any trailing slash.
@@ -31,7 +52,7 @@ function normalizeServerApiUrl(value: string | undefined): string {
   if (!value || value === "") {
     throw new Error(
       "[p2r-api] Server-side API requests require P2R_API_BASE_URL in the runtime environment. " +
-        'Set P2R_API_BASE_URL to an absolute URL (e.g. "http://127.0.0.1:8090/api/v1").',
+        'For local development, set P2R_API_BASE_URL="http://127.0.0.1:8091/api/v1" in .env.local.',
     );
   }
 
@@ -41,7 +62,7 @@ function normalizeServerApiUrl(value: string | undefined): string {
   } catch {
     throw new Error(
       "[p2r-api] P2R_API_BASE_URL is set but is not an absolute URL. " +
-        'Use a full origin including the scheme, e.g. "http://127.0.0.1:8090/api/v1".',
+        'Use a full origin including the scheme, e.g. "http://127.0.0.1:8091/api/v1".',
     );
   }
 
@@ -51,6 +72,7 @@ function normalizeServerApiUrl(value: string | undefined): string {
     );
   }
 
+  warnIfProductionHostInDev(value, "P2R_API_BASE_URL");
   return value.replace(/\/+$/, "");
 }
 
@@ -76,6 +98,7 @@ function resolveBrowserApiBase(value: string | undefined): string {
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
       throw new Error(`invalid protocol ${parsed.protocol}`);
     }
+    warnIfProductionHostInDev(value, "NEXT_PUBLIC_P2R_API_BASE_URL");
     return value.replace(/\/+$/, "");
   } catch {
     throw new Error(
