@@ -2,6 +2,11 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import PixelTransitionDivider from "@/components/PixelTransitionDivider";
 import P2RVoltSection from "@/components/P2RVoltSection";
+import {
+  ExhibitionCountdownSection,
+  PixelEnergyTrail,
+  TimelineToLaunchPortal,
+} from "@/components/PixelJourneySection";
 import GameShowcase from "@/components/GameShowcase";
 import LeaderboardSection from "@/components/LeaderboardSection";
 import ArcadeCabinetSection from "@/components/ArcadeCabinetSection";
@@ -19,7 +24,10 @@ export default async function Page() {
       <main className="flex-1">
         <Hero games={games} />
         <PixelTransitionDivider />
+        <PixelEnergyTrail />
         <P2RVoltSection />
+        <TimelineToLaunchPortal />
+        <ExhibitionCountdownSection />
         <GameShowcase games={games} />
         <LeaderboardSection />
         <ArcadeCabinetSection />

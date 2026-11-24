@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import gsap from "gsap";
+import { SplitText } from "gsap/SplitText";
 import type { Game } from "@/lib/content";
 
 type HeroProps = {
@@ -106,6 +108,8 @@ function CorridorExhibitFrame({
 }
 
 export default function Hero({ games = [] }: HeroProps) {
+  const heroRef = useRef<HTMLElement | null>(null);
+
   // Prefer games with real thumbnails first so corridor frames showcase actual P2R works
   const [leftExhibit, rightExhibit] = useMemo(() => {
     if (!games || games.length === 0) return [undefined, undefined];
@@ -117,8 +121,349 @@ export default function Hero({ games = [] }: HeroProps) {
     return [ordered[0], ordered[1]];
   }, [games]);
 
+  useEffect(() => {
+    const root = heroRef.current;
+    if (!root || typeof window === "undefined") return;
+
+    let mm: gsap.MatchMedia | undefined;
+
+    try {
+      gsap.registerPlugin(SplitText);
+      mm = gsap.matchMedia();
+
+      mm.add(
+        {
+          reduceMotion: "(prefers-reduced-motion: reduce)",
+          canHover: "(hover: hover) and (pointer: fine)",
+        },
+        (context) => {
+          const { reduceMotion, canHover } = context.conditions ?? {};
+          if (reduceMotion) return;
+
+          const line1El = root.querySelector<HTMLElement>(
+            '[data-hero-headline-line="1"]',
+          );
+          const line2El = root.querySelector<HTMLElement>(
+            '[data-hero-headline-line="2"]',
+          );
+
+          const splitLine1 = line1El
+            ? SplitText.create(line1El, { type: "words,chars", aria: "auto" })
+            : null;
+          const splitLine2 = line2El
+            ? SplitText.create(line2El, { type: "words,chars", aria: "auto" })
+            : null;
+
+          const line1Chars = splitLine1?.chars ?? [];
+          const line2Chars = splitLine2?.chars ?? [];
+          const realityChars = line2Chars.filter((el) =>
+            Boolean(el.closest("[data-hero-headline-accent]")),
+          );
+
+          if (line1Chars.length > 0) {
+            gsap.set(line1Chars, {
+              transformPerspective: 700,
+              transformOrigin: "50% 85%",
+            });
+          }
+          if (line2Chars.length > 0) {
+            gsap.set(line2Chars, {
+              transformPerspective: 700,
+              transformOrigin: "50% 85%",
+            });
+          }
+
+          const tl = gsap.timeline({
+            defaults: { ease: "power3.out" },
+          });
+
+          tl.addLabel("stage", 0)
+            .from(
+              "[data-hero-archway]",
+              {
+                autoAlpha: 0,
+                scale: 0.985,
+                duration: 0.65,
+                clearProps: "transform,opacity,visibility",
+              },
+              "stage",
+            )
+            .from(
+              "[data-hero-eyebrow]",
+              {
+                autoAlpha: 0,
+                y: 12,
+                duration: 0.42,
+                clearProps: "transform,opacity,visibility",
+              },
+              "stage+=0.06",
+            )
+            .addLabel("headline", "stage+=0.16");
+
+          if (line1Chars.length > 0) {
+            tl.from(
+              line1Chars,
+              {
+                autoAlpha: 0,
+                yPercent: 115,
+                rotationX: -48,
+                rotation: -2,
+                duration: 0.56,
+                ease: "power4.out",
+                stagger: 0.032,
+                clearProps: "transform,opacity,visibility",
+              },
+              "headline",
+            );
+          }
+
+          if (line2Chars.length > 0) {
+            tl.from(
+              line2Chars,
+              {
+                autoAlpha: 0,
+                yPercent: 125,
+                rotationX: -62,
+                rotation: 3,
+                scale: 0.92,
+                duration: 0.62,
+                ease: "expo.out",
+                stagger: 0.036,
+                clearProps: "transform,opacity,visibility",
+              },
+              "headline+=0.24",
+            );
+          }
+
+          // Restrained finishing accent emphasizing yellow "REALITY."
+          if (realityChars.length > 0) {
+            tl.to(
+              realityChars,
+              {
+                y: -3,
+                scale: 1.03,
+                duration: 0.16,
+                ease: "power2.out",
+                stagger: 0.022,
+                yoyo: true,
+                repeat: 1,
+                clearProps: "transform",
+              },
+              "headline+=0.68",
+            );
+          }
+
+          // Revert split DOM wrappers once headline settles so resting layout is 100% original
+          tl.call(
+            () => {
+              splitLine1?.revert();
+              splitLine2?.revert();
+            },
+            [],
+            "headline+=1.15",
+          );
+
+          tl.from(
+            "[data-hero-logo-stage]",
+            {
+              autoAlpha: 0,
+              y: 16,
+              scale: 0.96,
+              duration: 0.65,
+              clearProps: "transform,opacity,visibility",
+            },
+            "stage+=0.22",
+          )
+            .from(
+              "[data-hero-exhibit]",
+              {
+                autoAlpha: 0,
+                y: 18,
+                duration: 0.56,
+                stagger: 0.14,
+                clearProps: "transform,opacity,visibility",
+              },
+              "stage+=0.4",
+            )
+            .addLabel("copy", "stage+=0.58")
+            .from(
+              "[data-hero-description]",
+              {
+                autoAlpha: 0,
+                y: 14,
+                duration: 0.46,
+                clearProps: "transform,opacity,visibility",
+              },
+              "copy",
+            )
+            .from(
+              "[data-hero-cta]",
+              {
+                autoAlpha: 0,
+                y: 14,
+                duration: 0.42,
+                stagger: 0.08,
+                clearProps: "transform,opacity,visibility",
+              },
+              "copy+=0.14",
+            );
+
+          // Subtle continuous floating + micro-tilt on intact 3D P2R logo
+          gsap.to("[data-hero-logo-float]", {
+            y: -8,
+            rotation: 0.7,
+            duration: 3.4,
+            ease: "sine.inOut",
+            repeat: -1,
+            yoyo: true,
+          });
+
+          // Synchronized subtle contact shadow breath under floating logo
+          gsap.to("[data-hero-shadow]", {
+            scaleX: 0.92,
+            opacity: 0.72,
+            duration: 3.4,
+            ease: "sine.inOut",
+            repeat: -1,
+            yoyo: true,
+          });
+
+          // Slow, calm ambient lighting drift (transform-only, no filter repaint)
+          gsap.to("[data-hero-ambient-primary]", {
+            x: -18,
+            y: 14,
+            scale: 1.05,
+            duration: 10,
+            ease: "sine.inOut",
+            repeat: -1,
+            yoyo: true,
+          });
+
+          gsap.to("[data-hero-ambient-secondary]", {
+            x: 16,
+            y: -12,
+            scale: 1.04,
+            duration: 12,
+            ease: "sine.inOut",
+            repeat: -1,
+            yoyo: true,
+          });
+
+          gsap.to("[data-hero-core-glow]", {
+            scale: 1.06,
+            opacity: 0.88,
+            duration: 7.5,
+            ease: "sine.inOut",
+            repeat: -1,
+            yoyo: true,
+          });
+
+          // Restrained pointer parallax & 3D logo tilt on fine-pointer desktop devices only
+          if (canHover) {
+            const logoTiltEl = root.querySelector<HTMLElement>(
+              "[data-hero-logo-tilt]",
+            );
+            const corridorEl = root.querySelector<HTMLElement>(
+              "[data-hero-corridor]",
+            );
+
+            const logoRotationY = logoTiltEl
+              ? gsap.quickTo(logoTiltEl, "rotationY", {
+                  duration: 0.65,
+                  ease: "power2.out",
+                })
+              : null;
+            const logoRotationX = logoTiltEl
+              ? gsap.quickTo(logoTiltEl, "rotationX", {
+                  duration: 0.65,
+                  ease: "power2.out",
+                })
+              : null;
+            const logoX = logoTiltEl
+              ? gsap.quickTo(logoTiltEl, "x", {
+                  duration: 0.75,
+                  ease: "power2.out",
+                })
+              : null;
+            const logoY = logoTiltEl
+              ? gsap.quickTo(logoTiltEl, "y", {
+                  duration: 0.75,
+                  ease: "power2.out",
+                })
+              : null;
+            const corridorX = corridorEl
+              ? gsap.quickTo(corridorEl, "x", {
+                  duration: 0.9,
+                  ease: "power2.out",
+                })
+              : null;
+            const corridorY = corridorEl
+              ? gsap.quickTo(corridorEl, "y", {
+                  duration: 0.9,
+                  ease: "power2.out",
+                })
+              : null;
+
+            if (logoTiltEl) {
+              gsap.set(logoTiltEl, { transformPerspective: 900 });
+            }
+
+            const handlePointerMove = (event: PointerEvent) => {
+              if (event.pointerType && event.pointerType !== "mouse") return;
+              const rect = root.getBoundingClientRect();
+              if (!rect.width || !rect.height) return;
+              const nx = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+              const ny = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+
+              logoRotationY?.(nx * 5);
+              logoRotationX?.(-ny * 3.5);
+              logoX?.(nx * 6);
+              logoY?.(ny * 4);
+              corridorX?.(nx * 8);
+              corridorY?.(ny * 5);
+            };
+
+            const handlePointerLeave = () => {
+              logoRotationY?.(0);
+              logoRotationX?.(0);
+              logoX?.(0);
+              logoY?.(0);
+              corridorX?.(0);
+              corridorY?.(0);
+            };
+
+            root.addEventListener("pointermove", handlePointerMove, {
+              passive: true,
+            });
+            root.addEventListener("pointerleave", handlePointerLeave);
+
+            return () => {
+              root.removeEventListener("pointermove", handlePointerMove);
+              root.removeEventListener("pointerleave", handlePointerLeave);
+              splitLine1?.revert();
+              splitLine2?.revert();
+            };
+          }
+
+          return () => {
+            splitLine1?.revert();
+            splitLine2?.revert();
+          };
+        },
+        heroRef,
+      );
+    } catch {
+      // Keep static visible Hero fallback if GSAP fails to initialize
+    }
+
+    return () => {
+      mm?.revert();
+    };
+  }, []);
+
   return (
     <section
+      ref={heroRef}
       aria-label="Hero Pixel To Reality"
       className="relative flex min-h-[calc(100svh-4.25rem)] w-full items-center overflow-hidden bg-[#211B35] px-4 py-12 sm:px-6 md:py-16 lg:px-10"
     >
@@ -138,6 +483,7 @@ export default function Hero({ games = [] }: HeroProps) {
 
         {/* Volumetric purple/violet stage dome behind right exhibition hall */}
         <div
+          data-hero-ambient-primary
           className="absolute right-[-8%] top-[8%] h-[480px] w-[480px] rounded-full blur-3xl sm:h-[620px] sm:w-[620px]"
           style={{
             background:
@@ -147,6 +493,7 @@ export default function Hero({ games = [] }: HeroProps) {
 
         {/* Subtle secondary violet rim on far left edge */}
         <div
+          data-hero-ambient-secondary
           className="absolute -left-24 bottom-8 h-[320px] w-[320px] rounded-full blur-3xl"
           style={{
             background:
@@ -192,7 +539,10 @@ export default function Hero({ games = [] }: HeroProps) {
         {/* LEFT COLUMN (5 cols): Asymmetric Exhibition Poster Typography & CTA Hierarchy */}
         <div className="order-2 flex flex-col items-start text-left lg:order-1 lg:col-span-5">
           {/* Eyebrow */}
-          <p className="inline-flex items-center gap-2.5 font-body text-[11px] font-semibold tracking-[0.16em] text-[#B7ABCE] uppercase sm:text-xs">
+          <p
+            data-hero-eyebrow
+            className="inline-flex items-center gap-2.5 font-body text-[11px] font-semibold tracking-[0.16em] text-[#B7ABCE] uppercase sm:text-xs"
+          >
             <span
               aria-hidden="true"
               className="h-2 w-2 shrink-0 bg-[#7ac70c]"
@@ -209,14 +559,26 @@ export default function Hero({ games = [] }: HeroProps) {
               textShadow: "3px 3px 0px #2a1147, 6px 6px 0px #0E0A1A",
             }}
           >
-            <span className="block">FROM PIXEL</span>
-            <span className="block">
-              TO <span className="text-[#ffe500]">REALITY.</span>
+            <span className="block overflow-hidden -mr-2 -mb-2 pr-2 pb-2">
+              <span data-hero-headline-line="1" className="block">
+                FROM PIXEL
+              </span>
+            </span>
+            <span className="block overflow-hidden -mr-2 -mb-2 pr-2 pb-2">
+              <span data-hero-headline-line="2" className="block">
+                TO{" "}
+                <span data-hero-headline-accent className="text-[#ffe500]">
+                  REALITY.
+                </span>
+              </span>
             </span>
           </h1>
 
           {/* Description */}
-          <p className="mt-5 max-w-[44ch] font-body text-base leading-relaxed text-[#FFF5E9]/82 sm:text-lg">
+          <p
+            data-hero-description
+            className="mt-5 max-w-[44ch] font-body text-base leading-relaxed text-[#FFF5E9]/82 sm:text-lg"
+          >
             Pameran karya siswa Rekayasa Perangkat Lunak yang menghadirkan game,
             aplikasi, dan inovasi digital interaktif.
           </p>
@@ -224,6 +586,7 @@ export default function Hero({ games = [] }: HeroProps) {
           {/* Primary & Secondary CTAs */}
           <div className="mt-8 flex w-full flex-col gap-3.5 sm:w-auto sm:flex-row sm:items-center sm:gap-4">
             <a
+              data-hero-cta
               href="#karya-arcade"
               className="inline-flex min-h-12 items-center justify-center rounded-xl bg-[#ffe500] px-7 py-3 font-display text-xl font-bold tracking-wide text-[#0E0A1A] shadow-[4px_4px_0_#B8960A] transition-transform duration-150 hover:-translate-y-0.5 active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white motion-reduce:transition-none"
             >
@@ -231,6 +594,7 @@ export default function Hero({ games = [] }: HeroProps) {
             </a>
 
             <a
+              data-hero-cta
               href="#games"
               className="inline-flex min-h-12 items-center justify-center rounded-xl border-2 border-[#5b2be6] bg-[#2a1147]/85 px-7 py-3 font-display text-xl tracking-wide text-[#FFF5E9] shadow-[4px_4px_0_#0E0A1A] transition-colors duration-150 hover:border-[#ffe500] hover:text-[#ffe500] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffe500] motion-reduce:transition-none"
             >
@@ -244,6 +608,7 @@ export default function Hero({ games = [] }: HeroProps) {
           <div className="relative flex w-full max-w-[660px] flex-col items-center justify-center py-6 sm:py-10">
             {/* Architectural Stepped Pixel Amphitheater Archway (background frame) */}
             <div
+              data-hero-archway
               aria-hidden="true"
               className="pointer-events-none absolute inset-x-4 inset-y-2 rounded-3xl border border-[#5b2be6]/30 bg-gradient-to-b from-[#2a1147]/65 via-[#171224]/45 to-transparent sm:inset-x-8"
             >
@@ -258,6 +623,7 @@ export default function Hero({ games = [] }: HeroProps) {
 
               {/* Focused core glow behind the intact 3D logo */}
               <div
+                data-hero-core-glow
                 className="absolute left-1/2 top-[44%] h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl sm:h-80 sm:w-80"
                 style={{
                   background:
@@ -267,26 +633,37 @@ export default function Hero({ games = [] }: HeroProps) {
             </div>
 
             {/* Exhibition Corridor Stage: Left Perspective Wing + Intact 3D P2R Logo + Right Perspective Wing */}
-            <div className="relative z-10 flex w-full items-center justify-center gap-3 sm:gap-5">
+            <div
+              data-hero-corridor
+              className="relative z-10 flex w-full items-center justify-center gap-3 sm:gap-5"
+            >
               {/* Left Corridor Wing (hidden on narrow mobile for clean focal hierarchy) */}
-              <div className="hidden sm:block">
+              <div data-hero-exhibit className="hidden sm:block">
                 <CorridorExhibitFrame game={leftExhibit} side="left" />
               </div>
 
               {/* Center Stage: Intact Official 3D P2R Logo + Stepped Exhibition Plinth */}
-              <div className="relative flex flex-col items-center">
-                <Image
-                  src={LOGO_SRC}
-                  alt="Pixel To Reality 3D Logo"
-                  width={420}
-                  height={420}
-                  priority
-                  sizes="(max-width: 640px) 224px, (max-width: 1024px) 272px, 310px"
-                  className="relative z-10 h-56 w-56 sm:h-64 sm:w-64 lg:h-72 lg:w-72 object-contain select-none drop-shadow-[0_22px_38px_rgba(14,10,26,0.92)]"
-                />
+              <div
+                data-hero-logo-stage
+                className="relative flex flex-col items-center"
+              >
+                <div data-hero-logo-tilt className="relative z-10 will-change-transform">
+                  <div data-hero-logo-float className="will-change-transform">
+                    <Image
+                      src={LOGO_SRC}
+                      alt="Pixel To Reality 3D Logo"
+                      width={420}
+                      height={420}
+                      priority
+                      sizes="(max-width: 640px) 224px, (max-width: 1024px) 272px, 310px"
+                      className="relative z-10 h-56 w-56 sm:h-64 sm:w-64 lg:h-72 lg:w-72 object-contain select-none drop-shadow-[0_22px_38px_rgba(14,10,26,0.92)]"
+                    />
+                  </div>
+                </div>
 
                 {/* Grounded contact shadow */}
                 <div
+                  data-hero-shadow
                   aria-hidden="true"
                   className="-mt-3 h-5 w-44 rounded-full blur-lg sm:w-56"
                   style={{
@@ -310,7 +687,7 @@ export default function Hero({ games = [] }: HeroProps) {
               </div>
 
               {/* Right Corridor Wing (hidden on narrow mobile for clean focal hierarchy) */}
-              <div className="hidden sm:block">
+              <div data-hero-exhibit className="hidden sm:block">
                 <CorridorExhibitFrame game={rightExhibit} side="right" />
               </div>
             </div>
