@@ -2,7 +2,6 @@ export const NAV_LINKS = [
   { label: "Karya", href: "/karya" },
   { label: "Games", href: "/games" },
   { label: "Leaderboard", href: "/leaderboard" },
-  { label: "Merchandise", href: "/merchandise" },
 ] as const;
 
 export type Game = {

@@ -135,7 +135,7 @@ export default function ProfilePage() {
                 Masuk untuk Melihat Profil
               </h2>
               <p className="mt-3 font-body text-sm leading-relaxed text-[#FFF5E9]/80">
-                Masuk menggunakan akun peserta yang diberikan panitia untuk melihat saldo koin P2R, statistik skor per game, peringkat leaderboard, serta riwayat penukaran merchandise.
+                Masuk menggunakan akun peserta yang diberikan panitia untuk melihat saldo koin P2R, statistik skor per game, serta peringkat leaderboard.
               </p>
               <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center">
                 <Link
@@ -372,100 +372,49 @@ export default function ProfilePage() {
                 </div>
               </section>
 
-              {/* 4. Wallet Transactions & Merchandise Redemptions */}
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {/* Coin Transactions */}
-                <section
-                  aria-label="Riwayat Koin P2R"
-                  className="rounded-3xl border-2 border-[#39265E] bg-[#171224] p-6 shadow-[6px_6px_0_#0E0A1A]"
-                >
-                  <h2 className="font-display text-xl text-[#FFD447]">
-                    RIWAYAT KOIN P2R
-                  </h2>
-                  {isLoading ? (
-                    <p className="mt-4 font-body text-sm text-[#B7ABCE]">
-                      Memuat transaksi koin...
-                    </p>
-                  ) : profileData && profileData.walletTransactions.length > 0 ? (
-                    <ul className="mt-4 divide-y divide-white/10">
-                      {profileData.walletTransactions.slice(0, 10).map((tx) => (
-                        <li
-                          key={tx.id}
-                          className="flex items-center justify-between gap-3 py-3"
+              {/* 4. Wallet Transactions */}
+              <section
+                aria-label="Riwayat Koin P2R"
+                className="rounded-3xl border-2 border-[#39265E] bg-[#171224] p-6 shadow-[6px_6px_0_#0E0A1A]"
+              >
+                <h2 className="font-display text-xl text-[#FFD447]">
+                  RIWAYAT KOIN P2R
+                </h2>
+                {isLoading ? (
+                  <p className="mt-4 font-body text-sm text-[#B7ABCE]">
+                    Memuat transaksi koin...
+                  </p>
+                ) : profileData && profileData.walletTransactions.length > 0 ? (
+                  <ul className="mt-4 divide-y divide-white/10">
+                    {profileData.walletTransactions.slice(0, 10).map((tx) => (
+                      <li
+                        key={tx.id}
+                        className="flex items-center justify-between gap-3 py-3"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate font-body text-sm font-medium text-[#FFF5E9]">
+                            {tx.description || tx.reason || tx.type}
+                          </p>
+                          <p className="font-body text-xs text-[#B7ABCE]">
+                            {formatDateTime(tx.created_at)}
+                          </p>
+                        </div>
+                        <span
+                          className={`shrink-0 font-display text-base font-bold ${
+                            tx.amount >= 0 ? "text-[#7AC70C]" : "text-[#F276A5]"
+                          }`}
                         >
-                          <div className="min-w-0">
-                            <p className="truncate font-body text-sm font-medium text-[#FFF5E9]">
-                              {tx.description || tx.reason || tx.type}
-                            </p>
-                            <p className="font-body text-xs text-[#B7ABCE]">
-                              {formatDateTime(tx.created_at)}
-                            </p>
-                          </div>
-                          <span
-                            className={`shrink-0 font-display text-base font-bold ${
-                              tx.amount >= 0 ? "text-[#7AC70C]" : "text-[#F276A5]"
-                            }`}
-                          >
-                            {tx.amount >= 0 ? `+${tx.amount}` : tx.amount} Koin
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="mt-4 font-body text-sm text-[#B7ABCE]">
-                      Belum ada transaksi koin yang tercatat.
-                    </p>
-                  )}
-                </section>
-
-                {/* Merchandise Redemptions */}
-                <section
-                  aria-label="Riwayat Penukaran Merchandise"
-                  className="rounded-3xl border-2 border-[#39265E] bg-[#171224] p-6 shadow-[6px_6px_0_#0E0A1A]"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <h2 className="font-display text-xl text-[#FFD447]">
-                      PENUKARAN MERCHANDISE
-                    </h2>
-                    <Link
-                      href="/merchandise"
-                      className="font-display text-xs text-[#68D5E8] hover:text-[#FFD447]"
-                    >
-                      Lihat Katalog →
-                    </Link>
-                  </div>
-                  {isLoading ? (
-                    <p className="mt-4 font-body text-sm text-[#B7ABCE]">
-                      Memuat riwayat penukaran...
-                    </p>
-                  ) : profileData && profileData.redemptions.length > 0 ? (
-                    <ul className="mt-4 divide-y divide-white/10">
-                      {profileData.redemptions.slice(0, 10).map((item) => (
-                        <li
-                          key={item.id}
-                          className="flex items-center justify-between gap-3 py-3"
-                        >
-                          <div className="min-w-0">
-                            <p className="truncate font-body text-sm font-medium text-[#FFF5E9]">
-                              {item.merchandise?.name || "Merchandise P2R"} × {item.quantity}
-                            </p>
-                            <p className="font-body text-xs text-[#B7ABCE]">
-                              {formatDateTime(item.created_at)}
-                            </p>
-                          </div>
-                          <span className="shrink-0 rounded-md border border-[#68D5E8]/40 bg-[#68D5E8]/10 px-2.5 py-0.5 font-display text-xs uppercase text-[#68D5E8]">
-                            {item.status}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="mt-4 font-body text-sm text-[#B7ABCE]">
-                      Belum ada riwayat penukaran merchandise.
-                    </p>
-                  )}
-                </section>
-              </div>
+                          {tx.amount >= 0 ? `+${tx.amount}` : tx.amount} Koin
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-4 font-body text-sm text-[#B7ABCE]">
+                    Belum ada transaksi koin yang tercatat.
+                  </p>
+                )}
+              </section>
             </div>
           )}
         </div>

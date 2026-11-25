@@ -30,12 +30,12 @@ describe("API Client (Hardened Fetcher)", () => {
       ),
     });
 
-    const result = await apiGet<typeof mockData>("/products", {
+    const result = await apiGet<typeof mockData>("/karyas", {
       searchParams: { limit: 5 },
     });
 
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/products?limit=5"),
+      expect.stringContaining("/karyas?limit=5"),
       expect.objectContaining({
         method: "GET",
         headers: expect.objectContaining({
@@ -165,7 +165,7 @@ describe("API Client (Hardened Fetcher)", () => {
     });
 
     try {
-      await apiGet("/products");
+      await apiGet("/karyas");
     } catch (err) {
       expect(err).toBeInstanceOf(ApiError);
       expect((err as ApiError).status).toBe(502);

@@ -10,7 +10,6 @@ import {
 import GameShowcase from "@/components/GameShowcase";
 import LeaderboardSection from "@/components/LeaderboardSection";
 import ArcadeCabinetSection from "@/components/ArcadeCabinetSection";
-import MerchandiseSection from "@/components/MerchandiseSection";
 import PartnersSection from "@/components/PartnersSection";
 import Footer from "@/components/Footer";
 import { getGames } from "@/lib/games/getGames";
@@ -32,7 +31,6 @@ export default async function Page() {
         <LeaderboardSection gameSlugs={games.map((g) => g.id)} />
         <ArcadeCabinetSection />
         <PartnersSection />
-        <MerchandiseSection />
       </main>
       <Footer />
     </div>
