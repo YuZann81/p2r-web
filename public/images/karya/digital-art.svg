@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <defs>
+    <linearGradient id="art-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#190E36"/>
+      <stop offset="100%" stop-color="#3B1A6E"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="200" fill="url(#art-bg)"/>
+  <rect x="64" y="26" width="192" height="136" rx="12" fill="#120928" stroke="#9470E8" stroke-width="2.5"/>
+  <!-- Pixel art mountain & cyber palette -->
+  <rect x="80" y="42" width="160" height="82" rx="6" fill="#211245"/>
+  <circle cx="204" cy="64" r="14" fill="#FFD447"/>
+  <polygon points="80,124 128,74 176,124" fill="#F276A5" opacity="0.85"/>
+  <polygon points="136,124 186,82 240,124" fill="#68D5E8" opacity="0.85"/>
+  <!-- Color swatches -->
+  <rect x="80" y="134" width="24" height="14" rx="3" fill="#FFD447"/>
+  <rect x="112" y="134" width="24" height="14" rx="3" fill="#F276A5"/>
+  <rect x="144" y="134" width="24" height="14" rx="3" fill="#68D5E8"/>
+  <rect x="176" y="134" width="24" height="14" rx="3" fill="#9470E8"/>
+  <rect x="208" y="134" width="32" height="14" rx="3" fill="#02FD0C"/>
+</svg>

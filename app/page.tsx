@@ -28,7 +28,9 @@ export default async function Page() {
         <TimelineToLaunchPortal />
         <ExhibitionCountdownSection />
         <GameShowcase games={games} />
-        <LeaderboardSection gameSlugs={games.map((g) => g.id)} />
+        <LeaderboardSection
+          games={games.map((g) => ({ slug: g.id, title: g.name }))}
+        />
         <ArcadeCabinetSection />
         <PartnersSection />
       </main>
