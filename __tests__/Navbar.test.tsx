@@ -26,10 +26,10 @@ describe("Navbar Component", () => {
       </AuthProvider>,
     );
 
-    expect(screen.getByRole("link", { name: "Information" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Karya" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Games" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Leaderboard" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Merchandise" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Feeds" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Masuk" })).toBeInTheDocument();
   });
@@ -59,7 +59,9 @@ describe("Navbar Component", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Hai, PlayerOne")).toBeInTheDocument();
+      const profileLink = screen.getByRole("link", { name: "PlayerOne" });
+      expect(profileLink).toBeInTheDocument();
+      expect(profileLink).toHaveAttribute("href", "/profile");
       expect(screen.getByRole("button", { name: "Keluar" })).toBeInTheDocument();
     });
   });

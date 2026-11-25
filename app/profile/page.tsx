@@ -34,36 +34,36 @@ function formatDateTime(value?: string | null): string {
   });
 }
 
+type ProfileFetchState = {
+  token: string;
+  data: PlayerProfileData | null;
+  error: string | null;
+};
+
 export default function ProfilePage() {
   const { user, token, isAuthenticated, isLoading: authLoading, logout } = useAuth();
-  const [profileData, setProfileData] = useState<PlayerProfileData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [profileState, setProfileState] = useState<ProfileFetchState | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated || !token) {
-      setProfileData(null);
       return;
     }
 
     let active = true;
-    setIsLoading(true);
-    setError(null);
 
     fetchPlayerProfileData(token)
       .then((data) => {
         if (active) {
-          setProfileData(data);
+          setProfileState({ token, data, error: null });
         }
       })
       .catch(() => {
         if (active) {
-          setError("Gagal memuat data profil dari server. Silakan coba lagi.");
-        }
-      })
-      .finally(() => {
-        if (active) {
-          setIsLoading(false);
+          setProfileState({
+            token,
+            data: null,
+            error: "Gagal memuat data profil dari server. Silakan coba lagi.",
+          });
         }
       });
 
@@ -71,6 +71,13 @@ export default function ProfilePage() {
       active = false;
     };
   }, [isAuthenticated, token]);
+
+  const hasCurrentProfile = Boolean(
+    isAuthenticated && token && profileState?.token === token,
+  );
+  const profileData = hasCurrentProfile ? profileState?.data ?? null : null;
+  const error = hasCurrentProfile ? profileState?.error ?? null : null;
+  const isLoading = Boolean(isAuthenticated && token && !hasCurrentProfile);
 
   const activeUser = profileData?.user ?? user;
 

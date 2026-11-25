@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
+import { ApiError } from "@/lib/api/client";
 import { voteKarya, unvoteKarya } from "@/lib/api/karya";
 
 type VoteButtonProps = {
@@ -34,24 +35,9 @@ export default function VoteButton({
     type: "success" | "error" | "info";
     message: string;
   } | null>(null);
+  const autoResumedKeyRef = useRef<string | null>(null);
 
-  // Auto-resume vote intent after authentication redirect
-  useEffect(() => {
-    const action = searchParams?.get ? searchParams.get("action") : null;
-    const targetSlug = searchParams?.get ? searchParams.get("slug") : null;
-
-    if (
-      action === "vote" &&
-      targetSlug === slug &&
-      isAuthenticated &&
-      !isVoted &&
-      !isLoading
-    ) {
-      handleVote();
-    }
-  }, [searchParams, isAuthenticated, slug]);
-
-  const handleVote = async () => {
+  const handleVote = useCallback(async () => {
     if (!isAuthenticated) {
       const currentPath =
         typeof window !== "undefined" ? window.location.pathname : `/karya/${slug}`;
@@ -81,12 +67,23 @@ export default function VoteButton({
             message: "Vote kamu berhasil dicatat! Terima kasih telah mendukung karya ini.",
           });
         } catch (err) {
-          // If already voted on backend or duplicate
-          setIsVoted(true);
-          setFeedback({
-            type: "info",
-            message: "Kamu telah memberikan vote untuk karya ini.",
-          });
+          if (err instanceof ApiError && err.status === 409) {
+            setIsVoted(true);
+            setFeedback({
+              type: "info",
+              message: "Kamu telah memberikan vote untuk karya ini.",
+            });
+          } else if (err instanceof ApiError && err.status === 401) {
+            setFeedback({
+              type: "error",
+              message: "Sesi masuk berakhir. Silakan masuk kembali.",
+            });
+          } else {
+            setFeedback({
+              type: "error",
+              message: "Gagal memproses vote. Silakan coba lagi.",
+            });
+          }
         }
       } else {
         // Cancel Vote (Unvote)
@@ -102,15 +99,61 @@ export default function VoteButton({
             type: "info",
             message: "Vote kamu telah dibatalkan.",
           });
-        } catch {
-          setIsVoted(false);
-          setVotesCount((c) => Math.max(0, c - 1));
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 409) {
+            setIsVoted(false);
+            setFeedback({
+              type: "info",
+              message: "Vote kamu sudah dibatalkan sebelumnya.",
+            });
+          } else if (err instanceof ApiError && err.status === 401) {
+            setFeedback({
+              type: "error",
+              message: "Sesi masuk berakhir. Silakan masuk kembali.",
+            });
+          } else {
+            setFeedback({
+              type: "error",
+              message: "Gagal membatalkan vote. Silakan coba lagi.",
+            });
+          }
         }
       }
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isAuthenticated, isLoading, isVoted, router, slug, token, votesCount]);
+
+  // Auto-resume vote intent after authentication redirect
+  useEffect(() => {
+    const action = searchParams?.get ? searchParams.get("action") : null;
+    const targetSlug = searchParams?.get ? searchParams.get("slug") : null;
+    const resumeKey = `${action ?? ""}:${targetSlug ?? ""}`;
+
+    if (
+      action !== "vote" ||
+      targetSlug !== slug ||
+      !isAuthenticated ||
+      isVoted ||
+      isLoading ||
+      autoResumedKeyRef.current === resumeKey
+    ) {
+      return;
+    }
+
+    autoResumedKeyRef.current = resumeKey;
+    let active = true;
+
+    Promise.resolve().then(() => {
+      if (active) {
+        void handleVote();
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [searchParams, isAuthenticated, slug, isVoted, isLoading, handleVote]);
 
   return (
     <div className={`flex flex-col gap-2 ${className}`}>

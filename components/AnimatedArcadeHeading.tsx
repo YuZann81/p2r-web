@@ -20,6 +20,7 @@ export default function AnimatedArcadeHeading() {
   const [isGlitching, setIsGlitching] = useState(false);
   const phraseIndexRef = useRef(0);
   const isTransitioningRef = useRef(false);
+  const scrambleTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     // Respect user's motion preferences
@@ -45,7 +46,11 @@ export default function AnimatedArcadeHeading() {
 
       const startTime = performance.now();
 
-      const scrambleTimer = setInterval(() => {
+      if (scrambleTimerRef.current !== null) {
+        clearInterval(scrambleTimerRef.current);
+      }
+
+      scrambleTimerRef.current = setInterval(() => {
         const elapsed = performance.now() - startTime;
         const progress = Math.min(elapsed / TRANSITION_DURATION, 1);
 
@@ -79,7 +84,10 @@ export default function AnimatedArcadeHeading() {
         setDisplayText(scrambled);
 
         if (progress >= 1) {
-          clearInterval(scrambleTimer);
+          if (scrambleTimerRef.current !== null) {
+            clearInterval(scrambleTimerRef.current);
+            scrambleTimerRef.current = null;
+          }
           setDisplayText(toText);
           setIsGlitching(false);
           isTransitioningRef.current = false;
@@ -87,7 +95,14 @@ export default function AnimatedArcadeHeading() {
       }, FRAME_INTERVAL);
     }, CYCLE_INTERVAL);
 
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+      if (scrambleTimerRef.current !== null) {
+        clearInterval(scrambleTimerRef.current);
+        scrambleTimerRef.current = null;
+      }
+      isTransitioningRef.current = false;
+    };
   }, []);
 
   return (
@@ -131,9 +146,14 @@ export default function AnimatedArcadeHeading() {
         style={{
           textShadow: "2.5px 2.5px 0px #C37D29, 5px 5px 0px #0E0A1A",
         }}
-        aria-live="polite"
       >
-        {displayText}
+        <span className="sr-only">{PHRASES[0]}</span>
+        <span
+          aria-hidden="true"
+          data-testid="animated-arcade-heading-visual"
+        >
+          {displayText}
+        </span>
       </h1>
     </div>
   );

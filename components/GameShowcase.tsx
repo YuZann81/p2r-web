@@ -22,19 +22,16 @@ function GameArtwork({
   indexLabel: string;
 }) {
   const safeImage = sanitizeMediaUrl(image);
-  const [hasError, setHasError] = useState(false);
-
-  useEffect(() => {
-    setHasError(false);
-  }, [safeImage]);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const showImage = Boolean(safeImage && failedSrc !== safeImage);
 
   return (
     <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-[#5b2be6]/40 bg-[#0E0A1A] flex items-center justify-center select-none shadow-inner">
-      {!hasError && safeImage ? (
+      {showImage && safeImage ? (
         <img
           src={safeImage}
           alt={alt || title}
-          onError={() => setHasError(true)}
+          onError={() => setFailedSrc(safeImage)}
           className="h-full w-full object-cover"
         />
       ) : (

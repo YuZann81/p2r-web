@@ -11,12 +11,14 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/auth/auth-context"
 
 jest.mock("@/lib/api/products", () => ({
+  ...jest.requireActual("@/lib/api/products"),
   fetchProducts: jest.fn(),
 }))
 
 jest.mock("next/navigation", () => ({
   useRouter: jest.fn(),
   useSearchParams: jest.fn(),
+  usePathname: jest.fn(() => "/merchandise"),
 }))
 
 jest.mock("@/lib/auth/auth-context", () => ({
@@ -131,10 +133,10 @@ describe("MerchandisePage (/merchandise)", () => {
     ).toBeInTheDocument()
     expect(screen.getAllByText("Pixel Lanyard").length).toBeGreaterThan(0)
     expect(
-      screen.getByRole("button", { name: "Pesan Cyber T-Shirt" }),
+      screen.getByRole("button", { name: "Detail Cyber T-Shirt" }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole("button", { name: "Pesan Pixel Lanyard" }),
+      screen.getByRole("button", { name: "Detail Pixel Lanyard" }),
     ).toBeInTheDocument()
 
     const section = screen.getByRole("region", {
@@ -154,7 +156,7 @@ describe("MerchandisePage (/merchandise)", () => {
     render(Component)
 
     const detailButton = screen.getByRole("button", {
-      name: "Pesan Cyber T-Shirt",
+      name: "Detail Cyber T-Shirt",
     })
     await user.click(detailButton)
 
@@ -164,7 +166,7 @@ describe("MerchandisePage (/merchandise)", () => {
     expect(
       screen.getByText("Official cyberpunk t-shirt."),
     ).toBeInTheDocument()
-    expect(screen.getByText("★ Made by Committee")).toBeInTheDocument()
+    expect(screen.getByText("Made by Committee")).toBeInTheDocument()
   })
 
   it("allows guests to view merchandise details without redirecting to login", async () => {
@@ -185,7 +187,7 @@ describe("MerchandisePage (/merchandise)", () => {
     render(Component)
 
     const detailButton = screen.getByRole("button", {
-      name: "Pesan Cyber T-Shirt",
+      name: "Detail Cyber T-Shirt",
     })
     await user.click(detailButton)
 

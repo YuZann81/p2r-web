@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import type { KaryaDetail } from "@/lib/api/types/karya";
 import KaryaCard from "@/components/KaryaCard";
 import {
@@ -18,13 +18,17 @@ export default function KaryaDirectory({
   initialKaryas,
   initialCategory = "all",
 }: KaryaDirectoryProps) {
-  const [activeCategory, setActiveCategory] = useState<KaryaFilterCategory>(
-    () => normalizeKaryaCategory(initialCategory),
-  );
+  const normalizedInitial = normalizeKaryaCategory(initialCategory);
+  const [selection, setSelection] = useState<{
+    base: KaryaFilterCategory;
+    active: KaryaFilterCategory;
+  }>(() => ({
+    base: normalizedInitial,
+    active: normalizedInitial,
+  }));
 
-  useEffect(() => {
-    setActiveCategory(normalizeKaryaCategory(initialCategory));
-  }, [initialCategory]);
+  const activeCategory =
+    selection.base === normalizedInitial ? selection.active : normalizedInitial;
 
   const filteredKaryas =
     activeCategory === "all"
@@ -52,7 +56,9 @@ export default function KaryaDirectory({
                 role="tab"
                 aria-selected={isActive}
                 type="button"
-                onClick={() => setActiveCategory(cat.id)}
+                onClick={() =>
+                  setSelection({ base: normalizedInitial, active: cat.id })
+                }
                 className={`rounded-xl px-4 py-2 font-display text-sm tracking-wider transition-all duration-150 sm:text-base outline-none cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FFD447] ${
                   isActive
                     ? "bg-[#FFD447] text-[#0E0A1A] font-bold shadow-[2px_2px_0_#B8960A]"

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { sanitizeMediaUrl } from "@/lib/api/media";
 
 type GameArtworkProps = {
@@ -20,21 +20,13 @@ export default function GameArtwork({
 }: GameArtworkProps) {
   const safeImage = sanitizeMediaUrl(image);
   const safeLogo = sanitizeMediaUrl(logo);
-  const [imageError, setImageError] = useState(false);
-  const [logoError, setLogoError] = useState(false);
-
-  useEffect(() => {
-    setImageError(false);
-  }, [safeImage]);
-
-  useEffect(() => {
-    setLogoError(false);
-  }, [safeLogo]);
+  const [failedImageSrc, setFailedImageSrc] = useState<string | null>(null);
+  const [failedLogoSrc, setFailedLogoSrc] = useState<string | null>(null);
 
   const rotation = tilt === "left" ? "-rotate-6" : "rotate-6";
   const badgePosition = tilt === "left" ? "-top-8 right-6" : "-bottom-8 left-6";
-  const showImage = Boolean(safeImage && !imageError);
-  const showLogo = Boolean(safeLogo && !logoError);
+  const showImage = Boolean(safeImage && failedImageSrc !== safeImage);
+  const showLogo = Boolean(safeLogo && failedLogoSrc !== safeLogo);
 
   return (
     <div
@@ -56,7 +48,7 @@ export default function GameArtwork({
           <img
             src={safeImage}
             alt={imageAlt}
-            onError={() => setImageError(true)}
+            onError={() => setFailedImageSrc(safeImage)}
             className="h-full w-full object-cover [image-rendering:pixelated]"
           />
         ) : (
@@ -90,7 +82,7 @@ export default function GameArtwork({
           <img
             src={safeLogo}
             alt={logoAlt}
-            onError={() => setLogoError(true)}
+            onError={() => setFailedLogoSrc(safeLogo)}
             className="h-full w-full object-cover [image-rendering:pixelated]"
           />
         ) : (

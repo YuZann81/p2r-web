@@ -33,7 +33,7 @@ export default function Pixel404Illustration({
         {/* ========================================================
             1. RETRO PIXEL STARS & FLOATING DIMENSIONAL SHARDS
            ======================================================== */}
-        <g className="animate-[sparkle_3s_ease-in-out_infinite]" opacity="0.9">
+        <g className="animate-[sparkle_3s_ease-in-out_infinite] motion-reduce:animate-none" opacity="0.9">
           {/* Star 1 - Arcade Yellow (top left) */}
           <rect x="36" y="28" width="4" height="12" fill="#FFD43B" />
           <rect x="32" y="32" width="12" height="4" fill="#FFD43B" />
@@ -294,7 +294,7 @@ export default function Pixel404Illustration({
           <rect x="232" y="186" width="6" height="2" fill="#FFF5E9" />
 
           {/* Electric Sparks popping out from unplugged prongs (⚡) */}
-          <g className="animate-[sparkle_1.5s_ease-in-out_infinite]">
+          <g className="animate-[sparkle_1.5s_ease-in-out_infinite] motion-reduce:animate-none">
             {/* Spark 1 */}
             <rect x="240" y="176" width="4" height="4" fill="#FFD43B" />
             <rect x="244" y="174" width="2" height="2" fill="#FFF5E9" />
@@ -308,7 +308,7 @@ export default function Pixel404Illustration({
         {/* ========================================================
             5. CONFUSED PIXEL ARCADE GHOST (RETRO MASCOT)
            ======================================================== */}
-        <g id="confused-ghost" className="animate-[float-slow_3.5s_ease-in-out_infinite]">
+        <g id="confused-ghost" className="animate-[float-slow_3.5s_ease-in-out_infinite] motion-reduce:animate-none">
           {/* --- FLOATING 8-BIT QUESTION MARK '?' OVER GHOST HEAD --- */}
           <g id="question-mark" transform="translate(240, 42)">
             {/* Dark Outline */}
