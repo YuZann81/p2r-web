@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="glare-diag" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.18" />
+      <stop offset="28%" stop-color="#68D5E8" stop-opacity="0.06" />
+      <stop offset="52%" stop-color="#FFFFFF" stop-opacity="0" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="glare-stripe" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <!-- Primary diagonal CRT glass reflection -->
+  <polygon points="0,0 440,0 180,360 0,360" fill="url(#glare-diag)" />
+  <polygon points="480,0 560,0 300,360 220,360" fill="url(#glare-stripe)" />
+
+  <!-- Subtle corner highlight rim -->
+  <rect x="2" y="2" width="716" height="356" rx="16" fill="none" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="2" />
+</svg>

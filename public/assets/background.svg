@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" preserveAspectRatio="none">
+  <defs>
+    <radialGradient id="bg-glow" cx="50%" cy="42%" r="68%">
+      <stop offset="0%" stop-color="#1A2256" />
+      <stop offset="55%" stop-color="#0D1338" />
+      <stop offset="100%" stop-color="#050818" />
+    </radialGradient>
+    <linearGradient id="floor-fade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1E103E" stop-opacity="0" />
+      <stop offset="100%" stop-color="#2D1252" stop-opacity="0.7" />
+    </linearGradient>
+    <pattern id="stars" width="160" height="160" patternUnits="userSpaceOnUse">
+      <circle cx="24" cy="30" r="1.4" fill="#68D5E8" opacity="0.45" />
+      <circle cx="96" cy="18" r="1" fill="#FFD447" opacity="0.35" />
+      <circle cx="132" cy="84" r="1.5" fill="#F276A5" opacity="0.4" />
+      <circle cx="48" cy="126" r="1.1" fill="#FFF5E9" opacity="0.3" />
+    </pattern>
+  </defs>
+
+  <rect width="1280" height="720" fill="url(#bg-glow)" />
+  <rect width="1280" height="720" fill="url(#stars)" />
+
+  <!-- Subtle retro cyber horizon glow -->
+  <ellipse cx="640" cy="460" rx="520" ry="260" fill="#6D28D9" opacity="0.16" />
+  <rect x="0" y="540" width="1280" height="180" fill="url(#floor-fade)" />
+
+  <!-- Subtle horizon perspective lines -->
+  <g stroke="#68D5E8" stroke-opacity="0.12" stroke-width="1">
+    <line x1="0" y1="585" x2="1280" y2="585" />
+    <line x1="0" y1="625" x2="1280" y2="625" />
+    <line x1="0" y1="672" x2="1280" y2="672" />
+    <line x1="200" y1="540" x2="-120" y2="720" />
+    <line x1="420" y1="540" x2="180" y2="720" />
+    <line x1="860" y1="540" x2="1100" y2="720" />
+    <line x1="1080" y1="540" x2="1400" y2="720" />
+  </g>
+</svg>

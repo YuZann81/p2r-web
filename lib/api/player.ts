@@ -18,20 +18,6 @@ export type WalletData = {
   transactions: WalletTransaction[];
 };
 
-export type RedemptionRecord = {
-  id: string | number;
-  quantity: number;
-  status: string;
-  total_coins?: number;
-  created_at?: string | null;
-  merchandise?: {
-    id: string | number;
-    name: string;
-    slug: string;
-    coin_price?: number;
-  } | null;
-};
-
 export type PlayerGameRecord = {
   gameSlug: string;
   gameTitle: string;
@@ -45,7 +31,6 @@ export type PlayerProfileData = {
   user: User | null;
   coinBalance: number;
   walletTransactions: WalletTransaction[];
-  redemptions: RedemptionRecord[];
   gameRecords: PlayerGameRecord[];
   activeLeaderboardGamesCount: number;
   summary: {
@@ -64,36 +49,12 @@ type RawMyRank = {
   created_at?: string | null;
 };
 
-type RawPaginatedRedemptions = {
-  data?: RedemptionRecord[];
-};
-
 async function fetchPlayerWallet(token: string): Promise<WalletData | null> {
   try {
     const res = await apiGet<WalletData>("/me/wallet", { token });
     return res.data ?? null;
   } catch {
     return null;
-  }
-}
-
-async function fetchPlayerRedemptions(
-  token: string,
-): Promise<RedemptionRecord[]> {
-  try {
-    const res = await apiGet<RawPaginatedRedemptions | RedemptionRecord[]>(
-      "/redemptions",
-      { token },
-    );
-    if (Array.isArray(res.data)) {
-      return res.data;
-    }
-    if (res.data && Array.isArray(res.data.data)) {
-      return res.data.data;
-    }
-    return [];
-  } catch {
-    return [];
   }
 }
 
@@ -139,10 +100,9 @@ async function fetchPlayerGameRank(
 export async function fetchPlayerProfileData(
   token: string,
 ): Promise<PlayerProfileData> {
-  const [meResult, wallet, redemptions, games] = await Promise.all([
+  const [meResult, wallet, games] = await Promise.all([
     getCurrentUser(token).catch(() => null),
     fetchPlayerWallet(token),
-    fetchPlayerRedemptions(token),
     fetchGameKaryas(50).catch(() => []),
   ]);
 
@@ -186,7 +146,6 @@ export async function fetchPlayerProfileData(
     walletTransactions: Array.isArray(wallet?.transactions)
       ? wallet.transactions
       : [],
-    redemptions,
     gameRecords,
     activeLeaderboardGamesCount,
     summary: {

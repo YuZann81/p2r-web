@@ -26,7 +26,6 @@ function LoginForm() {
 
   const redirectUrl = sanitizeRedirectPath(searchParams.get("redirect"));
   const action = searchParams.get("action");
-  const productId = searchParams.get("productId");
   const slug = searchParams.get("slug");
 
   const [email, setEmail] = useState("");
@@ -37,7 +36,6 @@ function LoginForm() {
   const getDestinationUrl = useCallback(() => {
     const params = new URLSearchParams();
     if (action) params.set("action", action);
-    if (productId) params.set("productId", productId);
     if (slug) params.set("slug", slug);
 
     const queryString = params.toString();
@@ -46,7 +44,7 @@ function LoginForm() {
       return `${redirectUrl}${separator}${queryString}`;
     }
     return redirectUrl;
-  }, [action, productId, redirectUrl, slug]);
+  }, [action, redirectUrl, slug]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -86,7 +84,6 @@ function LoginForm() {
   const registerQuery = new URLSearchParams();
   if (redirectUrl !== "/") registerQuery.set("redirect", redirectUrl);
   if (action) registerQuery.set("action", action);
-  if (productId) registerQuery.set("productId", productId);
   if (slug) registerQuery.set("slug", slug);
   const registerHref = `/register${registerQuery.toString() ? `?${registerQuery.toString()}` : ""}`;
 
@@ -96,9 +93,7 @@ function LoginForm() {
         <span className="inline-block rounded-lg bg-[#FFD447]/20 px-3.5 py-1 font-display text-xs tracking-wider uppercase text-[#FFD447]">
           {action === "vote"
             ? "Otentikasi Voting Karya"
-            : action === "order"
-              ? "Otentikasi Pemesanan"
-              : "Cyber Arcade Access"}
+            : "Cyber Arcade Access"}
         </span>
         <h1 className="mt-3 font-display text-3xl text-[#FFD447] sm:text-4xl drop-shadow-[2px_2px_0_#0E0A1A]">
           MASUK AKUN
@@ -106,9 +101,7 @@ function LoginForm() {
         <p className="mt-2 font-body text-xs text-[#FFF5E9]/80 sm:text-sm">
           {action === "vote"
             ? "Masuk untuk memberikan vote pada karya inovasi favoritmu."
-            : action === "order"
-              ? "Masuk untuk melanjutkan pemesanan merchandise pilihanmu."
-              : "Masuk untuk mengakses fitur voting dan pemesanan merchandise pameran."}
+            : "Masuk untuk mengakses profil pemain, saldo koin, dan fitur voting karya pameran."}
         </p>
       </div>
 
