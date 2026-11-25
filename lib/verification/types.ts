@@ -15,7 +15,7 @@ export type LayerDefinition = {
 export type VerificationChallenge = {
   challengeToken: string;
   expiresAt: number;
-  layerDurationsMs: [number, number, number];
+  layerDurationsMs: number[];
 };
 
 export type VerificationVerifyRequest = {

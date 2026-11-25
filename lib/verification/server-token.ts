@@ -13,7 +13,7 @@ type ChallengePayload = {
   nonce: string;
   issuedAt: number;
   expiresAt: number;
-  layerDurationsMs: [number, number, number];
+  layerDurationsMs: number[];
 };
 
 type VerificationReceiptPayload = {
@@ -101,28 +101,19 @@ function verifySignedToken<T>(token: string): T | null {
   }
 }
 
-function sanitizeDurations(
-  customDurations?: unknown,
-): [number, number, number] {
+function sanitizeDurations(customDurations?: unknown): number[] {
   if (
     Array.isArray(customDurations) &&
-    customDurations.length === 3 &&
+    customDurations.length >= 1 &&
+    customDurations.length <= 12 &&
     customDurations.every(
       (d) => typeof d === "number" && Number.isFinite(d) && d >= 300 && d <= 30000,
     )
   ) {
-    return [
-      Math.round(customDurations[0]),
-      Math.round(customDurations[1]),
-      Math.round(customDurations[2]),
-    ];
+    return customDurations.map((d) => Math.round(d));
   }
 
-  return [
-    DEFAULT_LAYER_DURATIONS_MS[0],
-    DEFAULT_LAYER_DURATIONS_MS[1],
-    DEFAULT_LAYER_DURATIONS_MS[2],
-  ];
+  return [...DEFAULT_LAYER_DURATIONS_MS];
 }
 
 export function issueVerificationChallenge(
@@ -180,20 +171,21 @@ export function validateAndConsumeChallenge(input: {
     };
   }
 
+  const expectedCount = payload.layerDurationsMs.length;
   const completed = input.completedDurationsMs;
   if (
     !Array.isArray(completed) ||
-    completed.length !== 3 ||
+    completed.length !== expectedCount ||
     !completed.every((ms) => typeof ms === "number" && Number.isFinite(ms))
   ) {
     return {
       ok: false,
       status: 400,
-      message: "Data durasi penyelesaian 3 layer tidak lengkap.",
+      message: `Data durasi penyelesaian ${expectedCount} layer tidak lengkap.`,
     };
   }
 
-  for (let i = 0; i < 3; i += 1) {
+  for (let i = 0; i < expectedCount; i += 1) {
     const requiredMs = payload.layerDurationsMs[i];
     if (completed[i] < requiredMs - LAYER_JITTER_TOLERANCE_MS) {
       return {

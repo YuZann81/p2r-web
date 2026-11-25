@@ -4,7 +4,7 @@ import {
   verifyReceiptToken,
 } from "@/lib/verification/server-token";
 
-describe("3-Layer Verification Server Token Security", () => {
+describe("6-Layer Verification Server Token Security", () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date("2026-11-26T01:00:00Z"));
@@ -14,14 +14,13 @@ describe("3-Layer Verification Server Token Security", () => {
     jest.useRealTimers();
   });
 
-  it("issues default 3500ms challenge and rejects immediate replay before hold time elapses", () => {
+  it("issues default 6 x 2000ms challenge and rejects immediate replay before hold time elapses", () => {
     const challenge = issueVerificationChallenge();
-    expect(challenge.layerDurationsMs).toEqual([3500, 3500, 3500]);
+    expect(challenge.layerDurationsMs).toEqual([2000, 2000, 2000, 2000, 2000, 2000]);
 
-    // Immediate verify attempt (0ms elapsed) must be blocked by backend
     const tooFast = validateAndConsumeChallenge({
       challengeToken: challenge.challengeToken,
-      completedDurationsMs: [3500, 3500, 3500],
+      completedDurationsMs: [2000, 2000, 2000, 2000, 2000, 2000],
     });
     expect(tooFast.ok).toBe(false);
     if (!tooFast.ok) {
@@ -29,15 +28,14 @@ describe("3-Layer Verification Server Token Security", () => {
     }
   });
 
-  it("validates once real hold duration elapses and blocks double submission", () => {
-    const challenge = issueVerificationChallenge([3500, 3500, 3500]);
+  it("validates once real 12s hold duration elapses across 6 layers and blocks double submission", () => {
+    const challenge = issueVerificationChallenge([2000, 2000, 2000, 2000, 2000, 2000]);
 
-    // Simulate 10.5s passing across 3 layers
-    jest.advanceTimersByTime(10550);
+    jest.advanceTimersByTime(12100);
 
     const firstAttempt = validateAndConsumeChallenge({
       challengeToken: challenge.challengeToken,
-      completedDurationsMs: [3510, 3520, 3530],
+      completedDurationsMs: [2010, 2015, 2020, 2010, 2025, 2015],
     });
 
     expect(firstAttempt.ok).toBe(true);
@@ -46,10 +44,9 @@ describe("3-Layer Verification Server Token Security", () => {
       expect(verifyReceiptToken(firstAttempt.result.verificationToken)).toBe(true);
     }
 
-    // Second submit with same challengeToken must fail (anti-replay / double submit)
     const replayAttempt = validateAndConsumeChallenge({
       challengeToken: challenge.challengeToken,
-      completedDurationsMs: [3510, 3520, 3530],
+      completedDurationsMs: [2010, 2015, 2020, 2010, 2025, 2015],
     });
     expect(replayAttempt.ok).toBe(false);
     if (!replayAttempt.ok) {
@@ -58,18 +55,18 @@ describe("3-Layer Verification Server Token Security", () => {
   });
 
   it("rejects tampered tokens and incomplete layer durations", () => {
-    const challenge = issueVerificationChallenge([3500, 3500, 3500]);
-    jest.advanceTimersByTime(11000);
+    const challenge = issueVerificationChallenge([2000, 2000, 2000, 2000, 2000, 2000]);
+    jest.advanceTimersByTime(12500);
 
     const tampered = validateAndConsumeChallenge({
       challengeToken: challenge.challengeToken + "tamper",
-      completedDurationsMs: [3500, 3500, 3500],
+      completedDurationsMs: [2000, 2000, 2000, 2000, 2000, 2000],
     });
     expect(tampered.ok).toBe(false);
 
     const shortLayer = validateAndConsumeChallenge({
       challengeToken: challenge.challengeToken,
-      completedDurationsMs: [3500, 1200, 3500],
+      completedDurationsMs: [2000, 800, 2000, 2000, 2000, 2000],
     });
     expect(shortLayer.ok).toBe(false);
   });

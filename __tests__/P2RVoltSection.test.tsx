@@ -45,7 +45,7 @@ describe("P2RVoltSection Full-Screen Countdown -> Borderless Full-Hand Gate (Scr
       "true",
     );
     expect(
-      screen.getByText("VERIFICATION PLAY • TAHAP 1 / 3"),
+      screen.getByText("VERIFICATION PLAY • TAHAP 1 / 6"),
     ).toBeInTheDocument();
     expect(screen.getByText("Konten Pameran Scrollable")).toBeInTheDocument();
   });

@@ -5,7 +5,7 @@ import {
   validateAndConsumeChallenge,
 } from "@/lib/verification/server-token";
 
-describe("ThreeLayerHoldVerification Borderless Full-Hand -> Fullscreen Motion -> Video/Photo Slider", () => {
+describe("ThreeLayerHoldVerification 6-Stage (2s) Right-Hand -> Fullscreen Motion -> Video 2", () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
@@ -54,16 +54,17 @@ describe("ThreeLayerHoldVerification Borderless Full-Hand -> Fullscreen Motion -
     jest.restoreAllMocks();
   });
 
-  it("renders borderless full-hand biometric scanner one by one and resets progress on early release", async () => {
-    render(<ThreeLayerHoldVerification layerDurationsMs={[3500, 3500, 3500]} />);
+  it("renders 6-stage right-hand biometric scanner (2s default) with 5 fingertip dots and resets on early release", async () => {
+    render(<ThreeLayerHoldVerification />);
     await act(async () => {
       await Promise.resolve();
     });
 
     expect(screen.queryAllByRole("progressbar")).toHaveLength(0);
     expect(document.querySelectorAll("[data-fingertip-dot]")).toHaveLength(5);
+    expect(document.querySelectorAll("[data-step-dot]")).toHaveLength(6);
     expect(
-      screen.getByText("VERIFICATION PLAY • TAHAP 1 / 3"),
+      screen.getByText("VERIFICATION PLAY • TAHAP 1 / 6"),
     ).toBeInTheDocument();
 
     const holdBtn = screen.getByRole("button", { name: /tahan layer 1/i });
@@ -72,7 +73,7 @@ describe("ThreeLayerHoldVerification Borderless Full-Hand -> Fullscreen Motion -
 
     fireEvent.pointerDown(holdBtn, { pointerId: 1, button: 0, pointerType: "mouse" });
     act(() => {
-      jest.advanceTimersByTime(1500);
+      jest.advanceTimersByTime(1000);
     });
     expect(Number(stageEl.getAttribute("data-progress"))).toBeGreaterThan(25);
 
@@ -84,7 +85,7 @@ describe("ThreeLayerHoldVerification Borderless Full-Hand -> Fullscreen Motion -
   });
 
   it("cancels and resets hold when window blurs / page becomes hidden", async () => {
-    render(<ThreeLayerHoldVerification layerDurationsMs={[3500, 3500, 3500]} />);
+    render(<ThreeLayerHoldVerification />);
     await act(async () => {
       await Promise.resolve();
     });
@@ -93,7 +94,7 @@ describe("ThreeLayerHoldVerification Borderless Full-Hand -> Fullscreen Motion -
     const stageEl = screen.getByTestId("active-fingerprint-stage");
     fireEvent.pointerDown(holdBtn, { pointerId: 2, pointerType: "touch" });
     act(() => {
-      jest.advanceTimersByTime(1800);
+      jest.advanceTimersByTime(900);
     });
 
     act(() => {
@@ -103,11 +104,10 @@ describe("ThreeLayerHoldVerification Borderless Full-Hand -> Fullscreen Motion -
     expect(stageEl).toHaveAttribute("data-progress", "0");
   });
 
-  it("completes 3 sequential full-hand holds, renders transparent fullscreen motion video, then transitions to clean non-clickable edited video", async () => {
+  it("completes all 6 sequential 2s right-hand holds, plays transparent fullscreen motion video, then reveals clean non-clickable Video 2", async () => {
     const onComplete = jest.fn();
     render(
       <ThreeLayerHoldVerification
-        layerDurationsMs={[3500, 3500, 3500]}
         motionVideoSrc="/videos/test-motion.mp4"
         videoSrc="/videos/test-doc.mp4"
         onVerificationComplete={onComplete}
@@ -118,65 +118,38 @@ describe("ThreeLayerHoldVerification Borderless Full-Hand -> Fullscreen Motion -
       await Promise.resolve();
     });
 
-    // Hand 1
-    fireEvent.pointerDown(screen.getByRole("button", { name: /tahan layer 1/i }), {
-      pointerId: 1,
-      button: 0,
-      pointerType: "mouse",
-    });
-    act(() => {
-      jest.advanceTimersByTime(3600);
-    });
-    expect(screen.getByText("verification success")).toBeInTheDocument();
-    expect(screen.getByTestId("palm-center-check")).toBeInTheDocument();
+    for (let step = 1; step <= 6; step += 1) {
+      expect(
+        screen.getByText(`VERIFICATION PLAY • TAHAP ${step} / 6`),
+      ).toBeInTheDocument();
 
-    act(() => {
-      jest.advanceTimersByTime(700 + 460);
-    });
-    expect(
-      screen.getByText("VERIFICATION PLAY • TAHAP 2 / 3"),
-    ).toBeInTheDocument();
+      fireEvent.pointerDown(
+        screen.getByRole("button", { name: new RegExp(`tahan layer ${step}`, "i") }),
+        {
+          pointerId: step,
+          button: 0,
+          pointerType: step % 2 === 1 ? "mouse" : "touch",
+        },
+      );
 
-    // Hand 2
-    fireEvent.pointerDown(screen.getByRole("button", { name: /tahan layer 2/i }), {
-      pointerId: 7,
-      pointerType: "touch",
-    });
-    act(() => {
-      jest.advanceTimersByTime(3600);
-    });
-    expect(screen.getByText("verification success")).toBeInTheDocument();
-    expect(screen.getByTestId("palm-center-check")).toBeInTheDocument();
+      await act(async () => {
+        jest.advanceTimersByTime(2100);
+        await Promise.resolve();
+        await Promise.resolve();
+      });
 
-    act(() => {
-      jest.advanceTimersByTime(700 + 460);
-    });
-    expect(
-      screen.getByText("VERIFICATION PLAY • TAHAP 3 / 3"),
-    ).toBeInTheDocument();
+      expect(screen.getByText("verification success")).toBeInTheDocument();
+      expect(screen.getByTestId("palm-center-check")).toBeInTheDocument();
 
-    // Hand 3
-    fireEvent.pointerDown(screen.getByRole("button", { name: /tahan layer 3/i }), {
-      pointerId: 9,
-      pointerType: "touch",
-    });
-    await act(async () => {
-      jest.advanceTimersByTime(3600);
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-    expect(screen.getByText("verification success")).toBeInTheDocument();
-    expect(screen.getByTestId("palm-center-check")).toBeInTheDocument();
-
-    await act(async () => {
-      jest.advanceTimersByTime(700 + 460);
-      await Promise.resolve();
-    });
+      await act(async () => {
+        jest.advanceTimersByTime(700 + 460);
+        await Promise.resolve();
+      });
+    }
 
     expect(onComplete).toHaveBeenCalledTimes(1);
     expect(onComplete.mock.calls[0][0].verified).toBe(true);
 
-    // Fullscreen transparent background motion graphic video (Video 1)
     const motionEnter = screen.getByRole("status", {
       name: /verifikasi 3-layer berhasil/i,
     });
@@ -188,7 +161,6 @@ describe("ThreeLayerHoldVerification Borderless Full-Hand -> Fullscreen Motion -
     expect(motionVideoEl).toHaveAttribute("src", "/videos/test-motion.mp4");
     expect(motionVideoEl).toHaveAttribute("autoplay");
 
-    // Motion video finishes -> fast fade exit -> reveals Video 2
     fireEvent.ended(motionVideoEl);
     expect(motionEnter).toHaveAttribute("data-motion-phase", "exit");
 
@@ -196,7 +168,6 @@ describe("ThreeLayerHoldVerification Borderless Full-Hand -> Fullscreen Motion -
       jest.advanceTimersByTime(380);
     });
 
-    // Pure non-clickable single video (autoplay, muted, loop, no controls, no pagination, no image slides)
     const videoPanel = screen.getByTestId("documentation-video-panel");
     expect(videoPanel).toBeInTheDocument();
     expect(videoPanel).toHaveClass("pointer-events-none", "select-none");

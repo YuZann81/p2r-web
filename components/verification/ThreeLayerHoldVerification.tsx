@@ -21,8 +21,8 @@ import DocumentationVideoPlayer from "@/components/verification/DocumentationVid
 type StepVisualPhase = "interactive" | "success" | "exiting";
 
 type ThreeLayerHoldVerificationProps = {
-  layerDurationsMs?: readonly [number, number, number];
-  layers?: readonly [LayerDefinition, LayerDefinition, LayerDefinition];
+  layerDurationsMs?: readonly number[];
+  layers?: readonly LayerDefinition[];
   motionVideoSrc?: string;
   videoSrc?: string;
   onVerificationComplete?: (result: VerificationResult) => void;
@@ -143,6 +143,8 @@ export default function ThreeLayerHoldVerification({
     onVerified: handleBackendVerified,
   });
 
+  const totalLayers = Math.min(layers.length, durations.length) || 6;
+
   //Sequential 1-by-1 "verification success" -> fade-out exit -> next hand enter
   useEffect(() => {
     if (stage !== "verifying") return;
@@ -168,8 +170,8 @@ export default function ThreeLayerHoldVerification({
     }, successHoldMs);
 
     const advanceTimer = setTimeout(() => {
-      if (visibleLayerIndex < 2) {
-        setVisibleLayerIndex((prev) => Math.min(2, prev + 1));
+      if (visibleLayerIndex < totalLayers - 1) {
+        setVisibleLayerIndex((prev) => Math.min(totalLayers - 1, prev + 1));
         setStepPhase("interactive");
       } else {
         finalStepExitedRef.current = true;
@@ -182,7 +184,7 @@ export default function ThreeLayerHoldVerification({
     }, successHoldMs + exitFadeMs);
 
     stepTimerRef.current.push(exitTimer, advanceTimer);
-  }, [clearStepTimers, stage, startMotionSequence, statuses, stepPhase, visibleLayerIndex]);
+  }, [clearStepTimers, stage, startMotionSequence, statuses, stepPhase, totalLayers, visibleLayerIndex]);
 
   // Reset visual step back to Hand 1 if backend validation fails
   useEffect(() => {
@@ -225,10 +227,16 @@ export default function ThreeLayerHoldVerification({
     );
   }
 
-  const activeLayer = layers[visibleLayerIndex] || layers[0];
-  const activeStatus = statuses[visibleLayerIndex];
+  const activeLayer =
+    layers[visibleLayerIndex] ||
+    layers[0] || {
+      id: visibleLayerIndex + 1,
+      title: `Layer ${visibleLayerIndex + 1}`,
+      instruction: "",
+    };
+  const activeStatus = statuses[visibleLayerIndex] ?? "idle";
   const activeProgress = progress[visibleLayerIndex] || 0;
-  const activeDurationSec = ((durations[visibleLayerIndex] || 3500) / 1000).toFixed(1);
+  const activeDurationSec = ((durations[visibleLayerIndex] || 2000) / 1000).toFixed(1);
   const isShowingSuccess = stepPhase === "success" || stepPhase === "exiting";
 
   const handState: "idle" | "holding" | "completed" | "verifying" = isVerifyingBackend
@@ -241,20 +249,20 @@ export default function ThreeLayerHoldVerification({
 
   return (
     <div
-      aria-label="Verifikasi Telapak Tangan 3-Layer"
+      aria-label={`Verifikasi Telapak Tangan ${totalLayers}-Layer`}
       className="p2r-stage-enter relative flex w-full flex-col items-center justify-center text-center"
     >
       {/* Subtle Borderless Header & Step Dots floating cleanly in background */}
       <div className="flex flex-col items-center gap-3">
         <span className="font-display text-xs tracking-[0.26em] uppercase text-[#68D5E8]/85">
-          VERIFICATION PLAY • TAHAP {visibleLayerIndex + 1} / 3
+          VERIFICATION PLAY • TAHAP {visibleLayerIndex + 1} / {totalLayers}
         </span>
 
         <div
-          aria-label={`Tahap ${visibleLayerIndex + 1} dari 3`}
-          className="flex items-center justify-center gap-2.5"
+          aria-label={`Tahap ${visibleLayerIndex + 1} dari ${totalLayers}`}
+          className="flex items-center justify-center gap-2"
         >
-          {[0, 1, 2].map((idx) => {
+          {Array.from({ length: totalLayers }, (_, idx) => {
             const isCompleted = statuses[idx] === "completed";
             const isCurrent = idx === visibleLayerIndex;
             return (
@@ -266,10 +274,10 @@ export default function ThreeLayerHoldVerification({
                 }
                 className={`h-1.5 rounded-full transition-all duration-300 ${
                   isCompleted
-                    ? "w-8 bg-[#7AC70C] shadow-[0_0_12px_rgba(122,199,12,0.75)]"
+                    ? "w-7 bg-[#7AC70C] shadow-[0_0_12px_rgba(122,199,12,0.75)]"
                     : isCurrent
-                      ? "w-8 bg-[#FFD447] shadow-[0_0_12px_rgba(255,212,71,0.65)]"
-                      : "w-3 bg-white/15"
+                      ? "w-7 bg-[#FFD447] shadow-[0_0_12px_rgba(255,212,71,0.65)]"
+                      : "w-2.5 bg-white/15"
                 }`}
               />
             );

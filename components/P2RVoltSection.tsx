@@ -11,6 +11,8 @@ import ThreeLayerHoldVerification from "@/components/verification/ThreeLayerHold
 type P2RVoltSectionProps = {
   /** Durasi awal countdown (detik). Mudah dihubungkan ke API countdown nanti. */
   initialSeconds?: number;
+  /** Override durasi per layer verifikasi (default 6 × 2000ms). */
+  layerDurationsMs?: readonly number[];
   /** Override sumber video motion graphic jika diperlukan. */
   motionVideoSrc?: string;
   /** Override sumber video dokumentasi jika diperlukan. */
@@ -32,6 +34,7 @@ function padTwoDigits(value: number): string {
 
 export default function P2RVoltSection({
   initialSeconds = DEFAULT_COUNTDOWN_SECONDS,
+  layerDurationsMs,
   motionVideoSrc,
   documentationVideoSrc,
   unlockedContent,
@@ -216,6 +219,7 @@ export default function P2RVoltSection({
               </div>
             ) : (
               <ThreeLayerHoldVerification
+                layerDurationsMs={layerDurationsMs}
                 motionVideoSrc={motionVideoSrc}
                 videoSrc={documentationVideoSrc}
                 onStageChange={setVerificationStage}

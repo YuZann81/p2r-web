@@ -1,34 +1,48 @@
 import type { LayerDefinition } from "@/lib/verification/types";
 
 /**
- * Konfigurasi durasi default tiap layer (dalam milidetik).
+ * Konfigurasi durasi default tiap tahap verifikasi telapak tangan (6 tahap × 2 detik).
  * Mudah diubah dari konfigurasi atau props tanpa mengunci nilai di komponen UI.
  */
-export const DEFAULT_LAYER_DURATIONS_MS: readonly [number, number, number] = [
-  3500,
-  3500,
-  3500,
+export const DEFAULT_LAYER_DURATIONS_MS: readonly number[] = [
+  2000,
+  2000,
+  2000,
+  2000,
+  2000,
+  2000,
 ];
 
-export const DEFAULT_LAYER_DEFINITIONS: readonly [
-  LayerDefinition,
-  LayerDefinition,
-  LayerDefinition,
-] = [
+export const DEFAULT_LAYER_DEFINITIONS: readonly LayerDefinition[] = [
   {
     id: 1,
-    title: "Layer 1 • Inisialisasi Kunci",
-    instruction: "Tekan dan tahan tombol hingga penuh untuk membuka Layer 2.",
+    title: "Layer 1 • Inisialisasi Biometrik",
+    instruction: "Tempelkan telapak tangan kanan hingga terisi penuh.",
   },
   {
     id: 2,
-    title: "Layer 2 • Sinkronisasi Sesi",
-    instruction: "Lanjutkan dengan menahan tombol kedua secara stabil.",
+    title: "Layer 2 • Sinkronisasi Pola",
+    instruction: "Lanjutkan verifikasi tangan kanan tahap kedua.",
   },
   {
     id: 3,
-    title: "Layer 3 • Otorisasi Final",
-    instruction: "Tahan tahap akhir untuk memvalidasi akses dokumentasi.",
+    title: "Layer 3 • Kalibrasi Sesi",
+    instruction: "Lanjutkan verifikasi tangan kanan tahap ketiga.",
+  },
+  {
+    id: 4,
+    title: "Layer 4 • Validasi Identitas",
+    instruction: "Lanjutkan verifikasi tangan kanan tahap keempat.",
+  },
+  {
+    id: 5,
+    title: "Layer 5 • Enkripsi Akses",
+    instruction: "Lanjutkan verifikasi tangan kanan tahap kelima.",
+  },
+  {
+    id: 6,
+    title: "Layer 6 • Otorisasi Final",
+    instruction: "Tahan tahap akhir untuk memvalidasi akses pameran.",
   },
 ];
 

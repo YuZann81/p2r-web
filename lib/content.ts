@@ -171,3 +171,34 @@ export const LEADERBOARD_ENTRIES: readonly LeaderboardEntry[] = [
     score: 39800,
   },
 ] as const;
+
+/**
+ * Data skor per game per pemain yang berpasangan dengan akumulasi pada LEADERBOARD_ENTRIES.
+ */
+export const GAME_SCORE_ENTRIES: readonly LeaderboardEntry[] = [
+  // CyberKnight -> Total 98.500
+  { rank: 1, playerName: "CyberKnight", gameName: "Cyber Runner 2099", score: 42000 },
+  { rank: 2, playerName: "CyberKnight", gameName: "Byte Defender", score: 31500 },
+  { rank: 3, playerName: "CyberKnight", gameName: "Neon Highway", score: 25000 },
+  // PixelQueen -> Total 87.200
+  { rank: 1, playerName: "PixelQueen", gameName: "Byte Defender", score: 47200 },
+  { rank: 2, playerName: "PixelQueen", gameName: "Cyber Runner 2099", score: 40000 },
+  // NeonRider -> Total 76.450
+  { rank: 1, playerName: "NeonRider", gameName: "Neon Highway", score: 46450 },
+  { rank: 2, playerName: "NeonRider", gameName: "Cyber Runner 2099", score: 30000 },
+  // RetroWizard -> Total 65.100
+  { rank: 3, playerName: "RetroWizard", gameName: "Cyber Runner 2099", score: 38100 },
+  { rank: 2, playerName: "RetroWizard", gameName: "Neon Highway", score: 27000 },
+  // BitMaster -> Total 54.300
+  { rank: 2, playerName: "BitMaster", gameName: "Byte Defender", score: 34300 },
+  { rank: 4, playerName: "BitMaster", gameName: "Neon Highway", score: 20000 },
+  // ArcadeHero -> Total 48.900
+  { rank: 3, playerName: "ArcadeHero", gameName: "Neon Highway", score: 32900 },
+  { rank: 4, playerName: "ArcadeHero", gameName: "Byte Defender", score: 16000 },
+  // GlitchHunter -> Total 42.150
+  { rank: 4, playerName: "GlitchHunter", gameName: "Cyber Runner 2099", score: 28150 },
+  { rank: 5, playerName: "GlitchHunter", gameName: "Byte Defender", score: 14000 },
+  // ShadowCoder -> Total 39.800
+  { rank: 3, playerName: "ShadowCoder", gameName: "Byte Defender", score: 24800 },
+  { rank: 5, playerName: "ShadowCoder", gameName: "Cyber Runner 2099", score: 15000 },
+] as const;

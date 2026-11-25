@@ -10,16 +10,13 @@ import type {
 
 export type UseThreeLayerHoldOptions = {
   /** Durasi per layer dalam ms (fleksibel, tidak dikunci di UI). */
-  layerDurationsMs?: readonly [number, number, number];
-  /** Dipanggil ketika 3 layer selesai & backend menyetujui verifikasi. */
+  layerDurationsMs?: readonly number[];
+  /** Dipanggil ketika semua layer selesai & backend menyetujui verifikasi. */
   onVerified?: (result: VerificationResult) => void;
-  /** Nonaktifkan challenge API hanya untuk kebutuhan unit test lokal terisolasi bila diinginkan. */
+  /** Endpoint API challenge & verifikasi. */
   verifyEndpoint?: string;
   challengeEndpoint?: string;
 };
-
-type LayerStatuses = [LayerStatus, LayerStatus, LayerStatus];
-type LayerNumbers = [number, number, number];
 
 function getNow(): number {
   if (typeof performance !== "undefined" && typeof performance.now === "function") {
@@ -28,19 +25,30 @@ function getNow(): number {
   return Date.now();
 }
 
+function createInitialStatuses(count: number): LayerStatus[] {
+  return Array.from({ length: count }, (_, idx) => (idx === 0 ? "idle" : "locked"));
+}
+
+function createZeroArray(count: number): number[] {
+  return Array.from({ length: count }, () => 0);
+}
+
 export function useThreeLayerHold({
   layerDurationsMs = DEFAULT_LAYER_DURATIONS_MS,
   onVerified,
   challengeEndpoint = "/api/verification/challenge",
   verifyEndpoint = "/api/verification/verify",
 }: UseThreeLayerHoldOptions = {}) {
-  const [durations, setDurations] = useState<LayerNumbers>([
-    layerDurationsMs[0],
-    layerDurationsMs[1],
-    layerDurationsMs[2],
-  ]);
-  const [statuses, setStatuses] = useState<LayerStatuses>(["idle", "locked", "locked"]);
-  const [progress, setProgress] = useState<LayerNumbers>([0, 0, 0]);
+  const initialDurations =
+    layerDurationsMs.length > 0 ? [...layerDurationsMs] : [...DEFAULT_LAYER_DURATIONS_MS];
+
+  const [durations, setDurations] = useState<number[]>(initialDurations);
+  const [statuses, setStatuses] = useState<LayerStatus[]>(() =>
+    createInitialStatuses(initialDurations.length),
+  );
+  const [progress, setProgress] = useState<number[]>(() =>
+    createZeroArray(initialDurations.length),
+  );
   const [activeLayerIndex, setActiveLayerIndex] = useState<number>(0);
   const [isVerifyingBackend, setIsVerifyingBackend] = useState<boolean>(false);
   const [isVerified, setIsVerified] = useState<boolean>(false);
@@ -48,10 +56,10 @@ export function useThreeLayerHold({
   const [earlyReleaseNotice, setEarlyReleaseNotice] = useState<string | null>(null);
 
   const challengeRef = useRef<VerificationChallenge | null>(null);
-  const completedDurationsRef = useRef<number[]>([0, 0, 0]);
-  const statusesRef = useRef<LayerStatuses>(statuses);
+  const completedDurationsRef = useRef<number[]>(createZeroArray(initialDurations.length));
+  const statusesRef = useRef<LayerStatus[]>(statuses);
   const activeLayerRef = useRef<number>(activeLayerIndex);
-  const durationsRef = useRef<LayerNumbers>(durations);
+  const durationsRef = useRef<number[]>(durations);
 
   const rafIdRef = useRef<number | null>(null);
   const holdStartTimeRef = useRef<number | null>(null);
@@ -73,15 +81,12 @@ export function useThreeLayerHold({
     activeLayerRef.current = activeLayerIndex;
   }, [activeLayerIndex]);
 
+  const durationsKey = initialDurations.join(",");
   useEffect(() => {
-    const next: LayerNumbers = [
-      layerDurationsMs[0],
-      layerDurationsMs[1],
-      layerDurationsMs[2],
-    ];
+    const next = [...initialDurations];
     durationsRef.current = next;
     setDurations(next);
-  }, [layerDurationsMs[0], layerDurationsMs[1], layerDurationsMs[2]]);
+  }, [durationsKey]);
 
   const requestChallenge = useCallback(async () => {
     try {
@@ -98,12 +103,11 @@ export function useThreeLayerHold({
       };
       if (json.success && json.data && isMountedRef.current) {
         challengeRef.current = json.data;
-        if (Array.isArray(json.data.layerDurationsMs)) {
-          const serverDurations: LayerNumbers = [
-            json.data.layerDurationsMs[0],
-            json.data.layerDurationsMs[1],
-            json.data.layerDurationsMs[2],
-          ];
+        if (
+          Array.isArray(json.data.layerDurationsMs) &&
+          json.data.layerDurationsMs.length === durationsRef.current.length
+        ) {
+          const serverDurations = [...json.data.layerDurationsMs];
           durationsRef.current = serverDurations;
           setDurations(serverDurations);
         }
@@ -134,12 +138,12 @@ export function useThreeLayerHold({
       const idx = activeLayerRef.current;
       if (statusesRef.current[idx] === "holding") {
         setProgress((prev) => {
-          const next: LayerNumbers = [prev[0], prev[1], prev[2]];
+          const next = [...prev];
           next[idx] = 0;
           return next;
         });
         setStatuses((prev) => {
-          const next: LayerStatuses = [prev[0], prev[1], prev[2]];
+          const next = [...prev];
           if (next[idx] === "holding") {
             next[idx] = "idle";
           }
@@ -160,7 +164,6 @@ export function useThreeLayerHold({
     setErrorMessage(null);
 
     try {
-      // Ensure challenge exists before verifying
       if (!challengeRef.current) {
         await requestChallenge();
       }
@@ -195,16 +198,16 @@ export function useThreeLayerHold({
       }
     } catch (error) {
       if (isMountedRef.current) {
+        const count = durationsRef.current.length;
         isSubmittingRef.current = false;
         setErrorMessage(
           error instanceof Error
             ? error.message
             : "Gagal memvalidasi verifikasi pada server.",
         );
-        // Reset back to Layer 1 with fresh challenge on server rejection
-        completedDurationsRef.current = [0, 0, 0];
-        setStatuses(["idle", "locked", "locked"]);
-        setProgress([0, 0, 0]);
+        completedDurationsRef.current = createZeroArray(count);
+        setStatuses(createInitialStatuses(count));
+        setProgress(createZeroArray(count));
         setActiveLayerIndex(0);
         challengeRef.current = null;
         void requestChallenge();
@@ -226,15 +229,16 @@ export function useThreeLayerHold({
       completedDurationsRef.current[layerIdx] = Math.round(elapsedMs);
 
       setProgress((prev) => {
-        const next: LayerNumbers = [prev[0], prev[1], prev[2]];
+        const next = [...prev];
         next[layerIdx] = 1;
         return next;
       });
 
-      if (layerIdx < 2) {
+      const totalLayers = durationsRef.current.length;
+      if (layerIdx < totalLayers - 1) {
         const nextIdx = layerIdx + 1;
         setStatuses((prev) => {
-          const next: LayerStatuses = [prev[0], prev[1], prev[2]];
+          const next = [...prev];
           next[layerIdx] = "completed";
           next[nextIdx] = "idle";
           return next;
@@ -242,7 +246,7 @@ export function useThreeLayerHold({
         setActiveLayerIndex(nextIdx);
         setEarlyReleaseNotice(null);
       } else {
-        setStatuses(["completed", "completed", "completed"]);
+        setStatuses(Array.from({ length: totalLayers }, () => "completed"));
         setEarlyReleaseNotice(null);
         void submitFinalVerification();
       }
@@ -269,7 +273,7 @@ export function useThreeLayerHold({
       setEarlyReleaseNotice(null);
 
       setStatuses((prev) => {
-        const next: LayerStatuses = [prev[0], prev[1], prev[2]];
+        const next = [...prev];
         next[layerIdx] = "holding";
         return next;
       });
@@ -293,7 +297,7 @@ export function useThreeLayerHold({
         }
 
         setProgress((prev) => {
-          const next: LayerNumbers = [prev[0], prev[1], prev[2]];
+          const next = [...prev];
           next[layerIdx] = ratio;
           return next;
         });
@@ -325,16 +329,17 @@ export function useThreeLayerHold({
   );
 
   const resetVerification = useCallback(() => {
+    const count = durationsRef.current.length;
     stopRaf();
     holdStartTimeRef.current = null;
     activePointerIdRef.current = null;
     activeInputSourceRef.current = null;
     isSubmittingRef.current = false;
-    completedDurationsRef.current = [0, 0, 0];
+    completedDurationsRef.current = createZeroArray(count);
     challengeRef.current = null;
 
-    setStatuses(["idle", "locked", "locked"]);
-    setProgress([0, 0, 0]);
+    setStatuses(createInitialStatuses(count));
+    setProgress(createZeroArray(count));
     setActiveLayerIndex(0);
     setIsVerified(false);
     setIsVerifyingBackend(false);
@@ -343,7 +348,6 @@ export function useThreeLayerHold({
     void requestChallenge();
   }, [requestChallenge, stopRaf]);
 
-  // Request challenge on mount & clean up on unmount / tab hidden / window blur
   useEffect(() => {
     isMountedRef.current = true;
     void requestChallenge();

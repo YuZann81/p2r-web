@@ -1,7 +1,11 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import LeaderboardPage from "@/app/leaderboard/page";
-import { LEADERBOARD_ENTRIES } from "@/lib/content";
+import { GAME_SCORE_ENTRIES, LEADERBOARD_ENTRIES } from "@/lib/content";
 import { getLeaderboardData } from "@/lib/leaderboard/getLeaderboard";
+import {
+  buildCoreAccumulatedLeaderboard,
+  buildPerGameLeaderboards,
+} from "@/lib/leaderboard/aggregateLeaderboard";
 
 jest.mock("@/lib/leaderboard/getLeaderboard", () => ({
   getLeaderboardData: jest.fn(),
@@ -107,6 +111,41 @@ describe("LeaderboardPage", () => {
 
       expect(screen.getAllByText("LiveChampion").length).toBeGreaterThan(0);
       expect(screen.getAllByText(/120\.000/i).length).toBeGreaterThan(0);
+    });
+
+    it("supports switching between Leaderboard Inti (Akumulasi) and Leaderboard Per Game with game selector", async () => {
+      const coreEntries = buildCoreAccumulatedLeaderboard(GAME_SCORE_ENTRIES);
+      const perGameGroups = buildPerGameLeaderboards(GAME_SCORE_ENTRIES);
+
+      mockedGetLeaderboardData.mockResolvedValueOnce({
+        mode: "preview",
+        entries: coreEntries,
+        coreEntries,
+        perGameGroups,
+      });
+
+      const Component = await LeaderboardPage();
+      render(Component);
+
+      // Default active tab is Leaderboard Inti (Akumulasi): CyberKnight #1 with 98.500
+      expect(
+        screen.getByRole("tab", { name: /leaderboard inti/i }),
+      ).toHaveAttribute("aria-selected", "true");
+      expect(screen.getAllByText("CyberKnight").length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/98\.500/i).length).toBeGreaterThan(0);
+
+      // Switch to Leaderboard Per Game
+      fireEvent.click(screen.getByRole("tab", { name: /leaderboard per game/i }));
+      expect(
+        screen.getByRole("tab", { name: /leaderboard per game/i }),
+      ).toHaveAttribute("aria-selected", "true");
+
+      // Select "Byte Defender" game
+      fireEvent.click(screen.getByRole("button", { name: "Byte Defender" }));
+      expect(screen.getByText(/top 3 • byte defender/i)).toBeInTheDocument();
+      // PixelQueen leads Byte Defender with 47.200
+      expect(screen.getAllByText("PixelQueen").length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/47\.200/i).length).toBeGreaterThan(0);
     });
   });
 });
