@@ -4,7 +4,6 @@
  * This module is reached from BOTH the browser and the Node server:
  *
  *  - Browser: client components (KaryaDirectory,
- *    MerchandiseCatalog, MerchandiseDetailModal, MerchandiseSection,
  *    VoteButton, LoginPage, AuthProvider) pull it in through `lib/api/client.ts`.
  *    In the browser, requests default to the same-origin relative path `/api/v1`
  *    (routed directly by reverse proxy / Caddy to Laravel `/api/v1/*`). This allows

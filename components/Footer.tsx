@@ -62,14 +62,6 @@ export default function Footer() {
                   Leaderboard
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/merchandise"
-                  className="text-[#FFF5E9]/80 hover:text-[#ffe500] transition-colors"
-                >
-                  Merchandise
-                </Link>
-              </li>
             </ul>
           </div>
 

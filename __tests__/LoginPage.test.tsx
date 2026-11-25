@@ -62,9 +62,9 @@ describe("LoginPage (/login)", () => {
 
   it("submits login form and redirects to intended destination on success", async () => {
     const searchParams = new URLSearchParams({
-      redirect: "/merchandise",
-      action: "order",
-      productId: "prod-1",
+      redirect: "/karya",
+      action: "vote",
+      slug: "cyber-runner",
     });
     mockedUseSearchParams.mockReturnValue(
       searchParams as unknown as ReturnType<typeof useSearchParams>,
@@ -99,7 +99,7 @@ describe("LoginPage (/login)", () => {
         password: "password123",
       });
       expect(mockPush).toHaveBeenCalledWith(
-        "/merchandise?action=order&productId=prod-1",
+        "/karya?action=vote&slug=cyber-runner",
       );
     });
   });
