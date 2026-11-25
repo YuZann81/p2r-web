@@ -2,7 +2,7 @@ import { fetchKaryas } from "@/lib/api/karya";
 import type { KaryaCategory, KaryaDetail } from "@/lib/api/types/karya";
 import { GAMES } from "@/lib/content";
 
-const FALLBACK_NON_GAME_KARYAS: KaryaDetail[] = [
+export const FALLBACK_NON_GAME_KARYAS: KaryaDetail[] = [
   {
     id: "karya-web-1",
     title: "EduPortal RPL - Learning Management System",

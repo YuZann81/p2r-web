@@ -11,8 +11,30 @@ export const metadata: Metadata = {
     "Eksplorasi seluruh karya inovasi website modern, aplikasi software, sistem IoT, dan digital art buatan siswa RPL di Pixel To Reality.",
 };
 
-export default async function KaryaPage() {
-  const karyas = await getAllKaryas();
+const VALID_CATEGORIES = new Set([
+  "all",
+  "website",
+  "software",
+  "hardware_robotics",
+  "digital_art",
+]);
+
+export default async function KaryaPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ category?: string }>;
+} = {}) {
+  const [karyas, resolvedParams] = await Promise.all([
+    getAllKaryas(),
+    searchParams ? searchParams : Promise.resolve({} as { category?: string }),
+  ]);
+  const rawCategory =
+    typeof resolvedParams?.category === "string"
+      ? resolvedParams.category
+      : "all";
+  const initialCategory = VALID_CATEGORIES.has(rawCategory)
+    ? rawCategory
+    : "all";
 
   return (
     <div className="flex min-h-screen flex-col bg-[#211B35] text-[#FFF5E9]">
@@ -38,7 +60,7 @@ export default async function KaryaPage() {
             </h1>
           </header>
 
-          <KaryaDirectory initialKaryas={karyas} />
+          <KaryaDirectory initialKaryas={karyas} initialCategory={initialCategory} />
         </div>
       </main>
 

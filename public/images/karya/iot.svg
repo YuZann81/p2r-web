@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <defs>
+    <linearGradient id="iot-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#06171A"/>
+      <stop offset="100%" stop-color="#0E2E2B"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="200" fill="url(#iot-bg)"/>
+  <!-- Circuit traces -->
+  <g stroke="#02FD0C" stroke-width="2" stroke-opacity="0.55" fill="none">
+    <path d="M40 50 L108 50 L124 68"/>
+    <path d="M30 96 L114 96"/>
+    <path d="M46 142 L108 142 L124 124"/>
+    <path d="M280 50 L212 50 L196 68"/>
+    <path d="M290 96 L206 96"/>
+    <path d="M274 142 L212 142 L196 124"/>
+    <circle cx="40" cy="50" r="4" fill="#02FD0C"/>
+    <circle cx="30" cy="96" r="4" fill="#68D5E8"/>
+    <circle cx="46" cy="142" r="4" fill="#02FD0C"/>
+    <circle cx="280" cy="50" r="4" fill="#02FD0C"/>
+    <circle cx="290" cy="96" r="4" fill="#68D5E8"/>
+    <circle cx="274" cy="142" r="4" fill="#02FD0C"/>
+  </g>
+  <!-- Microchip -->
+  <rect x="114" y="52" width="92" height="88" rx="10" fill="#091D20" stroke="#02FD0C" stroke-width="3"/>
+  <rect x="128" y="66" width="64" height="60" rx="6" fill="#0F2D30" stroke="#68D5E8" stroke-width="1.5"/>
+  <text x="160" y="94" text-anchor="middle" font-family="monospace" font-size="16" font-weight="bold" fill="#02FD0C">IOT</text>
+  <text x="160" y="114" text-anchor="middle" font-family="monospace" font-size="10" fill="#68D5E8">ESP32</text>
+</svg>

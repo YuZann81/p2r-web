@@ -6,6 +6,7 @@ import KaryaCard from "@/components/KaryaCard";
 
 type KaryaDirectoryProps = {
   initialKaryas: KaryaDetail[];
+  initialCategory?: string;
 };
 
 const CATEGORIES = [
@@ -16,8 +17,11 @@ const CATEGORIES = [
   { id: "digital_art", label: "Digital Art" },
 ] as const;
 
-export default function KaryaDirectory({ initialKaryas }: KaryaDirectoryProps) {
-  const [activeCategory, setActiveCategory] = useState<string>("all");
+export default function KaryaDirectory({
+  initialKaryas,
+  initialCategory = "all",
+}: KaryaDirectoryProps) {
+  const [activeCategory, setActiveCategory] = useState<string>(initialCategory);
 
   const filteredKaryas =
     activeCategory === "all"
