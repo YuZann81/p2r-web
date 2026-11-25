@@ -214,4 +214,46 @@ describe("Platform Maintenance Status Resolution", () => {
     expect(parsePlatformStatusPayload({ status: "ok" })).toBeNull();
     expect(parsePlatformStatusPayload({ mode: "unknown" })).toBeNull();
   });
+
+  it("stays normal when /health confirms API and DB are healthy even if /settings transiently fails", () => {
+    const result = resolvePlatformStatus({
+      health: { ok: true, reachable: true, databaseConnected: true },
+      settings: {
+        ok: false,
+        maintenanceEnabled: false,
+        maintenanceMessage: "",
+        maintenanceSchedule: "",
+      },
+      lastKnown: null,
+    });
+
+    expect(result.mode).toBe("normal");
+    expect(result.apiHealthy).toBe(true);
+    expect(result.databaseConnected).toBe(true);
+    expect(result.maintenance.enabled).toBe(false);
+    expect(result.maintenance.source).toBe("unknown");
+  });
+
+  it("preserves last-known scheduled_maintenance if /settings transiently fails even when /health is ok", () => {
+    const result = resolvePlatformStatus({
+      health: { ok: true, reachable: true, databaseConnected: true },
+      settings: {
+        ok: false,
+        maintenanceEnabled: false,
+        maintenanceMessage: "",
+        maintenanceSchedule: "",
+      },
+      lastKnown: {
+        enabled: true,
+        message: "Kalibrasi mesin arcade",
+        schedule: "01:00–02:00 WIB",
+        observedAt: "2026-11-25T02:00:00.000Z",
+      },
+    });
+
+    expect(result.mode).toBe("scheduled_maintenance");
+    expect(result.apiHealthy).toBe(true);
+    expect(result.databaseConnected).toBe(true);
+    expect(result.maintenance.source).toBe("last_known");
+  });
 });

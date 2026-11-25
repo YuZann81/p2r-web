@@ -29,7 +29,7 @@ export default async function Page() {
         <TimelineToLaunchPortal />
         <ExhibitionCountdownSection />
         <GameShowcase games={games} />
-        <LeaderboardSection />
+        <LeaderboardSection gameSlugs={games.map((g) => g.id)} />
         <ArcadeCabinetSection />
         <PartnersSection />
         <MerchandiseSection />

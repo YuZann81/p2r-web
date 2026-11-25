@@ -59,4 +59,10 @@ describe("RegisterPage (/register)", () => {
 
     expect(mockedRegisterUser).not.toHaveBeenCalled();
   });
+
+  it("does not display fabricated or wrong-school contact email addresses", () => {
+    render(<RegisterPage />);
+
+    expect(screen.queryByText(/smkn4bdg/i)).not.toBeInTheDocument();
+  });
 });

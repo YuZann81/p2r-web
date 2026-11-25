@@ -194,4 +194,71 @@ describe("Dual-State Pixel-Art Maintenance Experience", () => {
     expect(css).toContain(".p2r-anim-core");
     expect(css).toContain("animation: none !important");
   });
+
+  it("requires two consecutive failed client probes before flipping a healthy page to SYSTEM DEGRADED and recovers automatically", async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        json: async () => ({ message: "Temporary blip" }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => NORMAL_STATUS,
+      })
+      .mockRejectedValueOnce(new Error("Transient network error"))
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => DEGRADED_STATUS,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => NORMAL_STATUS,
+      });
+
+    global.fetch = fetchMock as typeof fetch;
+
+    render(
+      <PlatformStatusGuard initialStatus={NORMAL_STATUS}>
+        <div>Konten Utama P2R</div>
+      </PlatformStatusGuard>,
+    );
+
+    // 1st transient failure on focus: page must remain healthy
+    fireEvent(window, new Event("focus"));
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+    expect(screen.getByText("Konten Utama P2R")).toBeInTheDocument();
+    expect(screen.queryByText("SYSTEM DEGRADED")).not.toBeInTheDocument();
+
+    // Subsequent healthy probe resets consecutive failure counter
+    fireEvent(window, new Event("focus"));
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+    expect(screen.getByText("Konten Utama P2R")).toBeInTheDocument();
+
+    // 1st failure after reset: still stays healthy
+    fireEvent(window, new Event("focus"));
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+    });
+    expect(screen.getByText("Konten Utama P2R")).toBeInTheDocument();
+
+    // 2nd consecutive failure: transitions to SYSTEM DEGRADED
+    fireEvent(window, new Event("focus"));
+    await waitFor(() => {
+      expect(screen.getByText("SYSTEM DEGRADED")).toBeInTheDocument();
+    });
+    expect(screen.queryByText("Konten Utama P2R")).not.toBeInTheDocument();
+
+    // Next healthy probe recovers automatically without manual reload
+    fireEvent(window, new Event("focus"));
+    await waitFor(() => {
+      expect(screen.getByText("Konten Utama P2R")).toBeInTheDocument();
+    });
+    expect(refreshMock).toHaveBeenCalledTimes(1);
+  });
 });

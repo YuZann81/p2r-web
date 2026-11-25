@@ -1,7 +1,11 @@
 import { fetchGameLeaderboard } from "@/lib/api/leaderboard";
 import { apiGet } from "@/lib/api/client";
 import { fetchGameKaryas } from "@/lib/api/karya";
-import { getLeaderboardData } from "@/lib/leaderboard/getLeaderboard";
+import {
+  getLeaderboardData,
+  LEADERBOARD_CACHE_TTL_MS,
+  resetLeaderboardCacheForTests,
+} from "@/lib/leaderboard/getLeaderboard";
 
 jest.mock("@/lib/api/client", () => ({
   apiGet: jest.fn(),
@@ -19,6 +23,7 @@ const mockedFetchGameKaryas = fetchGameKaryas as jest.MockedFunction<
 describe("Leaderboard API service & loader", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetLeaderboardCacheForTests();
   });
 
   describe("fetchGameLeaderboard", () => {
@@ -142,6 +147,64 @@ describe("Leaderboard API service & loader", () => {
 
       const data = await getLeaderboardData();
       expect(data).toEqual({ mode: "empty", entries: [] });
+    });
+
+    it("reuses preloaded game slugs without calling fetchGameKaryas again", async () => {
+      mockedApiGet.mockResolvedValueOnce({
+        success: true,
+        message: "ok",
+        data: {
+          game: { id: "1", slug: "bindmaze", title: "BindMaze" },
+          leaderboard: [
+            { rank: 1, player: { id: 1, name: "Saepudin" }, score: 350 },
+          ],
+        },
+      });
+
+      const data = await getLeaderboardData({ gameSlugs: ["bindmaze", "bindmaze"] });
+
+      expect(mockedFetchGameKaryas).not.toHaveBeenCalled();
+      expect(mockedApiGet).toHaveBeenCalledTimes(1);
+      expect(data).toEqual({
+        mode: "live",
+        entries: [
+          { rank: 1, playerName: "Saepudin", gameName: "BindMaze", score: 350 },
+        ],
+      });
+    });
+
+    it("caches leaderboard responses within TTL and deduplicates concurrent in-flight requests", async () => {
+      const nowSpy = jest.spyOn(Date, "now").mockReturnValue(1_000_000);
+      mockedApiGet.mockResolvedValue({
+        success: true,
+        message: "ok",
+        data: {
+          game: { id: "1", slug: "bindmaze", title: "BindMaze" },
+          leaderboard: [
+            { rank: 1, player: { id: 1, name: "Saepudin" }, score: 350 },
+          ],
+        },
+      });
+
+      // Two concurrent calls share a single API request
+      const [first, second] = await Promise.all([
+        getLeaderboardData({ gameSlugs: ["bindmaze"] }),
+        getLeaderboardData({ gameSlugs: ["bindmaze"] }),
+      ]);
+      expect(first).toEqual(second);
+      expect(mockedApiGet).toHaveBeenCalledTimes(1);
+
+      // Subsequent call within TTL returns cached data without API call
+      nowSpy.mockReturnValue(1_000_000 + LEADERBOARD_CACHE_TTL_MS - 1_000);
+      const cached = await getLeaderboardData({ gameSlugs: ["bindmaze"] });
+      expect(cached).toEqual(first);
+      expect(mockedApiGet).toHaveBeenCalledTimes(1);
+
+      // Call after TTL expires fetches fresh data
+      nowSpy.mockReturnValue(1_000_000 + LEADERBOARD_CACHE_TTL_MS + 1);
+      await getLeaderboardData({ gameSlugs: ["bindmaze"] });
+      expect(mockedApiGet).toHaveBeenCalledTimes(2);
+      nowSpy.mockRestore();
     });
   });
 });

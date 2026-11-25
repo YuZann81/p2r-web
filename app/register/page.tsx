@@ -46,18 +46,6 @@ export default function RegisterPage() {
                 Kunjungi booth CS Panitia di area pameran untuk mendaftarkan diri dan mendapatkan akun resmi beserta P2R Coin sebagai modal bermain.
               </p>
             </div>
-
-            <div className="border-t border-[#39265E] pt-4">
-              <h2 className="font-display text-sm font-bold uppercase tracking-wider text-[#FFD447]">
-                Butuh Bantuan?
-              </h2>
-              <a
-                href="mailto:rpl@smkn4bdg.sch.id"
-                className="mt-1 inline-block font-display text-sm text-[#68D5E8] hover:text-[#FFD447] hover:underline"
-              >
-                rpl@smkn4bdg.sch.id
-              </a>
-            </div>
           </div>
 
           <div className="mt-8 text-center">

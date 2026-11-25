@@ -18,6 +18,7 @@ const DEGRADED_POLL_MS = 10_000;
 const SCHEDULED_POLL_MS = 30_000;
 const NORMAL_POLL_MS = 30_000;
 const CLIENT_PROBE_TIMEOUT_MS = 6_000;
+const REQUIRED_FAILURES_FROM_NORMAL = 2;
 
 export default function PlatformStatusGuard({
   initialStatus,
@@ -27,6 +28,7 @@ export default function PlatformStatusGuard({
   const [status, setStatus] = useState<PlatformStatus | null>(initialStatus);
   const [isChecking, setIsChecking] = useState(false);
   const inFlightRef = useRef(false);
+  const consecutiveFailuresRef = useRef(0);
   const prevModeRef = useRef<PlatformStatus["mode"] | null>(
     initialStatus?.mode ?? null,
   );
@@ -44,6 +46,26 @@ export default function PlatformStatusGuard({
         () => controller.abort(),
         CLIENT_PROBE_TIMEOUT_MS,
       );
+
+      const applyDegradedCandidate = (candidate: PlatformStatus) => {
+        consecutiveFailuresRef.current += 1;
+        const currentlyNormal =
+          prevModeRef.current === null || prevModeRef.current === "normal";
+
+        // Require consecutive failed client probes before replacing an already
+        // healthy page with degraded mode so a single transient blip does not
+        // interrupt active visitors.
+        if (
+          currentlyNormal &&
+          !manual &&
+          consecutiveFailuresRef.current < REQUIRED_FAILURES_FROM_NORMAL
+        ) {
+          return;
+        }
+
+        prevModeRef.current = candidate.mode;
+        setStatus(candidate);
+      };
 
       try {
         const res = await fetch("/api/platform-status", {
@@ -65,6 +87,12 @@ export default function PlatformStatusGuard({
 
         // Never treat a generic HTTP 200 or malformed body as proof of API health.
         const nextStatus = parsed ?? buildDegradedFallbackStatus();
+        if (nextStatus.mode === "system_degraded") {
+          applyDegradedCandidate(nextStatus);
+          return;
+        }
+
+        consecutiveFailuresRef.current = 0;
         const wasBlocked =
           prevModeRef.current === "system_degraded" ||
           prevModeRef.current === "scheduled_maintenance";
@@ -76,9 +104,7 @@ export default function PlatformStatusGuard({
           router.refresh();
         }
       } catch {
-        const fallback = buildDegradedFallbackStatus();
-        prevModeRef.current = fallback.mode;
-        setStatus(fallback);
+        applyDegradedCandidate(buildDegradedFallbackStatus());
       } finally {
         clearTimeout(timer);
         inFlightRef.current = false;

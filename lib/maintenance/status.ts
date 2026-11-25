@@ -144,18 +144,36 @@ export function resolvePlatformStatus(params: {
     };
   }
 
-  // Canonical settings could not be fetched (API unreachable, timeout, or DB down).
+  // Canonical settings could not be fetched (API unreachable, timeout, or transient error).
   if (lastKnown?.enabled) {
     return {
       mode: "scheduled_maintenance",
-      apiHealthy: false,
+      apiHealthy: health.ok,
       apiReachable: health.reachable,
-      databaseConnected: false,
+      databaseConnected: health.databaseConnected,
       maintenance: {
         enabled: true,
         message: lastKnown.message,
         schedule: lastKnown.schedule,
         source: "last_known",
+      },
+      checkedAt,
+    };
+  }
+
+  // If `/health` confirms the API and database are healthy, a transient
+  // `/settings` failure must not take down the public homepage.
+  if (health.ok) {
+    return {
+      mode: "normal",
+      apiHealthy: true,
+      apiReachable: health.reachable,
+      databaseConnected: health.databaseConnected,
+      maintenance: {
+        enabled: false,
+        message: lastKnown?.message ?? "",
+        schedule: lastKnown?.schedule ?? "",
+        source: lastKnown ? "last_known" : "unknown",
       },
       checkedAt,
     };

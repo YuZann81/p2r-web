@@ -2,8 +2,16 @@ import React from "react";
 import Link from "next/link";
 import { getLeaderboardData } from "@/lib/leaderboard/getLeaderboard";
 
-export default async function LeaderboardSection() {
-  const { entries } = await getLeaderboardData();
+type LeaderboardSectionProps = {
+  gameSlugs?: string[];
+};
+
+export default async function LeaderboardSection({
+  gameSlugs,
+}: LeaderboardSectionProps = {}) {
+  const { entries } = await getLeaderboardData(
+    gameSlugs ? { gameSlugs } : undefined,
+  );
 
   const rank1 = entries.find((e) => e.rank === 1);
   const rank2 = entries.find((e) => e.rank === 2);

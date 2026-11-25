@@ -1,13 +1,7 @@
 import { apiGet } from "@/lib/api/client";
-import type {
-  LeaderboardEntry,
-  KaryaLeaderboardEntry,
-} from "@/lib/api/types/leaderboard";
+import type { LeaderboardEntry } from "@/lib/api/types/leaderboard";
 
-export type {
-  LeaderboardEntry,
-  KaryaLeaderboardEntry,
-} from "@/lib/api/types/leaderboard";
+export type { LeaderboardEntry } from "@/lib/api/types/leaderboard";
 
 export type RawGameLeaderboardEntry = {
   rank: number;
