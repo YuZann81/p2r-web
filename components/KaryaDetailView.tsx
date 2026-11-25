@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import GameArtwork from "@/components/GameArtwork";
 import VoteButton from "@/components/VoteButton";
 import type { KaryaDetail } from "@/lib/api/types/karya";
+import { resolveKaryaMediaUrls } from "@/lib/api/media";
 
 type KaryaDetailViewProps = {
   karya: KaryaDetail;
@@ -12,28 +13,10 @@ type KaryaDetailViewProps = {
   backLabel: string;
 };
 
-function resolveMediaUrl(value: unknown): string | null {
-  if (typeof value === "string" && value.trim().length > 0) {
-    return value;
-  }
-
-  if (
-    value &&
-    typeof value === "object" &&
-    "url" in value &&
-    typeof value.url === "string" &&
-    value.url.trim().length > 0
-  ) {
-    return value.url;
-  }
-
-  return null;
-}
-
 const CATEGORY_LABELS: Record<string, string> = {
   game: "Game Arcade",
   website: "Web Innovation",
-  software: "Software Engineering",
+  software: "Software",
   hardware_robotics: "IoT & Hardware",
   digital_art: "Digital Art",
 };
@@ -43,14 +26,10 @@ export default function KaryaDetailView({
   backHref,
   backLabel,
 }: KaryaDetailViewProps) {
-  const mediaUrls = Array.isArray(karya.media_urls)
-    ? karya.media_urls
-        .map(resolveMediaUrl)
-        .filter((url): url is string => url !== null)
-    : [];
+  const mediaUrls = resolveKaryaMediaUrls(karya.media_urls);
 
-  const mainImage = mediaUrls[0] || "/images/game-1.png";
-  const mainLogo = mediaUrls[1] || mediaUrls[0] || "/images/game-1-logo.png";
+  const mainImage = mediaUrls[0] ?? "";
+  const mainLogo = mediaUrls[1] ?? mediaUrls[0] ?? "";
   const categoryLabel = CATEGORY_LABELS[karya.category] || karya.category.toUpperCase();
 
   const techStackList = Array.isArray(karya.tech_stack)

@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import LeaderboardPage from "@/app/leaderboard/page";
-import { LEADERBOARD_ENTRIES } from "@/lib/content";
+import LeaderboardSection from "@/components/LeaderboardSection";
 import { getLeaderboardData } from "@/lib/leaderboard/getLeaderboard";
 
 jest.mock("@/lib/leaderboard/getLeaderboard", () => ({
@@ -11,95 +11,56 @@ const mockedGetLeaderboardData = getLeaderboardData as jest.MockedFunction<
   typeof getLeaderboardData
 >;
 
-describe("LeaderboardPage", () => {
+describe("LeaderboardPage & LeaderboardSection", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe("Preview Mode (Fallback)", () => {
+  describe("Empty State (No fabricated entries)", () => {
     beforeEach(() => {
       mockedGetLeaderboardData.mockResolvedValue({
-        mode: "preview",
-        entries: [...LEADERBOARD_ENTRIES],
+        mode: "empty",
+        entries: [],
       });
     });
 
-    it("renders the main heading H1 'LEADERBOARD'", async () => {
+    it("renders honest empty state on /leaderboard without fake players", async () => {
       const Component = await LeaderboardPage();
       render(Component);
-      const heading = screen.getByRole("heading", {
-        level: 1,
-        name: /leaderboard/i,
-      });
-      expect(heading).toBeInTheDocument();
-    });
 
-    it("renders the link to return to home page", async () => {
-      const Component = await LeaderboardPage();
-      render(Component);
-      const backLinks = screen.getAllByRole("link", {
-        name: /kembali ke beranda/i,
-      });
-      expect(backLinks.length).toBeGreaterThan(0);
-      expect(backLinks[0]).toHaveAttribute("href", "/");
-    });
-
-    it("renders the table headers Rank, Player, and Score", async () => {
-      const Component = await LeaderboardPage();
-      render(Component);
       expect(
-        screen.getByRole("columnheader", { name: /^rank$/i }),
+        screen.getByRole("heading", { level: 1, name: /leaderboard/i }),
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("columnheader", { name: /^player$/i }),
+        screen.getByText(/Belum ada data skor klasemen yang tercatat\./i),
       ).toBeInTheDocument();
-      expect(
-        screen.getByRole("columnheader", { name: /^score$/i }),
-      ).toBeInTheDocument();
+      expect(screen.queryByRole("table")).not.toBeInTheDocument();
+      expect(screen.queryByText(/CyberKnight|CyberRider/i)).not.toBeInTheDocument();
     });
 
-    it("renders player ranking data and formatted scores correctly", async () => {
-      const Component = await LeaderboardPage();
+    it("renders honest empty state on homepage LeaderboardSection without hardcoded podium players", async () => {
+      const Component = await LeaderboardSection();
       render(Component);
-      for (const entry of LEADERBOARD_ENTRIES) {
-        expect(screen.getAllByText(entry.playerName).length).toBeGreaterThan(0);
-        expect(
-          screen.getAllByText(entry.score.toLocaleString("id-ID"), {
-            exact: false,
-          }).length,
-        ).toBeGreaterThan(0);
+
+      expect(screen.getByTestId("leaderboard-empty-state")).toBeInTheDocument();
+      expect(screen.getByText(/Belum Ada Skor Tercatat/i)).toBeInTheDocument();
+      for (const fakeName of ["CyberRider", "PixelMage", "NeonNinja", "Quantum Shift"]) {
+        expect(screen.queryByText(fakeName)).not.toBeInTheDocument();
       }
-    });
-
-    it("exposes semantic table and section structures for accessibility", async () => {
-      const Component = await LeaderboardPage();
-      render(Component);
-      const table = screen.getByRole("table");
-      expect(table).toBeInTheDocument();
-
-      const columnHeaders = within(table).getAllByRole("columnheader");
-      expect(columnHeaders).toHaveLength(3);
-
-      const rows = within(table).getAllByRole("row");
-      // 1 header row + N data rows
-      expect(rows).toHaveLength(LEADERBOARD_ENTRIES.length + 1);
-
-      const podiumSection = screen.getByRole("region", {
-        name: /top 3 juara klasemen/i,
-      });
-      expect(podiumSection).toBeInTheDocument();
     });
   });
 
   describe("Live Mode (API data)", () => {
-    it("renders live entries when live mode is active", async () => {
+    const liveEntries = [
+      { rank: 1, playerName: "LiveChampion", gameName: "PixelType", score: 120000 },
+      { rank: 2, playerName: "RunnerTwo", gameName: "PixelType", score: 95000 },
+      { rank: 3, playerName: "RunnerThree", gameName: "PixelType", score: 80000 },
+    ];
+
+    it("renders live podium, table headers, and formatted scores on /leaderboard", async () => {
       mockedGetLeaderboardData.mockResolvedValueOnce({
         mode: "live",
-        entries: [
-          { rank: 1, playerName: "LiveChampion", gameName: "Cyber Runner", score: 120000 },
-          { rank: 2, playerName: "RunnerTwo", gameName: "Cyber Runner", score: 95000 },
-          { rank: 3, playerName: "RunnerThree", gameName: "Cyber Runner", score: 80000 },
-        ],
+        entries: liveEntries,
       });
 
       const Component = await LeaderboardPage();
@@ -107,6 +68,44 @@ describe("LeaderboardPage", () => {
 
       expect(screen.getAllByText("LiveChampion").length).toBeGreaterThan(0);
       expect(screen.getAllByText(/120\.000/i).length).toBeGreaterThan(0);
+
+      const table = screen.getByRole("table");
+      expect(within(table).getAllByRole("columnheader")).toHaveLength(3);
+      expect(within(table).getAllByRole("row")).toHaveLength(liveEntries.length + 1);
+    });
+
+    it("renders only real podium players in LeaderboardSection when fewer than 3 players exist", async () => {
+      mockedGetLeaderboardData.mockResolvedValueOnce({
+        mode: "live",
+        entries: [liveEntries[0]],
+      });
+
+      const Component = await LeaderboardSection();
+      render(Component);
+
+      expect(screen.getByText("LiveChampion")).toBeInTheDocument();
+      expect(screen.queryByText("PixelMage")).not.toBeInTheDocument();
+      expect(screen.queryByText("NeonNinja")).not.toBeInTheDocument();
+    });
+
+    it("renders full podium and ranks 4+ with game names in LeaderboardSection", async () => {
+      mockedGetLeaderboardData.mockResolvedValueOnce({
+        mode: "live",
+        entries: [
+          ...liveEntries,
+          { rank: 4, playerName: "PlayerFour", gameName: "ArcadeDash", score: 64200 },
+        ],
+      });
+
+      const Component = await LeaderboardSection();
+      render(Component);
+
+      expect(screen.getByText("LiveChampion")).toBeInTheDocument();
+      expect(screen.getByText("RunnerTwo")).toBeInTheDocument();
+      expect(screen.getByText("RunnerThree")).toBeInTheDocument();
+      expect(screen.getByText("PlayerFour")).toBeInTheDocument();
+      expect(screen.getByText("ArcadeDash")).toBeInTheDocument();
+      expect(screen.getByText(/64\.200 PTS/i)).toBeInTheDocument();
     });
   });
 });

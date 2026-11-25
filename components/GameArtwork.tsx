@@ -1,3 +1,8 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { sanitizeMediaUrl } from "@/lib/api/media";
+
 type GameArtworkProps = {
   image: string;
   imageAlt: string;
@@ -13,8 +18,23 @@ export default function GameArtwork({
   logoAlt,
   tilt = "left",
 }: GameArtworkProps) {
+  const safeImage = sanitizeMediaUrl(image);
+  const safeLogo = sanitizeMediaUrl(logo);
+  const [imageError, setImageError] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [safeImage]);
+
+  useEffect(() => {
+    setLogoError(false);
+  }, [safeLogo]);
+
   const rotation = tilt === "left" ? "-rotate-6" : "rotate-6";
   const badgePosition = tilt === "left" ? "-top-8 right-6" : "-bottom-8 left-6";
+  const showImage = Boolean(safeImage && !imageError);
+  const showLogo = Boolean(safeLogo && !logoError);
 
   return (
     <div
@@ -31,23 +51,57 @@ export default function GameArtwork({
       />
 
       {/* main card */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#e6e6e6] shadow-lg">
-        <img
-          src={image || "/placeholder.svg"}
-          alt={imageAlt}
-          className="h-full w-full object-cover [image-rendering:pixelated]"
-        />
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#171224] shadow-lg">
+        {showImage && safeImage ? (
+          <img
+            src={safeImage}
+            alt={imageAlt}
+            onError={() => setImageError(true)}
+            className="h-full w-full object-cover [image-rendering:pixelated]"
+          />
+        ) : (
+          <div
+            role="img"
+            aria-label={imageAlt}
+            className="relative flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-[#2a1147] via-[#211B35] to-[#0E0A1A] p-6 text-center"
+          >
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 opacity-25"
+              style={{
+                backgroundImage:
+                  "linear-gradient(to right, rgba(91,43,230,0.45) 1px, transparent 1px), linear-gradient(to bottom, rgba(122,31,176,0.45) 1px, transparent 1px)",
+                backgroundSize: "16px 16px",
+              }}
+            />
+            <span className="relative h-2.5 w-2.5 bg-[#ffe500]" aria-hidden="true" />
+            <span className="relative mt-2 font-display text-sm tracking-widest text-[#FFF5E9]/85 uppercase">
+              Pixel To Reality
+            </span>
+          </div>
+        )}
       </div>
 
       {/* circular logo badge overlapping a corner */}
       <div
-        className={`absolute ${badgePosition} h-24 w-24 overflow-hidden rounded-full border-4 border-white bg-[#d9d9d9] shadow-md`}
+        className={`absolute ${badgePosition} flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-[#211B35] shadow-md`}
       >
-        <img
-          src={logo || "/placeholder.svg"}
-          alt={logoAlt}
-          className="h-full w-full object-cover [image-rendering:pixelated]"
-        />
+        {showLogo && safeLogo ? (
+          <img
+            src={safeLogo}
+            alt={logoAlt}
+            onError={() => setLogoError(true)}
+            className="h-full w-full object-cover [image-rendering:pixelated]"
+          />
+        ) : (
+          <span
+            role="img"
+            aria-label={logoAlt}
+            className="font-display text-sm tracking-widest text-[#ffe500] uppercase"
+          >
+            P2R
+          </span>
+        )}
       </div>
     </div>
   );

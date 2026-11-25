@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import KaryaDirectory from "@/components/KaryaDirectory";
 import { getAllKaryas } from "@/lib/karya/getKaryas";
+import { normalizeKaryaCategory } from "@/lib/karya/categories";
 
 export const metadata: Metadata = {
   title: "Direktori Karya & Pameran Inovasi — Pixels to Reality",
@@ -11,8 +12,18 @@ export const metadata: Metadata = {
     "Eksplorasi seluruh karya inovasi website modern, aplikasi software, sistem IoT, dan digital art buatan siswa RPL di Pixel To Reality.",
 };
 
-export default async function KaryaPage() {
-  const karyas = await getAllKaryas();
+type KaryaPageProps = {
+  searchParams?:
+    | Promise<{ category?: string | string[] }>
+    | { category?: string | string[] };
+};
+
+export default async function KaryaPage({ searchParams }: KaryaPageProps = {}) {
+  const [karyas, resolvedSearchParams] = await Promise.all([
+    getAllKaryas(),
+    searchParams ? Promise.resolve(searchParams) : Promise.resolve(undefined),
+  ]);
+  const initialCategory = normalizeKaryaCategory(resolvedSearchParams?.category);
 
   return (
     <div className="flex min-h-screen flex-col bg-[#211B35] text-[#FFF5E9]">
@@ -38,7 +49,10 @@ export default async function KaryaPage() {
             </h1>
           </header>
 
-          <KaryaDirectory initialKaryas={karyas} />
+          <KaryaDirectory
+            initialKaryas={karyas}
+            initialCategory={initialCategory}
+          />
         </div>
       </main>
 

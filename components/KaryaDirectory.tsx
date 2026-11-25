@@ -1,23 +1,30 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import type { KaryaDetail } from "@/lib/api/types/karya";
 import KaryaCard from "@/components/KaryaCard";
+import {
+  KARYA_CATEGORIES,
+  normalizeKaryaCategory,
+  type KaryaFilterCategory,
+} from "@/lib/karya/categories";
 
 type KaryaDirectoryProps = {
   initialKaryas: KaryaDetail[];
+  initialCategory?: string;
 };
 
-const CATEGORIES = [
-  { id: "all", label: "Semua Kategori" },
-  { id: "website", label: "Web Innovation" },
-  { id: "software", label: "Software" },
-  { id: "hardware_robotics", label: "IoT & Hardware" },
-  { id: "digital_art", label: "Digital Art" },
-] as const;
+export default function KaryaDirectory({
+  initialKaryas,
+  initialCategory = "all",
+}: KaryaDirectoryProps) {
+  const [activeCategory, setActiveCategory] = useState<KaryaFilterCategory>(
+    () => normalizeKaryaCategory(initialCategory),
+  );
 
-export default function KaryaDirectory({ initialKaryas }: KaryaDirectoryProps) {
-  const [activeCategory, setActiveCategory] = useState<string>("all");
+  useEffect(() => {
+    setActiveCategory(normalizeKaryaCategory(initialCategory));
+  }, [initialCategory]);
 
   const filteredKaryas =
     activeCategory === "all"
@@ -25,7 +32,8 @@ export default function KaryaDirectory({ initialKaryas }: KaryaDirectoryProps) {
       : initialKaryas.filter((k) => k.category === activeCategory);
 
   const activeCategoryObj =
-    CATEGORIES.find((c) => c.id === activeCategory) || CATEGORIES[0];
+    KARYA_CATEGORIES.find((c) => c.id === activeCategory) ||
+    KARYA_CATEGORIES[0];
 
   return (
     <div className="w-full">
@@ -36,7 +44,7 @@ export default function KaryaDirectory({ initialKaryas }: KaryaDirectoryProps) {
           aria-label="Filter Kategori Karya"
           className="inline-flex flex-wrap items-center justify-center gap-1.5 rounded-2xl border-2 border-[#39265E] bg-[#171224] p-1.5 shadow-[4px_4px_0_#0E0A1A]"
         >
-          {CATEGORIES.map((cat) => {
+          {KARYA_CATEGORIES.map((cat) => {
             const isActive = activeCategory === cat.id;
             return (
               <button

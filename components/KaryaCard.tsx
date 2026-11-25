@@ -1,6 +1,9 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import Link from "next/link";
 import type { KaryaDetail } from "@/lib/api/types/karya";
+import { resolveKaryaMediaUrls } from "@/lib/api/media";
 
 type KaryaCardProps = {
   karya: KaryaDetail;
@@ -29,32 +32,10 @@ const CATEGORY_STYLES: Record<string, { label: string; badge: string }> = {
   },
 };
 
-function resolveMediaUrl(value: unknown): string | null {
-  if (typeof value === "string" && value.trim().length > 0) {
-    return value;
-  }
-
-  if (
-    value &&
-    typeof value === "object" &&
-    "url" in value &&
-    typeof value.url === "string" &&
-    value.url.trim().length > 0
-  ) {
-    return value.url;
-  }
-
-  return null;
-}
-
 export default function KaryaCard({ karya }: KaryaCardProps) {
-  const mediaUrls = Array.isArray(karya.media_urls)
-    ? karya.media_urls
-        .map(resolveMediaUrl)
-        .filter((url): url is string => url !== null)
-    : [];
-
-  const mainImage = mediaUrls[0] || "/images/game-1.png";
+  const mediaUrls = resolveKaryaMediaUrls(karya.media_urls);
+  const mainImage = mediaUrls[0] ?? "";
+  const [imgFailed, setImgFailed] = useState(false);
   const catStyle = CATEGORY_STYLES[karya.category] || {
     label: karya.category.toUpperCase(),
     badge: "border-white/30 bg-white/10 text-white",
@@ -77,11 +58,32 @@ export default function KaryaCard({ karya }: KaryaCardProps) {
       <div>
         {/* Thumbnail Visual */}
         <div className="relative mb-4 aspect-video w-full overflow-hidden rounded-xl border border-white/10 bg-[#171224]">
-          <img
-            src={mainImage}
-            alt={`${karya.title} thumbnail`}
-            className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
-          />
+          {mainImage && !imgFailed ? (
+            <img
+              src={mainImage}
+              alt={`${karya.title} thumbnail`}
+              onError={() => setImgFailed(true)}
+              className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+            />
+          ) : (
+            <div
+              aria-hidden="true"
+              className="relative flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-[#2a1147] via-[#211B35] to-[#0E0A1A] p-4 text-center"
+            >
+              <div
+                className="absolute inset-0 opacity-25"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(to right, rgba(91,43,230,0.45) 1px, transparent 1px), linear-gradient(to bottom, rgba(122,31,176,0.45) 1px, transparent 1px)",
+                  backgroundSize: "16px 16px",
+                }}
+              />
+              <span className="relative h-2 w-2 bg-[#ffe500]" />
+              <span className="relative mt-2 max-w-full truncate font-display text-xs tracking-widest text-[#B7ABCE] uppercase">
+                Pixel To Reality
+              </span>
+            </div>
+          )}
           <div className="absolute top-2.5 left-2.5">
             <span
               className={`inline-block rounded-lg border px-2.5 py-1 font-display text-xs tracking-wider backdrop-blur-xs ${catStyle.badge}`}

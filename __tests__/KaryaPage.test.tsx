@@ -2,30 +2,30 @@ jest.mock("@/components/Footer", () => function MockFooter() {
   return <footer data-testid="mock-footer" />;
 });
 
-import { render, screen } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
-import KaryaPage from "@/app/karya/page"
-import { getAllKaryas } from "@/lib/karya/getKaryas"
-import type { KaryaDetail } from "@/lib/api/types/karya"
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import KaryaPage from "@/app/karya/page";
+import { getAllKaryas } from "@/lib/karya/getKaryas";
+import type { KaryaDetail } from "@/lib/api/types/karya";
 
 jest.mock("@/lib/karya/getKaryas", () => ({
   getAllKaryas: jest.fn(),
-}))
+}));
 
 const mockedGetAllKaryas = getAllKaryas as jest.MockedFunction<
   typeof getAllKaryas
->
+>;
 
 const mockKaryas: KaryaDetail[] = [
   {
     id: "karya-1",
     title: "Portal Sekolah Next.js",
     slug: "portal-sekolah-nextjs",
-    description: "Fast paced endless runner game.",
-    creators: "Tim Game RPL",
+    description: "Portal sekolah interaktif.",
+    creators: "Tim Web RPL",
     category: "website",
-    tech_stack: ["Phaser.js", "WebAudio"],
-    media_urls: ["/images/game-1.png"],
+    tech_stack: ["Next.js", "TypeScript"],
+    media_urls: ["https://cdn.example.com/web.png"],
     live_url: "https://play.example.com",
     repo_url: null,
     is_featured: true,
@@ -43,7 +43,7 @@ const mockKaryas: KaryaDetail[] = [
     creators: "Tim IoT RPL",
     category: "hardware_robotics",
     tech_stack: ["ESP32", "C++", "MQTT"],
-    media_urls: ["/images/game-2.png"],
+    media_urls: [],
     live_url: null,
     repo_url: "https://github.com/example/iot",
     is_featured: false,
@@ -53,85 +53,84 @@ const mockKaryas: KaryaDetail[] = [
     updated_at: null,
     is_voted_by_me: "0",
   },
-]
+];
 
 describe("KaryaPage (/karya)", () => {
   beforeEach(() => {
-    jest.clearAllMocks()
-  })
+    jest.clearAllMocks();
+  });
 
-  it("renders page heading, description, back link, and initial karya list", async () => {
-    mockedGetAllKaryas.mockResolvedValueOnce(mockKaryas)
+  it("renders default All Categories when no category query param is provided", async () => {
+    mockedGetAllKaryas.mockResolvedValueOnce(mockKaryas);
 
-    const Component = await KaryaPage()
-    render(Component)
+    const Component = await KaryaPage();
+    render(Component);
 
     expect(
       screen.getByRole("heading", { level: 1, name: /semua karya/i }),
-    ).toBeInTheDocument()
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("tab", { name: "Semua Kategori" }),
+    ).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("Portal Sekolah Next.js")).toBeInTheDocument();
+    expect(screen.getByText("Smart Attendance IoT")).toBeInTheDocument();
+  });
 
-    // Back to home links
-    const backLinks = screen.getAllByRole("link", {
-      name: /kembali ke beranda/i,
-    })
-    expect(backLinks.length).toBeGreaterThan(0)
-    expect(backLinks[0]).toHaveAttribute("href", "/")
+  it("pre-selects and filters category when ?category= query param is passed", async () => {
+    mockedGetAllKaryas.mockResolvedValueOnce(mockKaryas);
 
-    // Initial items rendered
-    expect(screen.getByText("Portal Sekolah Next.js")).toBeInTheDocument()
-    expect(screen.getByText("Smart Attendance IoT")).toBeInTheDocument()
+    const Component = await KaryaPage({
+      searchParams: Promise.resolve({ category: "hardware_robotics" }),
+    });
+    render(Component);
 
-    // Detail links
-    const detailLinks = screen.getAllByRole("link", {
-      name: /lihat detail karya/i,
-    })
-    expect(detailLinks[0]).toHaveAttribute("href", "/karya/portal-sekolah-nextjs")
-    expect(detailLinks[1]).toHaveAttribute("href", "/karya/smart-attendance-iot")
-  })
+    expect(
+      screen.getByRole("tab", { name: "IoT & Hardware" }),
+    ).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("Smart Attendance IoT")).toBeInTheDocument();
+    expect(screen.queryByText("Portal Sekolah Next.js")).not.toBeInTheDocument();
+  });
+
+  it("falls back cleanly to All Categories for unknown ?category= values", async () => {
+    mockedGetAllKaryas.mockResolvedValueOnce(mockKaryas);
+
+    const Component = await KaryaPage({
+      searchParams: Promise.resolve({ category: "nonexistent" }),
+    });
+    render(Component);
+
+    expect(
+      screen.getByRole("tab", { name: "Semua Kategori" }),
+    ).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("Portal Sekolah Next.js")).toBeInTheDocument();
+    expect(screen.getByText("Smart Attendance IoT")).toBeInTheDocument();
+  });
 
   it("filters karya list by category tab and shows empty state when no karya matches", async () => {
-    mockedGetAllKaryas.mockResolvedValueOnce(mockKaryas)
-    const user = userEvent.setup()
+    mockedGetAllKaryas.mockResolvedValueOnce(mockKaryas);
+    const user = userEvent.setup();
 
-    const Component = await KaryaPage()
-    render(Component)
+    const Component = await KaryaPage();
+    render(Component);
 
-    // Filter to Game category
-    const gameTab = screen.getByRole("tab", { name: "Web Innovation" })
-    await user.click(gameTab)
+    await user.click(screen.getByRole("tab", { name: "Web Innovation" }));
+    expect(screen.getByText("Portal Sekolah Next.js")).toBeInTheDocument();
+    expect(screen.queryByText("Smart Attendance IoT")).not.toBeInTheDocument();
 
-    expect(screen.getByText("Portal Sekolah Next.js")).toBeInTheDocument()
-    expect(screen.queryByText("Smart Attendance IoT")).not.toBeInTheDocument()
-
-    // Filter to Website category (empty)
-    const webTab = screen.getByRole("tab", { name: "Digital Art" })
-    await user.click(webTab)
-
+    await user.click(screen.getByRole("tab", { name: "Digital Art" }));
     expect(
-      screen.getByRole("heading", {
-        level: 2,
-        name: "Karya Segera Hadir",
-      }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText(/Karya pameran untuk kategori Digital Art/i),
-    ).toBeInTheDocument()
-  })
+      screen.getByRole("heading", { level: 2, name: "Karya Segera Hadir" }),
+    ).toBeInTheDocument();
+  });
 
   it("handles empty initial karyas array gracefully", async () => {
-    mockedGetAllKaryas.mockResolvedValueOnce([])
+    mockedGetAllKaryas.mockResolvedValueOnce([]);
 
-    const Component = await KaryaPage()
-    render(Component)
+    const Component = await KaryaPage();
+    render(Component);
 
     expect(
-      screen.getByRole("heading", { level: 1, name: /semua karya/i }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole("heading", {
-        level: 2,
-        name: "Karya Segera Hadir",
-      }),
-    ).toBeInTheDocument()
-  })
-})
+      screen.getByRole("heading", { level: 2, name: "Karya Segera Hadir" }),
+    ).toBeInTheDocument();
+  });
+});

@@ -13,6 +13,7 @@ jest.mock("@/lib/karya/getKaryaBySlug", () => ({
 
 jest.mock("next/navigation", () => ({
   notFound: jest.fn(),
+  usePathname: jest.fn().mockReturnValue("/games/game-1"),
   useRouter: jest.fn().mockReturnValue({
     push: jest.fn(),
     replace: jest.fn(),
