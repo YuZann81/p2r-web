@@ -22,7 +22,7 @@ describe("fetchPlayerProfileData", () => {
     jest.clearAllMocks();
   });
 
-  it("aggregates real user, wallet, redemptions, and per-game my_rank stats without fabricating data", async () => {
+  it("aggregates real user, wallet, and per-game my_rank stats without fabricating data", async () => {
     mockedGetCurrentUser.mockResolvedValueOnce({
       success: true,
       message: "",
@@ -88,9 +88,6 @@ describe("fetchPlayerProfileData", () => {
           },
         };
       }
-      if (endpoint === "/redemptions") {
-        return { success: true, message: "", data: { data: [] } };
-      }
       if (endpoint === "/games/pixeltype/leaderboard") {
         return {
           success: true,
@@ -107,6 +104,8 @@ describe("fetchPlayerProfileData", () => {
     });
 
     const data = await fetchPlayerProfileData("token-abc");
+
+    expect(mockedApiGet).not.toHaveBeenCalledWith("/redemptions", expect.anything());
 
     expect(data.coinBalance).toBe(150);
     expect(data.activeLeaderboardGamesCount).toBe(1);
