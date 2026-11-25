@@ -110,6 +110,9 @@ describe("MerchandiseSection & Components", () => {
       expect(
         screen.getByRole("link", { name: "Lihat Semua Merchandise" }),
       ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /buka chat admin/i }),
+      ).not.toBeInTheDocument();
     });
 
     it("renders product cards and opens info modal on click", async () => {

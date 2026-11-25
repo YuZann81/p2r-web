@@ -1,19 +1,28 @@
 import { fetchGameLeaderboard } from "@/lib/api/leaderboard";
 import { apiGet } from "@/lib/api/client";
+import { fetchGameKaryas } from "@/lib/api/karya";
+import { getLeaderboardData } from "@/lib/leaderboard/getLeaderboard";
 
 jest.mock("@/lib/api/client", () => ({
   apiGet: jest.fn(),
 }));
 
-const mockedApiGet = apiGet as jest.MockedFunction<typeof apiGet>;
+jest.mock("@/lib/api/karya", () => ({
+  fetchGameKaryas: jest.fn(),
+}));
 
-describe("Leaderboard API service", () => {
+const mockedApiGet = apiGet as jest.MockedFunction<typeof apiGet>;
+const mockedFetchGameKaryas = fetchGameKaryas as jest.MockedFunction<
+  typeof fetchGameKaryas
+>;
+
+describe("Leaderboard API service & loader", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe("fetchGameLeaderboard", () => {
-    it("calls /games/{slug}/leaderboard and maps live entries", async () => {
+    it("calls /games/{slug}/leaderboard with silentStatuses:[422] and maps live entries", async () => {
       mockedApiGet.mockResolvedValueOnce({
         success: true,
         message: "Leaderboard retrieved successfully.",
@@ -27,7 +36,10 @@ describe("Leaderboard API service", () => {
 
       const result = await fetchGameLeaderboard("pixeltype");
 
-      expect(mockedApiGet).toHaveBeenCalledWith("/games/pixeltype/leaderboard");
+      expect(mockedApiGet).toHaveBeenCalledWith(
+        "/games/pixeltype/leaderboard",
+        { silentStatuses: [422] },
+      );
       expect(result).toEqual([
         { rank: 1, playerName: "Player1", gameName: "PixelType", score: 9999 },
       ]);
@@ -54,6 +66,82 @@ describe("Leaderboard API service", () => {
       const result = await fetchGameLeaderboard("save-the-savanna");
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe("getLeaderboardData", () => {
+    it("queries games concurrently and returns live entries without fabricating fallback scores", async () => {
+      mockedFetchGameKaryas.mockResolvedValueOnce([
+        {
+          id: "1",
+          title: "Save The Savanna",
+          slug: "save-the-savanna",
+          description: null,
+          creators: null,
+          category: "game",
+          tech_stack: [],
+          media_urls: [],
+          live_url: null,
+          repo_url: null,
+          is_featured: false,
+          status: "published",
+          votes_count: 0,
+          created_at: null,
+          updated_at: null,
+          is_voted_by_me: "false",
+        },
+        {
+          id: "2",
+          title: "PixelType",
+          slug: "pixeltype",
+          description: null,
+          creators: null,
+          category: "game",
+          tech_stack: [],
+          media_urls: [],
+          live_url: null,
+          repo_url: null,
+          is_featured: false,
+          status: "published",
+          votes_count: 0,
+          created_at: null,
+          updated_at: null,
+          is_voted_by_me: "false",
+        },
+      ]);
+
+      mockedApiGet
+        .mockRejectedValueOnce(new Error("CAPABILITY_NOT_ENABLED"))
+        .mockResolvedValueOnce({
+          success: true,
+          message: "ok",
+          data: {
+            game: { id: "2", slug: "pixeltype", title: "PixelType" },
+            leaderboard: [
+              { rank: 1, player: { id: 1, name: "RealPlayer" }, score: 1500 },
+            ],
+          },
+        });
+
+      const data = await getLeaderboardData();
+      expect(data).toEqual({
+        mode: "live",
+        entries: [
+          {
+            rank: 1,
+            playerName: "RealPlayer",
+            gameName: "PixelType",
+            score: 1500,
+          },
+        ],
+      });
+    });
+
+    it("returns empty mode with zero entries when no game has scores", async () => {
+      mockedFetchGameKaryas.mockResolvedValueOnce([]);
+
+      const data = await getLeaderboardData();
+      expect(data).toEqual({ mode: "empty", entries: [] });
     });
   });
 });

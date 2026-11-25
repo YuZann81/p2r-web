@@ -36,6 +36,7 @@ export async function fetchGameLeaderboard(
   try {
     const payload = await apiGet<RawGameLeaderboard>(
       `/games/${encodeURIComponent(slug)}/leaderboard`,
+      { silentStatuses: [422] },
     );
     const raw = payload.data;
     if (!raw || !Array.isArray(raw.leaderboard) || raw.leaderboard.length === 0) {

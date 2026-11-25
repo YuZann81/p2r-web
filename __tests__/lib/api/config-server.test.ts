@@ -78,6 +78,15 @@ describe("Server-side API resolution (SSR / Node environment)", () => {
       },
     ]);
 
+    // Development + production API configured -> proxy /api/v1/* to configured API base URL
+    process.env.P2R_API_BASE_URL = "https://pameran.devsaka.id/api/v1";
+    expect(await nextConfig.rewrites()).toEqual([
+      {
+        source: "/api/v1/:path*",
+        destination: "https://pameran.devsaka.id/api/v1/:path*",
+      },
+    ]);
+
     // Development + P2R_API_BASE_URL unset -> no rewrite (never falls back to production)
     delete process.env.P2R_API_BASE_URL;
     expect(await nextConfig.rewrites()).toEqual([]);

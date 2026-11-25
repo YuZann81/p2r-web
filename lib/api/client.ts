@@ -11,6 +11,7 @@ export type ApiRequestOptions = {
   revalidate?: number | false;
   cache?: RequestCache;
   timeoutMs?: number;
+  silentStatuses?: number[];
 };
 
 const DEFAULT_TIMEOUT_MS = 8000;
@@ -108,6 +109,7 @@ async function executeRequest<T>(
   url: string,
   init: RequestInit,
   timeoutMs = DEFAULT_TIMEOUT_MS,
+  silentStatuses?: number[],
 ): Promise<ApiResponse<T>> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -144,11 +146,13 @@ async function executeRequest<T>(
           ? String((payload as Record<string, unknown>).code)
           : undefined;
 
-      console.error(
-        `[p2r-api] ${init.method || "GET"} ${url} failed (${response.status}):`,
-        errorMessage,
-        errorCode ? ` [code: ${errorCode}]` : "",
-      );
+      if (!silentStatuses?.includes(response.status)) {
+        console.error(
+          `[p2r-api] ${init.method || "GET"} ${url} failed (${response.status}):`,
+          errorMessage,
+          errorCode ? ` [code: ${errorCode}]` : "",
+        );
+      }
 
       throw new ApiError(errorMessage, {
         status: response.status,
@@ -207,7 +211,7 @@ export async function apiGet<T>(
     (init as Record<string, unknown>).next = { revalidate: options.revalidate };
   }
 
-  return executeRequest<T>(url, init, timeoutMs);
+  return executeRequest<T>(url, init, timeoutMs, options.silentStatuses);
 }
 
 export async function apiPost<T, B = unknown>(
@@ -228,7 +232,7 @@ export async function apiPost<T, B = unknown>(
     init.cache = options.cache;
   }
 
-  return executeRequest<T>(url, init, timeoutMs);
+  return executeRequest<T>(url, init, timeoutMs, options.silentStatuses);
 }
 
 export async function apiDelete<T>(
@@ -247,5 +251,5 @@ export async function apiDelete<T>(
     init.cache = options.cache;
   }
 
-  return executeRequest<T>(url, init, timeoutMs);
+  return executeRequest<T>(url, init, timeoutMs, options.silentStatuses);
 }

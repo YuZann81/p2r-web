@@ -5,14 +5,12 @@ import Link from "next/link";
 import type { Product } from "@/lib/api/types/product";
 import { fetchProducts } from "@/lib/api/products";
 import MerchandiseInfoModal from "./MerchandiseInfoModal";
-import ChatAdmin from "./ChatAdmin";
 import MerchandiseCard from "./MerchandiseCard";
 
 export default function MerchandiseSection() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -100,25 +98,12 @@ export default function MerchandiseSection() {
         </div>
       </div>
 
-      {/* Floating Chat Button */}
-      <button
-        type="button"
-        onClick={() => setIsChatOpen(true)}
-        aria-label="Buka Chat Admin"
-        className="fixed bottom-6 right-6 w-14 h-14 bg-[#FFD447] text-[#0E0A1A] rounded-2xl flex items-center justify-center shadow-[4px_4px_0_#0E0A1A] hover:scale-105 active:scale-95 transition-all z-40 outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
-      >
-        <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 3c-4.97 0-9 3.358-9 7.5 0 2.38 1.34 4.5 3.38 5.82-.18 1.76-1.19 3.51-1.28 3.66a.75.75 0 00.98 1.05c2.31-1.33 4.14-2.58 5.09-3.23.6.07 1.21.1 1.83.1 4.97 0 9-3.358 9-7.5S16.97 3 12 3z" />
-        </svg>
-      </button>
-
       {selectedProduct && (
         <MerchandiseInfoModal
           product={selectedProduct}
           onClose={() => setSelectedProduct(null)}
         />
       )}
-      {isChatOpen && <ChatAdmin onClose={() => setIsChatOpen(false)} />}
     </section>
   );
 }
