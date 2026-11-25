@@ -290,3 +290,200 @@
   transform: translateY(3px) scale(0.96);
   filter: brightness(1.15);
 }
+
+/* ============================================================================
+   3-LAYER HOLD VERIFICATION & MOTION GRAPHIC (P2R Cyber Arcade)
+   ============================================================================ */
+@keyframes p2r-stage-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes p2r-motion-crest-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.45) rotate(-10deg);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.08) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes p2r-motion-ring-pulse {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.55);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.85);
+  }
+}
+
+@keyframes p2r-particle-burst {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.4);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.95;
+    transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(1);
+  }
+}
+
+@keyframes p2r-motion-disperse-out {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.22);
+    filter: blur(4px);
+  }
+}
+
+@keyframes p2r-particle-disperse {
+  0% {
+    opacity: 0.95;
+    transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--tx, 0px) * 1.9), calc(var(--ty, 0px) * 1.9)) scale(0.2);
+  }
+}
+
+.p2r-stage-enter {
+  animation: p2r-stage-fade-in 260ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.p2r-crest-enter {
+  animation: p2r-motion-crest-in 520ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.p2r-ring-pulse {
+  animation: p2r-motion-ring-pulse 1400ms ease-out infinite;
+}
+
+.p2r-particle-enter {
+  animation: p2r-particle-burst 750ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.p2r-motion-exit {
+  animation: p2r-motion-disperse-out 380ms cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.p2r-particle-exit {
+  animation: p2r-particle-disperse 700ms cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+@keyframes p2r-fp-enter-kf {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.84);
+    filter: blur(6px);
+  }
+  65% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.03);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes p2r-fp-success-kf {
+  0% {
+    opacity: 0.4;
+    transform: scale(0.92);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes p2r-fp-exit-kf {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.86);
+    filter: blur(6px);
+  }
+}
+
+@keyframes p2r-scan-sweep-kf {
+  0% {
+    top: 16%;
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  80% {
+    opacity: 0.9;
+  }
+  100% {
+    top: 82%;
+    opacity: 0;
+  }
+}
+
+.p2r-fp-enter {
+  animation: p2r-fp-enter-kf 440ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.p2r-fp-success-in {
+  animation: p2r-fp-success-kf 340ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.p2r-fp-exit {
+  animation: p2r-fp-exit-kf 440ms cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+
+.p2r-scan-sweep {
+  animation: p2r-scan-sweep-kf 1100ms ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .p2r-stage-enter,
+  .p2r-crest-enter,
+  .p2r-ring-pulse,
+  .p2r-particle-enter,
+  .p2r-motion-exit,
+  .p2r-particle-exit,
+  .p2r-fp-enter,
+  .p2r-fp-success-in,
+  .p2r-fp-exit,
+  .p2r-scan-sweep {
+    animation: none !important;
+    transition: opacity 150ms ease !important;
+  }
+}

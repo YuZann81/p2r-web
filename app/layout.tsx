@@ -1,5 +1,6 @@
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Jersey_15, DM_Sans } from "next/font/google";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { CartProvider } from "@/lib/cart/cart-context";
@@ -61,6 +62,11 @@ export default function RootLayout({
         <AuthProvider>
           <CartProvider>{children}</CartProvider>
         </AuthProvider>
+        <Script id="disable-contextmenu" strategy="afterInteractive">
+          {`document.addEventListener('contextmenu', function (event) {
+  event.preventDefault();
+});`}
+        </Script>
         {process.env.NODE_ENV === "production" && <Analytics />}
       </body>
     </html>
